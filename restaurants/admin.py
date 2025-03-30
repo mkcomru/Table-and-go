@@ -1,3 +1,12 @@
 from django.contrib import admin
+from .models import Cuisine
 
-# Register your models here.
+
+@admin.register(Cuisine)
+class CuisineAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+
+
+
