@@ -55,6 +55,15 @@ class Restaurant(models.Model):
         User = get_user_model()
         return User.objects.filter(restaurant_admin_roles__restaurant=self, 
                                     restaurant_admin_roles__is_active=True)
+    
+    def get_available_tables(self, capacity=None, datetime=None):
+        tables = self.tables.filter(status='available')
+        if capacity:
+            tables = self.tables.filter(capacity__gte=capacity)
+        return tables
+    
+    def table_count(self):
+        return self.tables.count()
 
     def __str__(self):
         return self.name
@@ -63,6 +72,34 @@ class Restaurant(models.Model):
         verbose_name = "Ресторан"
         verbose_name_plural = "Рестораны"
         ordering = ['-created_at']
+
+
+class Table(models.Model):
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='tables', verbose_name="Ресторан")
+    number = models.IntegerField(verbose_name="Номер столика")
+    capacity = models.IntegerField(verbose_name="Вместимость")
+    STATUS_CHOICES = [
+        ('available', 'Доступен'),
+        ('reserved', 'Забронирован'),
+        ('maintenance', 'На обслуживании'),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='available', verbose_name="Статус")
+    location = models.CharField(max_length=100, blank=True, null=True, verbose_name="Расположение")
+    
+    class Meta:
+        verbose_name = "Столик"
+        verbose_name_plural = "Столики"
+        unique_together = ['restaurant', 'number']
+        ordering = ['restaurant', 'number']
+
+    def __str__(self):
+        return f"Номер столика: {self.number} ({self.restaurant.name})"
+    
+    def is_available_for_booking(self, datetime_start, datetime_end):
+        if self.status != 'available':
+            return False
+
+        return True
 
 
 class RestaurantAdmin(models.Model):

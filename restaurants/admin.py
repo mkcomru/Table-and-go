@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cuisine, Restaurant, RestaurantAdmin, AdminInvitation
+from .models import Cuisine, Restaurant, RestaurantAdmin, AdminInvitation, Table
 
 
 @admin.register(RestaurantAdmin)
@@ -30,6 +30,15 @@ class RestaurantAdmin(admin.ModelAdmin):
     list_filter = ['cuisines']
     search_fields = ('name', 'address', 'description')
     filter_horizontal = ['cuisines']
+
+
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    list_display = ('number', 'restaurant', 'capacity', 'status', 'location')
+    list_filter = ('restaurant', 'status', 'capacity')
+    search_fields = ('number', 'restaurant__name', 'location')
+    list_editable = ('status',)
+    
 
 
 
