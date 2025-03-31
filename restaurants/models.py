@@ -22,7 +22,7 @@ class Restaurant(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Описание ресторана")
     address = models.CharField(max_length=256, verbose_name="Адрес ресторана")
     phone = models.CharField(max_length=10, verbose_name="Контактный телефон")
-    email = models.CharField(max_length=100, verbose_name="Почта")
+    email = models.EmailField(unique=True, blank=False, null=False, verbose_name="Email")
 
     latitude = models.DecimalField(
         max_digits=9, decimal_places=6,
@@ -97,7 +97,6 @@ class AdminInvitation(models.Model):
         if not self.invitation_code:
             self.invitation_code = secrets.token_urlsafe(16)
         if not self.expires_at:
-            # По умолчанию приглашение действительно 7 дней
             self.expires_at = timezone.now() + timezone.timedelta(days=7)
         super().save(*args, **kwargs)
     
