@@ -41,7 +41,7 @@ class User(AbstractUser):
 
     def is_admin_of_restaurant(self, restaurant):
         from restaurants.models import RestaurantAdmin
-        return RestaurantAdmin.objects.filter(user=self, restaurant=restaurant, is_active=True)
+        return RestaurantAdmin.objects.filter(user=self, restaurant=restaurant, is_active=True).exists()
     
     def get_administered_restaurants(self):
         from restaurants.models import Restaurant

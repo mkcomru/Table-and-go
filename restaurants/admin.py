@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cuisine, Restaurant, RestaurantAdmin, AdminInvitation, Table
+from .models import Cuisine, Restaurant, RestaurantAdmin, AdminInvitation, Table, WorkingHours, Menu, RestaurantImage
 
 
 @admin.register(RestaurantAdmin)
@@ -39,6 +39,29 @@ class TableAdmin(admin.ModelAdmin):
     search_fields = ('number', 'restaurant__name', 'location')
     list_editable = ('status',)
     
+
+@admin.register(WorkingHours)
+class WorkingHoursAdmin(admin.ModelAdmin):
+    list_display = ('restaurant', 'get_day_of_week_display', 'opening_time', 'closing_time', 'is_closed')
+    list_filter = ('restaurant', 'day_of_week', 'is_closed')
+    search_fields = ('restaurant__name',)
+    list_editable = ('opening_time', 'closing_time', 'is_closed')
+
+
+@admin.register(Menu)
+class MenuAdmin(admin.ModelAdmin):
+    list_display = ('name', 'restaurant', 'category', 'price', 'is_available')
+    list_filter = ('restaurant', 'category', 'is_available')
+    search_fields = ('name', 'restaurant__name', 'description')
+    list_editable = ('price', 'is_available')
+
+
+@admin.register(RestaurantImage)
+class RestaurantImageAdmin(admin.ModelAdmin):
+    list_display = ('restaurant', 'caption', 'is_main', 'order')
+    list_filter = ('restaurant', 'is_main')
+    search_fields = ('restaurant__name', 'caption')
+    list_editable = ('is_main', 'order')
 
 
 
