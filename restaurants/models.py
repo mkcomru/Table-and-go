@@ -17,7 +17,7 @@ class Cuisine(models.Model):
         ordering = ["name"]
 
 
-class Restaurant(models.Model):
+class Establishment(models.Model):
     ESTABLISHMENT_TYPE = [
         ('bar', 'Бар'),
         ('restaurant', 'Ресторан'),
@@ -45,12 +45,12 @@ class Restaurant(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def add_administrator(self, user):
-        from restaurants.models import RestaurantAdmin
-        return RestaurantAdmin.objects.get_or_create(user=user, restaurant=self, defaults={'is_active': True})
+        from restaurants.models import EstablishmentAdmin
+        return EstablishmentAdmin.objects.get_or_create(user=user, restaurant=self, defaults={'is_active': True})
     
     def remove_administrator(self, user):
-        from restaurants.models import RestaurantAdmin
-        RestaurantAdmin.objects.filter(user=user, restaurant=self).delete()
+        from restaurants.models import EstablishmentAdmin
+        EstablishmentAdmin.objects.filter(user=user, restaurant=self).delete()
 
     def get_administrators(self):
         from django.contrib.auth import get_user_model
@@ -103,7 +103,7 @@ class Restaurant(models.Model):
 
 
 class Table(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='tables', verbose_name="Ресторан")
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE, related_name='tables', verbose_name="Ресторан")
     number = models.IntegerField(verbose_name="Номер столика")
     capacity = models.IntegerField(verbose_name="Вместимость")
     STATUS_CHOICES = [
@@ -138,11 +138,11 @@ class Table(models.Model):
         return not conflicting_bookings
 
 
-class RestaurantAdmin(models.Model):
+class EstablishmentAdmin(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='restaurant_admin_roles', verbose_name="Пользователь")
 
-    restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name='administrators', verbose_name="Ресторан")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     date_added = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
@@ -157,7 +157,7 @@ class RestaurantAdmin(models.Model):
 
 
 class AdminInvitation(models.Model):
-    restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE, 
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE, 
                                     related_name='invitations', verbose_name="Ресторан")
     email = models.EmailField(verbose_name="Email приглашаемого")
     phone = models.CharField(max_length=15, blank=True, null=True, verbose_name="Телефон приглашаемого")
@@ -185,7 +185,7 @@ class AdminInvitation(models.Model):
 
 
 class WorkingHours(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name='working_hours', verbose_name='Ресторан')
     DAYS_OF_WEEK = [
         (0, 'Понедельник'),
@@ -220,7 +220,7 @@ class WorkingHours(models.Model):
 
 
 class Menu(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name="menu", verbose_name="Ресторан")
     name = models.CharField(max_length=150, verbose_name="Название блюда")
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
@@ -247,7 +247,7 @@ class Menu(models.Model):
 
 
 class RestaurantImage(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name='images', verbose_name="Ресторан")
     image = models.ImageField(upload_to='restaurant_images', verbose_name="Фото ресторана")
     caption = models.CharField(max_length=150, blank=True, null=True, verbose_name="Описание блюда")

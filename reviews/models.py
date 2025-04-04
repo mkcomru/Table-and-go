@@ -1,12 +1,13 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from restaurants.models import Establishment
 
 
 class Review(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                             related_name='reviews', verbose_name='Пользователь')
-    restaurant = models.ForeignKey('restaurants.Restaurant', on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name='reviews', verbose_name="Ресторан")
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], 
                                 verbose_name="Оценка")

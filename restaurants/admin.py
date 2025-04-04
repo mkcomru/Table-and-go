@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Cuisine, Restaurant, RestaurantAdmin, AdminInvitation, Table, WorkingHours, Menu, RestaurantImage
+from .models import Cuisine, Establishment, EstablishmentAdmin, AdminInvitation, Table, WorkingHours, Menu, RestaurantImage
 
 
-@admin.register(RestaurantAdmin)
-class RestaurantAdminAdmin(admin.ModelAdmin):
+@admin.register(EstablishmentAdmin)
+class EstablishmentAdminAdmin(admin.ModelAdmin):
     list_display = ('user', 'restaurant', 'is_active', 'date_added')
     list_filter = ('is_active', 'restaurant')
     search_fields = ('user__email', 'user__first_name', 'user__last_name', 'restaurant__name')
@@ -24,8 +24,8 @@ class CuisineAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-@admin.register(Restaurant)
-class RestaurantAdmin(admin.ModelAdmin):
+@admin.register(Establishment)
+class EstablishmentAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'phone', 'email')
     list_filter = ['cuisines']
     search_fields = ('name', 'address', 'description')

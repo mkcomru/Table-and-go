@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Restaurant, RestaurantAdmin, RestaurantImage, Cuisine, Table, RestaurantInvitation, WorkingHours, Menu
+from .models import Establishment, EstablishmentAdmin, RestaurantImage, Cuisine, Table, AdminInvitation, WorkingHours, Menu
 
 
 class EstablishmentListSerializer(serializers.ModelSerializer):
@@ -8,7 +8,7 @@ class EstablishmentListSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     
     class Meta:
-        model = Restaurant
+        model = Establishment
         fields = [
             'id', 
             'name', 

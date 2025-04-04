@@ -1,13 +1,14 @@
 from django.db import models
 from django.conf import settings
+from restaurants.models import Establishment, Table
 
 
 class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
                                 related_name="bookings", verbose_name="Пользователь")
-    restaurant = models.ForeignKey('restaurants.Restaurant', on_delete=models.CASCADE,
+    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
                                     related_name='bookings', verbose_name="Ресторан")
-    table = models.ForeignKey('restaurants.Table', on_delete=models.CASCADE,
+    table = models.ForeignKey(Table, on_delete=models.CASCADE,
                                 related_name='bookings', verbose_name='Столик')
     booking_datetime = models.DateTimeField(verbose_name="Дата и время бронирования")
     duration = models.IntegerField(default=2, verbose_name="Продолжительность (часы)")
