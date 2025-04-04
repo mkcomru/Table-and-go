@@ -18,27 +18,29 @@ class Cuisine(models.Model):
 
 
 class Restaurant(models.Model):
+    ESTABLISHMENT_TYPE = [
+        ('bar', 'Бар'),
+        ('restaurant', 'Ресторан'),
+    ]
+    establishment_type = models.CharField(
+        max_length=20,
+        choices=ESTABLISHMENT_TYPE,
+        default='restaurant',
+        verbose_name="Тип заведения"
+    )
     name = models.CharField(max_length=100, unique=True, verbose_name="Название ресторана")
     description = models.TextField(blank=True, null=True, verbose_name="Описание ресторана")
     address = models.CharField(max_length=256, verbose_name="Адрес ресторана")
     phone = models.CharField(max_length=10, verbose_name="Контактный телефон")
     email = models.EmailField(unique=True, blank=False, null=False, verbose_name="Email")
-
-    latitude = models.DecimalField(
-        max_digits=9, decimal_places=6,
-        blank=True, null=True,
-        verbose_name="Широта"
+    average_check = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name="Средний чек"
     )
-    longitude = models.DecimalField(
-        max_digits=9, decimal_places=6,
-        blank=True, null=True,
-        verbose_name="Долгота"
-    )
-
     website_url = models.URLField(blank=True, null=True, verbose_name="Сайт ресторана")
-
     cuisines = models.ManyToManyField(Cuisine, related_name="restaurants", verbose_name="Типы кухни")
-
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
@@ -95,8 +97,8 @@ class Restaurant(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = "Ресторан"
-        verbose_name_plural = "Рестораны"
+        verbose_name = "Заведение"
+        verbose_name_plural = "Заведения"
         ordering = ['-created_at']
 
 
@@ -125,7 +127,6 @@ class Table(models.Model):
         if self.status != 'available':
             return False
         
-        # Проверка существующих бронирований
         from bookings.models import Booking
         conflicting_bookings = Booking.objects.filter(
             table=self,
