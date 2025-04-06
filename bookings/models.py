@@ -1,13 +1,13 @@
 from django.db import models
 from django.conf import settings
-from restaurants.models import Establishment, Table
+from restaurants.models import Branch, Table
 
 
 class Booking(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, 
                                 related_name="bookings", verbose_name="Пользователь")
-    restaurant = models.ForeignKey(Establishment, on_delete=models.CASCADE,
-                                    related_name='bookings', verbose_name="Ресторан")
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE,
+                                    related_name='bookings', verbose_name="Филиал", null=True, blank=True)
     table = models.ForeignKey(Table, on_delete=models.CASCADE,
                                 related_name='bookings', verbose_name='Столик')
     booking_datetime = models.DateTimeField(verbose_name="Дата и время бронирования")
@@ -42,21 +42,22 @@ class Booking(models.Model):
         if self.status != 'available':
             return False
         
-        conflicting_bookings = self.bookings.filter(
+        conflicting_bookings = Booking.objects.filter(
+            table=self.table,
             status__in=['pending', 'confirmed'],
             booking_datetime__lt=datetime_end,
             booking_datetime__gte=datetime_start
-        ).exists()
+        ).exclude(id=self.id).exists()
     
         return not conflicting_bookings
 
     def clean(self):
         from django.core.exceptions import ValidationError
         
-        if not self.restaurant.is_open_at(self.booking_datetime):
+        if not self.branch.is_open_at(self.booking_datetime):
             raise ValidationError("Ресторан закрыт в указанное время")
             
-        if self.table.restaurant != self.restaurant:
+        if self.table.branch != self.branch:
             raise ValidationError("Столик не принадлежит указанному ресторану")
             
         if self.guests_count > self.table.capacity:
@@ -67,7 +68,7 @@ class Booking(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Бронирование {self.restaurant.name} - {self.booking_datetime.strftime('%d.%m.%Y %H:%M')} ({self.user.get_full_name()})"
+        return f"Бронирование {self.branch.name} - {self.booking_datetime.strftime('%d.%m.%Y %H:%M')} ({self.user.get_full_name()})"
 
     class Meta:
         verbose_name = "Бронирование"
@@ -76,7 +77,7 @@ class Booking(models.Model):
         indexes = [
             models.Index(fields=['status']),
             models.Index(fields=['booking_datetime']),
-            models.Index(fields=['restaurant', 'booking_datetime']),
+            models.Index(fields=['branch', 'booking_datetime']),
         ]
 
 
