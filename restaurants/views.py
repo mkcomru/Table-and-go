@@ -16,6 +16,7 @@ class EstablishmentListView(ListAPIView):
         establishment_type = self.request.query_params.get('type')
         if establishment_type: 
             return queryset.filter(establishment_type=establishment_type)
+        
 
 
 

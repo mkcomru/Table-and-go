@@ -46,9 +46,24 @@ class Establishment(models.Model):
     cuisines = models.ManyToManyField(Cuisine, related_name="restaurants", verbose_name="Типы кухни")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    
+
     def __str__(self):
         return self.name
+
+    def get_branches_count(self):
+        return self.branches.count()
+
+    def get_main_branch(self):
+        main_branch = self.branches.filter(is_main=True).first()
+        if not main_branch:
+            main_branch = self.branches.first()
+        return main_branch
+    
+    def get_all_branches(self):
+        return self.branches.order_by('-is_main', 'name')
+    
+    def has_multiple_branches(self):
+        return self.get_branches_count() > 1
 
     class Meta:
         verbose_name = "Заведение"
@@ -69,7 +84,7 @@ class Branch(models.Model):
                                         verbose_name="Средний чек")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-
+    
     def get_available_tables(self, capacity=None, datetime=None):
         tables = self.tables.filter(status='available')
         if capacity:
@@ -78,7 +93,7 @@ class Branch(models.Model):
     
     def table_count(self):
         return self.tables.count()
-    
+
     def is_open_at(self, datetime_obj):
         day_of_week = datetime_obj.weekday()
         time_obj = datetime_obj.time()
@@ -118,7 +133,24 @@ class Branch(models.Model):
         User = get_user_model()
         return User.objects.filter(restaurant_admin_roles__establishment=self.establishment, 
                                     restaurant_admin_roles__is_active=True)
-    
+
+    def __str__(self):
+        if self.name:
+            return f"{self.establishment.name} - {self.name}"
+        return f"{self.establishment.name} ({self.address})"
+
+    def save(self, *args, **kwargs):
+        if self.is_main:
+            Branch.objects.filter(
+                establishment=self.establishment, 
+                is_main=True
+            ).exclude(pk=self.pk).update(is_main=False)
+        
+        if not self.pk and not Branch.objects.filter(establishment=self.establishment).exists():
+            self.is_main = True
+            
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Филиал"
         verbose_name_plural = "Филиалы"
@@ -151,7 +183,7 @@ class Table(models.Model):
     def is_available_for_booking(self, datetime_start, datetime_end):
         if self.status != 'available':
             return False
-        
+
         from bookings.models import Booking
         conflicting_bookings = Booking.objects.filter(
             table=self,

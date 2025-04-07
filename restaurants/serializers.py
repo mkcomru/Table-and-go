@@ -8,6 +8,7 @@ class EstablishmentListSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     average_check = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
+    branches_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Establishment
@@ -19,11 +20,12 @@ class EstablishmentListSerializer(serializers.ModelSerializer):
             'cuisine_types', 
             'average_check', 
             'address', 
-            'average_rating'
+            'average_rating',
+            'branches_count'
         ]
     
     def get_photo(self, obj):
-        main_branch = obj.branches.filter(is_main=True).first()
+        main_branch = obj.get_main_branch()
         if main_branch:
             return main_branch.get_main_image()
         return None
@@ -32,22 +34,25 @@ class EstablishmentListSerializer(serializers.ModelSerializer):
         return [cuisine.name for cuisine in obj.cuisines.all()]
     
     def get_average_rating(self, obj):
-        main_branch = obj.branches.filter(is_main=True).first()
+        main_branch = obj.get_main_branch()
         if main_branch:
             return main_branch.average_rating()
         return 0
     
     def get_average_check(self, obj):
-        main_branch = obj.branches.filter(is_main=True).first()
+        main_branch = obj.get_main_branch()
         if main_branch:
             return main_branch.average_check
         return 0
     
     def get_address(self, obj):
-        main_branch = obj.branches.filter(is_main=True).first()
+        main_branch = obj.get_main_branch()
         if main_branch:
             return main_branch.address
         return None
+        
+    def get_branches_count(self, obj):
+        return obj.get_branches_count()
 
 
 

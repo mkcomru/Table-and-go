@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cuisine, Establishment, EstablishmentAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage
+from .models import Cuisine, Establishment, EstablishmentAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage, Branch
 
 
 @admin.register(EstablishmentAdmin)
@@ -26,11 +26,23 @@ class CuisineAdmin(admin.ModelAdmin):
 
 @admin.register(Establishment)
 class EstablishmentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email')
-    list_filter = ['cuisines']
+    list_display = ('name', 'email', 'establishment_type', 'get_branches_count', 'created_at')
+    list_filter = ['cuisines', 'establishment_type']
     search_fields = ('name', 'description')
     filter_horizontal = ['cuisines']
+    
+    def get_branches_count(self, obj):
+        return obj.get_branches_count()
+    get_branches_count.short_description = 'Количество филиалов'
 
+
+@admin.register(Branch)
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'establishment', 'is_main', 'address', 'district', 'phone', 'average_check')
+    list_filter = ('establishment', 'is_main', 'district')
+    search_fields = ('name', 'address', 'establishment__name')
+    list_editable = ('is_main',)
+    
 
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
