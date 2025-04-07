@@ -41,7 +41,7 @@ class Establishment(models.Model):
     )
     name = models.CharField(max_length=100, unique=True, verbose_name="Название заведения")
     description = models.TextField(blank=True, null=True, verbose_name="Описание заведения")
-    email = models.EmailField(unique=True, blank=False, null=False, verbose_name="Email")
+    email = models.EmailField(unique=True, blank=True, null=True, verbose_name="Email")
     website_url = models.URLField(blank=True, null=True, verbose_name="Сайт ресторана")
     cuisines = models.ManyToManyField(Cuisine, related_name="restaurants", verbose_name="Типы кухни")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
@@ -154,7 +154,6 @@ class Branch(models.Model):
     class Meta:
         verbose_name = "Филиал"
         verbose_name_plural = "Филиалы"
-        unique_together = ['establishment', 'name']
         ordering = ['establishment', '-is_main', 'name']
 
 

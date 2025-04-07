@@ -121,7 +121,7 @@ class BranchListSerializer(serializers.ModelSerializer):
         return obj.table_count()
     
     def get_available_tables_count(self, obj):
-        return obj.get_available_tables.count()
+        return obj.get_available_tables().count()
     
     def get_cuisine_types(self, obj):
         return [cuisine.name for cuisine in obj.establishment.cuisines.all()]
