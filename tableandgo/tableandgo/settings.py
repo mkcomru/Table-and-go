@@ -26,7 +26,7 @@ MEDIA_ROOT = 'media'
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-123')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', '1') == '1'
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'api.middleware.APIKeyMiddleware',
 ]
 
 ROOT_URLCONF = 'tableandgo.urls'
