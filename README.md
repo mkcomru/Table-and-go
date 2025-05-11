@@ -1,525 +1,248 @@
-# Table & Go - Руководство для фронтенд-разработчика
+# TableAndGo API - Руководство для фронтенд-разработчика
 
-## Содержание
-1. [Установка и запуск](#установка-и-запуск)
-2. [Структура API](#структура-api)
-3. [API-эндпоинты](#api-эндпоинты)
-   - [Заведения](#заведения)
-   - [Филиалы](#филиалы)
-   - [Бронирование](#бронирование)
-   - [Пользователи](#пользователи)
+## Настройка проекта
 
-## Установка и запуск
+### Установка и запуск бэкенда
 
-### Предварительные требования
-- [Git](https://git-scm.com/downloads)
-- [Docker](https://www.docker.com/products/docker-desktop)
-- [Docker Compose](https://docs.docker.com/compose/install/) (обычно включен в Docker Desktop)
-
-### Шаги по установке
-
-1. **Клонирование репозитория**
+1. **Клонируйте репозиторий и создайте виртуальное окружение**
    ```bash
-   git clone https://github.com/mkcomru/Table_and_go
-   cd web
+   git clone [URL_репозитория]
+   cd tableandgo
+   python -m venv venv
    ```
-    не уверен насчет рабочейпапки, поймешь
-    
-2. **Запуск с помощью Docker**
+
+2. **Активация виртуального окружения**
+   - Windows:
    ```bash
-   docker-compose up --build
+   venv\Scripts\activate
+   ```
+   - Linux/Mac:
+   ```bash
+   source venv/bin/activate
+   ```
+
+3. **Установка зависимостей**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Настройка базы данных и миграции**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+6. **Создание тестовых данных**
+   ```bash
+   mkdir -p tableandgo/test_data
    ```
    
-   При первом запуске это займет некоторое время, так как Docker:
-   - Скачает необходимые образы
-   - Соберет контейнеры
-   - Создаст и инициализирует базу данных PostgreSQL
-   - Выполнит миграции Django
-   - Заполнит базу данных начальными данными (районы, кухни, заведения, филиалы, столики)
-
-3. **Доступ к приложению**  
-   После успешного запуска API будет доступно по адресу:
-   ```
-   http://localhost:8000/api/
-   ```
-
-4. **Остановка приложения**  
-   Для остановки приложения используйте комбинацию клавиш `Ctrl+C` в терминале, где запущен Docker, затем выполните:
+   Скопируйте скрипты для создания тестовых данных в директорию test_data, затем запустите:
    ```bash
-   docker-compose down
+   python tableandgo/test_data/create_tables.py
+   python tableandgo/test_data/fill_data.py
    ```
 
-5. **Запуск без перестроения контейнеров**  
-   Если вы не вносили изменения в файлы Docker:
+7. **Запуск сервера разработки**
    ```bash
-   docker-compose up
+   python manage.py runserver
+   ```
+   
+   Сервер будет доступен по адресу: http://127.0.0.1:8000/
+
+## Аутентификация с JWT
+
+Проект использует JWT (JSON Web Token) для аутентификации пользователей.
+
+### Как работает JWT аутентификация
+
+1. **Регистрация пользователя**
+   - Endpoint: `/api/auth/register/`
+   - Метод: `POST`
+   - Данные:
+     ```json
+     {
+       "first_name": "Имя",
+       "last_name": "Фамилия",
+       "email": "example@email.com",
+       "phone": "9001234567",
+       "password": "secure_password"
+     }
+     ```
+   - Ответ:
+     ```json
+     {
+       "user": {
+         "id": 1,
+         "first_name": "Имя",
+         "last_name": "Фамилия",
+         "email": "example@email.com",
+         "phone": "9001234567",
+         "photo": null
+       },
+       "access": "eyJhbGciOiJI...",  // JWT access токен
+       "refresh": "eyJ0eXAiOiJK..."   // JWT refresh токен
+     }
+     ```
+
+2. **Вход пользователя**
+   - Endpoint: `/api/auth/login/`
+   - Метод: `POST`
+   - Данные:
+     ```json
+     {
+       "phone": "9001234567",  // В текущей реализации используется только телефон
+       "password": "secure_password"
+     }
+     ```
+   - Ответ:
+     ```json
+     {
+       "access": "eyJhbGciOiJI...",
+       "refresh": "eyJ0eXAiOiJK..."
+     }
+     ```
+
+3. **Обновление токена**
+   - Endpoint: `/api/auth/token/refresh`
+   - Метод: `POST`
+   - Данные:
+     ```json
+     {
+       "refresh": "eyJ0eXAiOiJK..."
+     }
+     ```
+   - Ответ:
+     ```json
+     {
+       "access": "eyJhbGciOiJI..."
+     }
+     ```
+
+4. **Аутентификация запросов**
+   Для защищенных маршрутов необходимо добавлять заголовок:
+   ```
+   Authorization: Bearer eyJhbGciOiJI...
    ```
 
-## Структура API
-
-### Основные модели данных
-
-1. **Заведение (Establishment)**
-   - Имеет тип (ресторан/бар)
-   - Содержит основную информацию (название, описание, email)
-   - Связано с типами кухни и имеет один или несколько филиалов
-
-2. **Филиал (Branch)**
-   - Привязан к конкретному заведению
-   - Имеет адрес, телефон, средний чек
-   - Содержит часы работы, доступные столики
-
-3. **Столик (Table)**
-   - Принадлежит определенному филиалу
-   - Имеет номер, вместимость и статус доступности
-
-4. **Бронирование (Booking)**
-   - Связывает пользователя, филиал и столик
-   - Содержит информацию о дате, времени и продолжительности бронирования
-   - Имеет статус (ожидает подтверждения, подтверждено, отменено, завершено)
-
-5. **Пользователь (User)**
-   - Содержит личные данные (имя, фамилия, email, телефон)
-   - Может иметь роли (обычный пользователь, администратор)
-
-## API-эндпоинты
-
-Базовый URL API: `http://localhost:8000/api/`
-
-### Заведения
-
-#### Получение списка заведений (GET `/api/establishments/`)
-
-**Описание**: Получение списка всех заведений с основной информацией.
-
-**Параметры запроса**:
-- `type`: Тип заведения (`restaurant` или `bar`)
-
-**Пример запроса**:
-```http
-GET /api/establishments/?type=restaurant
-```
-
-**Пример ответа**:
-```json
-[
-  {
-    "id": 1,
-    "name": "Супра",
-    "establishment_type": "restaurant",
-    "photo": "/static/images/default-restaurant.jpg",
-    "cuisine_types": ["Грузинская", "Русская"],
-    "average_check": "1500.00",
-    "address": "ул. Светланская, 1",
-    "average_rating": 0,
-    "branches_count": 1
-  },
-  {
-    "id": 2,
-    "name": "Миллионка",
-    "establishment_type": "restaurant",
-    "photo": "/static/images/default-restaurant.jpg",
-    "cuisine_types": ["Русская"],
-    "average_check": "2000.00",
-    "address": "ул. Светланская, 2",
-    "average_rating": 0,
-    "branches_count": 1
-  }
-]
-```
-
-### Филиалы
-
-#### Получение списка филиалов (GET `/api/branch/`)
-
-**Описание**: Получение списка всех филиалов заведений.
-
-**Параметры фильтрации**:
-- `type`: Тип заведения (`restaurant` или `bar`)
-- `district`: ID района
-- `rating`: Минимальный рейтинг
-- `check`: Минимальный средний чек
-- `cuisine_id`: ID кухни
-
-**Пример запроса**:
-```http
-GET /api/branch/?district=1&cuisine_id=4
-```
-
-**Пример ответа**:
-```json
-[
-  {
-    "id": 1,
-    "name": "Филиал 1",
-    "address": "ул. Светланская, 1",
-    "district": "Центральный",
-    "phone": "2340001",
-    "average_check": "1500.00",
-    "is_main": true,
-    "establishment_name": "Супра",
-    "establishment_type": "restaurant",
-    "photo": "/static/images/default-restaurant.jpg",
-    "rating": 0,
-    "working_hours": [
-      {
-        "day_of_week": 0,
-        "day_name": "Понедельник",
-        "status": "10:00 - 22:00",
-        "is_closed": false
-      },
-      {
-        "day_of_week": 1,
-        "day_name": "Вторник",
-        "status": "10:00 - 22:00",
-        "is_closed": false
-      },
-      {
-        "day_of_week": 5,
-        "day_name": "Суббота",
-        "status": "10:00 - 23:00",
-        "is_closed": false
-      },
-      {
-        "day_of_week": 6,
-        "day_name": "Воскресенье",
-        "status": "10:00 - 23:00",
-        "is_closed": false
-      }
-    ],
-    "tables_count": 4,
-    "available_tables_count": 4,
-    "cuisine_types": ["Грузинская", "Русская"]
-  }
-]
-```
-
-#### Получение доступных столиков (GET `/api/branch/{id}/available_tables/`)
-
-**Описание**: Получение списка доступных столиков в филиале на указанное время.
-
-**Параметры запроса**:
-- `datetime`: Дата и время бронирования (формат ISO: YYYY-MM-DDTHH:MM:SS)
-- `capacity`: Минимальная вместимость столика
-
-**Пример запроса**:
-```http
-GET /api/branch/1/available_tables/?datetime=2025-04-10T19:00:00&capacity=4
-```
-
-**Пример ответа**:
-```json
-[
-  {
-    "id": 1,
-    "number": 1,
-    "capacity": 4,
-    "status": "available"
-  },
-  {
-    "id": 3,
-    "number": 3,
-    "capacity": 6,
-    "status": "available"
-  }
-]
-```
-
-### Бронирование
-
-#### Создание бронирования (POST `/api/bookings/`)
-
-**Описание**: Создание нового бронирования столика.
-
-**Пример запроса**:
-```http
-POST /api/bookings/
-Content-Type: application/json
-Authorization: Bearer <ваш_токен>
-
-{
-  "branch": 1,
-  "table": 3,
-  "booking_datetime": "2025-04-10T19:00:00",
-  "duration": 2,
-  "guests_count": 4,
-  "special_requests": "Хотел бы столик у окна, если возможно"
-}
-```
-
-**Пример ответа**:
-```json
-{
-  "id": 1,
-  "branch": {
-    "id": 1,
-    "name": "Филиал 1",
-    "establishment": {
-      "id": 1,
-      "name": "Супра"
-    }
-  },
-  "table": {
-    "id": 3,
-    "number": 3,
-    "capacity": 6
-  },
-  "booking_datetime": "2025-04-10T19:00:00",
-  "duration": 2,
-  "guests_count": 4,
-  "special_requests": "Хотел бы столик у окна, если возможно",
-  "status": "pending",
-  "created_at": "2025-04-09T12:34:56.789Z"
-}
-```
-
-#### Получение информации о бронировании (GET `/api/bookings/{id}/`)
-
-**Описание**: Получение подробной информации о конкретном бронировании.
-
-**Пример запроса**:
-```http
-GET /api/bookings/1/
-Authorization: Bearer <ваш_токен>
-```
-
-**Пример ответа**:
-```json
-{
-  "id": 1,
-  "branch": {
-    "id": 1,
-    "name": "Филиал 1",
-    "establishment": {
-      "id": 1,
-      "name": "Супра"
-    }
-  },
-  "table": {
-    "id": 3,
-    "number": 3,
-    "capacity": 6
-  },
-  "booking_datetime": "2025-04-10T19:00:00",
-  "duration": 2,
-  "guests_count": 4,
-  "special_requests": "Хотел бы столик у окна, если возможно",
-  "status": "pending",
-  "created_at": "2025-04-09T12:34:56.789Z",
-  "updated_at": "2025-04-09T12:34:56.789Z"
-}
-```
-
-#### Отмена бронирования (PUT `/api/bookings/{id}/cancel/`)
-
-**Описание**: Отмена существующего бронирования.
-
-**Пример запроса**:
-```http
-PUT /api/bookings/1/cancel/
-Authorization: Bearer <ваш_токен>
-```
-
-**Пример ответа**:
-```json
-{
-  "id": 1,
-  "status": "cancelled",
-  "message": "Бронирование успешно отменено"
-}
-```
-
-### Пользователи
-
-#### Регистрация пользователя (POST `/api/auth/register/`)
-
-**Описание**: Регистрация нового пользователя.
-
-**Пример запроса**:
-```http
-POST /api/auth/register/
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "phone": "9991112233",
-  "password": "securePassword123",
-  "first_name": "Иван",
-  "last_name": "Иванов"
-}
-```
-
-**Пример ответа**:
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "phone": "9991112233",
-    "first_name": "Иван",
-    "last_name": "Иванов"
-  },
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-```
-
-#### Авторизация пользователя (POST `/api/auth/login/`)
-
-**Описание**: Вход пользователя в систему.
-
-**Пример запроса**:
-```http
-POST /api/auth/login/
-Content-Type: application/json
-
-{
-  "phone": "9991112233",
-  "password": "securePassword123"
-}
-```
-
-**Пример ответа**:
-```json
-{
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "phone": "9991112233",
-    "first_name": "Иван",
-    "last_name": "Иванов"
-  },
-  "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-}
-```
-
-#### Получение профиля пользователя (GET `/api/auth/profile/`)
-
-**Описание**: Получение информации о профиле текущего пользователя.
-
-**Пример запроса**:
-```http
-GET /api/auth/profile/
-Authorization: Bearer <ваш_токен>
-```
-
-**Пример ответа**:
-```json
-{
-  "id": 1,
-  "email": "user@example.com",
-  "phone": "9991112233", 
-  "first_name": "Иван",
-  "last_name": "Иванов",
-  "photo": null,
-  "bookings": [
-    {
-      "id": 1,
-      "branch": {
-        "id": 1,
-        "name": "Филиал 1",
-        "establishment": {
-          "id": 1,
-          "name": "Супра"
-        }
-      },
-      "booking_datetime": "2025-04-10T19:00:00",
-      "status": "pending"
-    }
-  ]
-}
-```
-
-## Настройка режима отладки
-
-Django по умолчанию запускается в режиме отладки (DEBUG=True) при использовании Docker. Режим отладки влияет на работу приложения следующим образом:
-
-### Что даёт включенный режим отладки (DEBUG=True):
-
-1. **Подробные сообщения об ошибках**: При возникновении исключений в браузере отображается подробная страница с трассировкой ошибки, информацией о запросе и переменных окружения
-2. **Автоматическая перезагрузка**: Сервер Django автоматически перезагружается при изменении файлов кода
-3. **Отображение статических файлов**: Django самостоятельно обслуживает статические файлы через `django.contrib.staticfiles`
-4. **Сохранение SQL-запросов**: Все SQL-запросы сохраняются в памяти для отладки
-
-### Изменение настройки DEBUG
-
-Настройка DEBUG определяется в `docker-compose.yml` через переменную окружения:
-
-```yaml
-environment:
-  - DEBUG=1  # 1 включает режим отладки, 0 выключает
-```
-
-Чтобы изменить значение DEBUG:
-
-1. Откройте файл `docker-compose.yml`
-2. Найдите раздел `environment` для сервиса `web`
-3. Измените значение `DEBUG` на `0` для выключения режима отладки или `1` для включения
-4. Перезапустите контейнеры с помощью команды `docker-compose up --build`
-
-**Важно**: В производственной среде всегда устанавливайте `DEBUG=0`, так как режим отладки может раскрывать конфиденциальную информацию и ухудшает производительность.
-
-## Дополнительная информация
-
-### Коды статусов HTTP
-
-- `200 OK`: Запрос выполнен успешно
-- `201 Created`: Ресурс создан успешно
-- `400 Bad Request`: Некорректный запрос (проверьте отправляемые данные)
-- `401 Unauthorized`: Требуется авторизация
-- `403 Forbidden`: Доступ запрещен
-- `404 Not Found`: Ресурс не найден
-- `500 Internal Server Error`: Внутренняя ошибка сервера
-
-### Аутентификация
-
-Для доступа к защищенным эндпоинтам используйте токен JWT в заголовке:
-
-```http
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
-```
-
-### Пагинация
-
-Для запросов, возвращающих списки объектов, используется пагинация:
-
-```http
-GET /api/establishments/?page=2&page_size=10
-```
-
-**Параметры**:
-- `page`: Номер страницы (по умолчанию 1)
-- `page_size`: Количество объектов на странице (по умолчанию 10, максимум 100)
-
-**Пример ответа с пагинацией**:
-```json
-{
-  "count": 42,
-  "next": "http://localhost:8000/api/establishments/?page=3&page_size=10",
-  "previous": "http://localhost:8000/api/establishments/?page=1&page_size=10",
-  "results": [
-    // список объектов
-  ]
-}
-```
-
-### Общие параметры фильтрации
-
-Многие эндпоинты поддерживают дополнительные параметры фильтрации:
-
-- `search`: Поиск по текстовым полям
-- `ordering`: Сортировка (например, `ordering=name` или `ordering=-created_at` для обратной сортировки)
-
-### Структура данных в базе
-
-При запуске проекта в базе данных создаются следующие начальные данные:
-
-- **Районы**: Центральный, Первореченский, Ленинский, Первомайский, Советский
-- **Кухни**: Русская, Итальянская, Японская, Грузинская, Китайская, и другие
-- **Заведения**: Несколько ресторанов с разными типами кухни
-- **Филиалы**: По 1-2 филиала для каждого заведения с адресами
-- **Столики**: Несколько столиков разной вместимости в каждом филиале
-- **Часы работы**: График работы для каждого филиала (Пн-Чт: 10:00-22:00, Пт-Вс: 10:00-23:00)
-
----
-
-При возникновении вопросов или проблем, обращайтесь к бэкенд-разработчику проекта.
+5. **Получение профиля**
+   - Endpoint: `/api/auth/profile`
+   - Метод: `GET`
+   - Необходим Bearer токен в заголовке
+   - Ответ: Данные профиля пользователя
+
+### Обработка токенов на фронтенде
+
+1. **Сохранение токенов**:
+   После авторизации или регистрации сохраняйте токены:
+   ```javascript
+   localStorage.setItem('access_token', response.access);
+   localStorage.setItem('refresh_token', response.refresh);
+   ```
+
+2. **Настройка Axios или Fetch**:
+   ```javascript
+   // Для Axios
+   axios.interceptors.request.use(config => {
+     const token = localStorage.getItem('access_token');
+     if (token) {
+       config.headers.Authorization = `Bearer ${token}`;
+     }
+     return config;
+   });
+
+   // Обработка 401 ошибки и обновление токена
+   axios.interceptors.response.use(
+     response => response,
+     async error => {
+       if (error.response?.status === 401) {
+         const refresh = localStorage.getItem('refresh_token');
+         if (refresh) {
+           try {
+             const {data} = await axios.post('/api/auth/token/refresh', {refresh});
+             localStorage.setItem('access_token', data.access);
+             // Повторяем оригинальный запрос с новым токеном
+             error.config.headers.Authorization = `Bearer ${data.access}`;
+             return axios(error.config);
+           } catch (e) {
+             // Перенаправление на логин
+             localStorage.removeItem('access_token');
+             localStorage.removeItem('refresh_token');
+             window.location.href = '/login';
+           }
+         } else {
+           // Нет refresh токена - перенаправление на логин
+           window.location.href = '/login';
+         }
+       }
+       return Promise.reject(error);
+     }
+   );
+   ```
+
+## Основные API эндпоинты
+
+### Пользователи и аутентификация
+- `POST /api/auth/register/` - Регистрация
+- `POST /api/auth/login/` - Вход
+- `POST /api/auth/token/refresh` - Обновление токена
+- `GET /api/auth/profile` - Получение профиля
+
+### Заведения и филиалы
+- `GET /api/establishments/` - Список заведений
+- `GET /api/establishments/{id}/` - Детали заведения
+- `GET /api/branches/` - Список филиалов
+- `GET /api/branches/{id}/` - Детали филиала
+
+### Бронирования
+- `POST /api/bookings/` - Создание бронирования
+- `GET /api/bookings/` - Список бронирований пользователя
+- `GET /api/bookings/{id}/` - Детали бронирования
+
+### Отзывы
+- `POST /api/reviews/` - Создание отзыва
+- `GET /api/reviews/` - Список отзывов
+- `GET /api/reviews/{id}/` - Детали отзыва
+
+## Особенности и ограничения текущей реализации
+
+1. **Вход только по телефону**:
+   - Текущая реализация позволяет входить только по номеру телефона
+   - Для входа по email потребуется доработка бэкенда
+
+2. **Время жизни токенов**:
+   - Access токен: 120 минут
+   - Refresh токен: 7 дней
+
+3. **Формат телефона**:
+   - Телефон должен содержать только 10 цифр (без кода страны)
+   - Пример: "9001234567"
+
+## Запуск проекта в продакшене
+
+Для продакшен-запуска рекомендуется:
+
+1. **Настроить CORS**
+   Проект включает `django-cors-headers`, но вам нужно будет настроить доменные имена в `CORS_ALLOWED_ORIGINS`.
+
+2. **Настроить HTTPS**
+   Обязательно используйте HTTPS для защиты токенов и данных пользователей.
+
+3. **Использовать Gunicorn и Nginx**
+   ```bash
+   gunicorn tableandgo.wsgi:application --bind 0.0.0.0:8000
+   ```
+
+4. **Обновить настройки безопасности**
+   - Установите `DEBUG=False` в production
+   - Обновите `SECRET_KEY`
+   - Настройте `ALLOWED_HOSTS`
+
+## Скрипты для тестовых данных
+
+В проекте предусмотрены скрипты для создания и заполнения базы данных тестовыми данными:
+
+1. **create_tables.py** - создает необходимые таблицы в SQLite
+2. **fill_data.py** - заполняет таблицы данными из файлов `data_restaurants.txt` и `deta_bars.txt`
+
+Скрипты находятся в директории `tableandgo/test_data/`.
