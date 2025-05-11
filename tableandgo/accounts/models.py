@@ -16,7 +16,7 @@ class CustomUserManager(UserManager):
             extra_fields['username'] = username
 
         return self.create_user(email=email, password=password, phone=phone, **extra_fields)
-# ыоипоытвтп
+
 
 class User(AbstractUser):
     first_name = models.CharField(max_length=100, blank=False, null=False, verbose_name="Имя")
