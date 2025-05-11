@@ -39,13 +39,17 @@ class User(AbstractUser):
             self.username = f"{base}_{random_string}"
         super().save(*args, **kwargs)
 
-    def is_admin_of_restaurant(self, restaurant):
-        from restaurants.models import RestaurantAdmin
-        return RestaurantAdmin.objects.filter(user=self, restaurant=restaurant, is_active=True).exists()
+    def is_admin_of_establishment(self, establishment):
+        from restaurants.models import EstablishmentAdmin
+        return EstablishmentAdmin.objects.filter(user=self, establishment=establishment, is_active=True).exists()
     
-    def get_administered_restaurants(self):
-        from restaurants.models import Restaurant
-        return Restaurant.objects.filter(administrators__user=self, administrators__is_active=True)
+    def get_administered_establishments(self):
+        from restaurants.models import Establishment
+        return Establishment.objects.filter(administrators__user=self, administrators__is_active=True)
+    
+    def get_booking(self):
+        from bookings.models import Booking
+        return Booking.objects.filter(user=self).order_by('-booking_datetime')
     
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
