@@ -1,0 +1,154 @@
+{
+    "count": 11,
+    "next": "http://localhost:8000/api/establishments/?format=json&page=2&type=restaurant",
+    "previous": null,
+    "results": [
+      {
+        "id": 11,
+        "name": "ШашлыкоFF",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Грузинская",
+          "Русская"
+        ],
+        "average_check": 1500,
+        "address": "ул. Светланская, 11",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 10,
+        "name": "Миринэ",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Японская"
+        ],
+        "average_check": 2000,
+        "address": "ул. Светланская, 10",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 9,
+        "name": "Rakushka",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Европейская",
+          "Русская"
+        ],
+        "average_check": 2800,
+        "address": "ул. Светланская, 9",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 8,
+        "name": "GANGNAM",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Корейская"
+        ],
+        "average_check": 2000,
+        "address": "ул. Светланская, 8",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 7,
+        "name": "Панда",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Китайская"
+        ],
+        "average_check": 1200,
+        "address": "ул. Светланская, 7",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 6,
+        "name": "Studio",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Европейская"
+        ],
+        "average_check": 2200,
+        "address": "ул. Светланская, 6",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 5,
+        "name": "Дело в мясе",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Американская",
+          "Европейская"
+        ],
+        "average_check": 3000,
+        "address": "ул. Светланская, 5",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 4,
+        "name": "Токио",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Японская"
+        ],
+        "average_check": 2500,
+        "address": "ул. Светланская, 4",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 3,
+        "name": "IL Патио",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Итальянская"
+        ],
+        "average_check": 1800,
+        "address": "ул. Светланская, 3",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 2,
+        "name": "Миллионка",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+          "Русская"
+        ],
+        "average_check": 2000,
+        "address": "ул. Светланская, 2",
+        "average_rating": 0,
+        "branches_count": 1
+      },
+      {
+        "id": 1,
+        "name": "Супра",
+        "establishment_type": "restaurant",
+        "photo": "/static/images/default-restaurant.jpg",
+        "cuisine_types": [
+            "Грузинская",
+            "Русская"
+        ],
+        "average_check": 1500.0,
+        "address": "ул. Светланская, 1",
+        "average_rating": 0,
+        "branches_count": 1
+      }
+    ]
+  }
