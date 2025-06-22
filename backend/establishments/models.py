@@ -87,7 +87,7 @@ class Branch(models.Model):
                                         verbose_name="Средний чек")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    # allow_to_book = models.BooleanField(default=True, verbose_name="Разрешено бронировать")
+    allow_to_book = models.BooleanField(default=True, verbose_name="Разрешено бронировать")
     objects = models.Manager()
     
     def get_available_tables(self, capacity=None, datetime=None):

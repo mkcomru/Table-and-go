@@ -38,7 +38,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'establishment', 'is_main', 'address', 'district', 'phone', 'average_check')
+    list_display = ('__str__', 'establishment', 'is_main', 'address', 'district', 'phone', 'average_check', 'allow_to_book')
     list_filter = ('establishment', 'is_main', 'district')
     search_fields = ('name', 'address', 'establishment__name')
     list_editable = ('is_main',)
