@@ -83,7 +83,7 @@ class BranchListSerializer(serializers.ModelSerializer):
             'working_hours',
             'tables_count',
             'available_tables_count',
-            'cuisine_types'
+            'cuisine_types',
         ]
 
     def get_rating(self, obj):
@@ -128,6 +128,73 @@ class BranchListSerializer(serializers.ModelSerializer):
     
     def get_district(self, obj):
         return obj.district.name
+
+
+class BranchDetailSerializer(serializers.ModelSerializer):
+    cuisine_types = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    working_hours = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
+    allow_to_book = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Branch
+        fields = [
+            'id',
+            'name',
+            'address',
+            'district',
+            'cuisine_types',
+            'average_check',
+            'average_rating',
+            'working_hours',
+            'phone',
+            'email',
+            'reviews',
+            'allow_to_book',
+        ]
+
+    def get_cuisine_types(self, obj):
+        return [cuisine.name for cuisine in obj.establishment.cuisines.all()]
+
+    def get_average_rating(self, obj):
+        return obj.average_rating()
+
+    def get_working_hours(self, obj):
+        hours = obj.working_hours.all().order_by('day_of_week')
+        result = []
+
+        for hour in hours:
+            if hour.is_closed:
+                status = "Выходной"
+            else:
+                status = f"{hour.opening_time.strftime('%H:%M')} - {hour.closing_time.strftime('%H:%M')}"
+
+            result.append({
+                'day_of_week': hour.day_of_week,
+                'day_name': hour.det_day_of_week_display(),
+                'status': status,
+                'is_closed': hour.is_closed
+            })
+
+        return result
+
+    def get_email(self, obj):
+        return obj.establishment.email
+
+    def get_reviews(self, obj):
+        reviews = obj.reviews.all()
+        return [
+            {
+                'user_full_name': review.user.get_full_name(),
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at.strftime('%Y-%m-%d')
+            }
+        for review in reviews]
+
+
 
 
 

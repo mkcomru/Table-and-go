@@ -7,6 +7,7 @@ from django.utils import timezone
 class Cuisine(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Название")
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    objects = models.Manager()
 
     def __str__(self):
         return self.name
@@ -19,6 +20,7 @@ class Cuisine(models.Model):
 
 class District(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='Название района')
+    objects = models.Manager()
 
     def __str__(self):
         return self.name
@@ -46,6 +48,7 @@ class Establishment(models.Model):
     cuisines = models.ManyToManyField(Cuisine, related_name="restaurants", verbose_name="Типы кухни")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    objects = models.Manager()
 
     def __str__(self):
         return self.name
@@ -84,6 +87,8 @@ class Branch(models.Model):
                                         verbose_name="Средний чек")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    # allow_to_book = models.BooleanField(default=True, verbose_name="Разрешено бронировать")
+    objects = models.Manager()
     
     def get_available_tables(self, capacity=None, datetime=None):
         tables = self.tables.filter(status='available')
@@ -169,6 +174,7 @@ class Table(models.Model):
     ]
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='available', verbose_name="Статус")
     location = models.CharField(max_length=100, blank=True, null=True, verbose_name="Расположение")
+    objects = models.Manager()
     
     class Meta:
         verbose_name = "Столик"
@@ -202,6 +208,7 @@ class EstablishmentAdmin(models.Model):
                                     related_name='administrators', verbose_name="Заведение", null=True, blank=True)
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     date_added = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+    objects = models.Manager()
 
     class Meta():
         unique_together = ('user', 'establishment')
@@ -221,6 +228,7 @@ class AdminInvitation(models.Model):
     is_used = models.BooleanField(default=False, verbose_name="Использовано")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     expires_at = models.DateTimeField(verbose_name="Действительно до")
+    objects = models.Manager()
     
     def save(self, *args, **kwargs):
         if not self.invitation_code:
@@ -257,6 +265,7 @@ class WorkingHours(models.Model):
     opening_time = models.TimeField(null= True, blank=True, verbose_name="Время открытия")
     closing_time = models.TimeField(null= True, blank=True, verbose_name="Время закрытия")
     is_closed = models.BooleanField(default=False, verbose_name="Выходной")
+    objects = models.Manager()
 
     class Meta:
         verbose_name = "Часы работы"
@@ -281,6 +290,7 @@ class Menu(models.Model):
     name = models.CharField(max_length=150, verbose_name="Название блюда")
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
+    objects = models.Manager()
 
     CATEGORY_CHOICES = [
         ('starter', 'Закуска'),
@@ -309,6 +319,7 @@ class BranchImage(models.Model):
     caption = models.CharField(max_length=150, blank=True, null=True, verbose_name="Описание фото")
     is_main = models.BooleanField(default=False, verbose_name="Главное изображение")
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок отображения")
+    objects = models.Manager()
 
     class Meta:
         verbose_name = "Фото филиала"

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.db.models import Avg
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from .models import Establishment, Branch
 from .serializers import EstablishmentListSerializer, BranchListSerializer
@@ -61,7 +61,7 @@ class BranchListView(ListAPIView):
             for price_id in check_range:
                 if price_id == 1: check_filter |= Q(average_check__lte=500)
                 elif price_id == 2: check_filter |= Q(average_check__gte=500, average_check__lte=1500)
-                elif price_id == 3: check_filter |= Q(average_check__gte=1500, check_average__lte=2500)
+                elif price_id == 3: check_filter |= Q(average_check__gte=1500, average_check__lte=2500)
                 elif price_id == 4: check_filter |= Q(average_check__gte=2500)
 
             if check_filter:
@@ -72,6 +72,10 @@ class BranchListView(ListAPIView):
             queryset = queryset.filter(establishment__cuisines__id__in=cuisine_ids)
 
         return queryset
+
+
+class BranchDetailView(RetrieveAPIView):
+    ...
 
 
 

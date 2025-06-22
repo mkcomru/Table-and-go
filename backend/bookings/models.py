@@ -25,6 +25,7 @@ class Booking(models.Model):
     special_requests = models.TextField(blank=True, null=True, verbose_name="Особые пожелания")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
     def confirm(self):
         self.status = 'confirmed'

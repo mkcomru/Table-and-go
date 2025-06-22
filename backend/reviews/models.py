@@ -15,6 +15,7 @@ class Review(models.Model):
     visit_date = models.DateField(verbose_name="Дата посещения")
     is_approved = models.BooleanField(default=False, verbose_name="Одобрен")
     created_at = models.DateTimeField(auto_now_add=True)
+    objects = models.Manager()
 
     class Meta:
         verbose_name = "Отзыв"
