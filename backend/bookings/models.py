@@ -1,6 +1,11 @@
 from django.db import models
 from django.conf import settings
 from establishments.models import Branch, Table
+import uuid
+
+
+def generate_book_number():
+    return str(uuid.uuid4().hex)[:8].upper()
 
 
 class Booking(models.Model):
@@ -13,6 +18,7 @@ class Booking(models.Model):
     booking_datetime = models.DateTimeField(verbose_name="Дата и время бронирования")
     duration = models.IntegerField(default=2, verbose_name="Продолжительность (часы)")
     guests_count = models.IntegerField(verbose_name="Количество гостей")
+    book_number = models.CharField(max_length=20, unique=True, default=generate_book_number())
 
     STATUS_CHOICES =[
         ('pending', 'Ожидает подтверждения'),
@@ -65,6 +71,10 @@ class Booking(models.Model):
             raise ValidationError("Количество гостей превышает вместимость столика")
     
     def save(self, *args, **kwargs):
+        if not self.book_number:
+            self.book_number = generate_book_number()
+            while Booking.objects.filter(book_number=self.book_number).exists():
+                self.book_number = generate_book_number()
         self.clean()
         super().save(*args, **kwargs)
 

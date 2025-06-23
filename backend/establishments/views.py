@@ -1,9 +1,8 @@
-from django.shortcuts import render
 from django.db.models import Avg
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from .models import Establishment, Branch
-from .serializers import EstablishmentListSerializer, BranchListSerializer
+from .serializers import EstablishmentListSerializer, BranchListSerializer, BranchDetailSerializer
 
 
 class EstablishmentListView(ListAPIView):
@@ -75,7 +74,9 @@ class BranchListView(ListAPIView):
 
 
 class BranchDetailView(RetrieveAPIView):
-    ...
+    queryset = Branch.objects.all()
+    serializer_class = BranchDetailSerializer
+    permission_classes = [AllowAny]
 
 
 

@@ -104,14 +104,14 @@ class BranchListSerializer(serializers.ModelSerializer):
 
         for hour in hours:
             if hour.is_closed:
-                status = "Выходной"
+                work_time = "Выходной"
             else:
-                status = f"{hour.opening_time.strftime('%H:%M')} - {hour.closing_time.strftime('%H:%M')}"
+                work_time = f"{hour.opening_time.strftime('%H:%M')} - {hour.closing_time.strftime('%H:%M')}"
         
             result.append({
                 'day_of_week': hour.day_of_week,
                 'day_name': hour.get_day_of_week_display(),
-                'status': status,
+                'work_time': work_time,
                 'is_closed': hour.is_closed
             })
 
@@ -136,7 +136,6 @@ class BranchDetailSerializer(serializers.ModelSerializer):
     working_hours = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
-    allow_to_book = serializers.SerializerMethodField()
 
     class Meta:
         model = Branch
@@ -173,7 +172,7 @@ class BranchDetailSerializer(serializers.ModelSerializer):
 
             result.append({
                 'day_of_week': hour.day_of_week,
-                'day_name': hour.det_day_of_week_display(),
+                'day_name': hour.day_of_week,
                 'status': status,
                 'is_closed': hour.is_closed
             })
