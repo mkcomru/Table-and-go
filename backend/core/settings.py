@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'rest_framework_simplejwt',
+    'django_celery_results',
 
     'api',
     'bookings',
@@ -178,3 +179,40 @@ SIMPLE_JWT ={
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id', 
 }
+
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+SITE_URL = 'http://127.0.0.1:8000'
+
+# Настройки django-axes
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_LOCKOUT_TEMPLATE = 'users/lockout.html'
+AXES_LOGIN_FAILURE_LOG_LEVEL = 'WARNING'
+AXES_USERNAME_FIELD = 'phone'
+AXES_LOCKOUT_URL = None  # Если задано, перенаправляет на указанный URL при блокировке
+AXES_VERBOSE = True
+AXES_RESET_ON_SUCCESS = True
+
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
