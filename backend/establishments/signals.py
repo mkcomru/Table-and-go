@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import AdminInvitation
-from .tasks import send_admin_invitation_email
+from users.tasks import send_admin_invitation_email
 
 
 @receiver(post_save, sender=AdminInvitation)

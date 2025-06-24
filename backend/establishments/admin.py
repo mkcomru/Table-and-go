@@ -9,7 +9,7 @@ from .models import Cuisine, Establishment, BranchAdmin, AdminInvitation, Table,
 
 @admin.register(BranchAdmin)
 class BranchAdminAdmin(admin.ModelAdmin):
-    list_display = ('user', 'branch', 'establishment_name', 'is_active', 'created_at')
+    list_display = ('user', 'branch', 'establishment_name', 'is_active', 'date_added')
     list_filter = ('branch__establishment', 'is_active')
     search_fields = ('user__email', 'user__first_name', 'user__last_name', 'branch__name')
     
