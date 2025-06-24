@@ -3,6 +3,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 import logging
 
+# celery -A core worker -l info --pool=solo
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +88,71 @@ def send_password_reset_email(email, user_id):
     except Exception as e:
         logger.error(f"Failed to send password reset email to {email}: {str(e)}")
         raise
+
+
+@shared_task
+def send_admin_invitation_email(invitation_id):
+    from establishments.models import AdminInvitation
+
+    logger.info(f"Starting admin invitation email task for invitation_id={invitation_id}")
+
+    try:
+        invitation = AdminInvitation.objects.get(id=invitation_id)
+        branch_name = invitation.branch.name
+        establishment_name = invitation.branch.establishment.name
+
+        subject = f"приглашение стать администратором ресторана {branch_name}"
+        activation_url = f"{settings.FRONTEND_URL}/admin/invitation/{invitation.invitation_code}"
+        message = f"""
+        Здравствуйте!
+
+        Вы были приглашены стать администратором филиала "{branch_name}" 
+        заведения "{establishment_name}" на платформе Table and Go.
+        
+        Для подтверждения и настройки аккаунта перейдите по ссылке:
+        {activation_url}
+
+        Ссылка действительна до {invitation.expires_at.strftime('%d.%m.%Y %H:%M')}.
+
+        С уважением,
+        Команда Table and Go
+        """
+
+        html_message = f"""
+        <h1>Приглашение стать администратором</h1>
+        <p>Здравствуйте!</p>
+        <p>Вы были приглашены стать администратором филиала 
+            "<strong>{branch_name}</strong>" заведения "<strong>{establishment_name}</strong>" 
+            на платформе Table and Go.</p>
+        <p>Для подтверждения и настройки аккаунта, пожалуйста, перейдите по ссылке:</p>
+        <p><a href="{activation_url}" 
+                style="padding: 10px 15px; background-color: #4CAF50; color: white; 
+                        text-decoration: none; border-radius: 4px;">
+            Активировать аккаунт администратора</a></p>
+        <p>Или скопируйте эту ссылку в браузер: {activation_url}</p>
+        <p>Ссылка действительна до {invitation.expires_at.strftime('%d.%m.%Y %H:%M')}.</p>
+        <p>С уважением,<br>Команда Table and Go</p>
+        """
+
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [invitation.email],
+            fail_silently=False,
+            html_message=html_message
+        )
+        logger.info(f"Admin invitation email sent to {invitation.email}")
+        return True
+    
+    except AdminInvitation.DoesNotExist:
+        logger.error(f"Admin invitation with id={invitation_id} not found")
+        return False
+    except Exception as e:
+        logger.error(f"Error sending admin invitation email: {str(e)}")
+        raise
+        
+
 
 
 

@@ -1,21 +1,53 @@
 from django.contrib import admin
-from .models import Cuisine, Establishment, EstablishmentAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage, Branch
+from django.utils.html import format_html
+from django.utils import timezone
+import string
+import random
+from datetime import timedelta
+from .models import Cuisine, Establishment, BranchAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage, Branch
 
 
-@admin.register(EstablishmentAdmin)
-class EstablishmentAdminAdmin(admin.ModelAdmin):
-    list_display = ('user', 'establishment', 'is_active', 'date_added')
-    list_filter = ('is_active', 'establishment')
-    search_fields = ('user__email', 'user__first_name', 'user__last_name', 'establishment__name')
-    date_hierarchy = 'date_added'
+@admin.register(BranchAdmin)
+class BranchAdminAdmin(admin.ModelAdmin):
+    list_display = ('user', 'branch', 'establishment_name', 'is_active', 'created_at')
+    list_filter = ('branch__establishment', 'is_active')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name', 'branch__name')
+    
+    def establishment_name(self, obj):
+        return obj.branch.establishment.name
+    establishment_name.short_description = "Заведение"
 
 @admin.register(AdminInvitation)
 class AdminInvitationAdmin(admin.ModelAdmin):
-    list_display = ('email', 'establishment', 'is_used', 'created_at', 'expires_at')
-    list_filter = ('is_used', 'establishment')
-    search_fields = ('email', 'establishment__name')
-    date_hierarchy = 'created_at'
-    readonly_fields = ('invitation_code',)
+    list_display = ('email', 'branch', 'establishment_name', 'created_at', 'expires_at', 'is_used', 'is_valid', 'invitation_link')
+    list_filter = ('is_used', 'branch__establishment')
+    search_fields = ('email', 'branch__name', 'branch__establishment__name')
+    readonly_fields = ('invitation_code', 'created_at')
+    
+    def establishment_name(self, obj):
+        return obj.branch.establishment.name
+    establishment_name.short_description = "Заведение"
+    
+    def is_valid(self, obj):
+        return obj.is_valid()
+    is_valid.boolean = True
+    is_valid.short_description = "Действительно"
+    
+    def invitation_link(self, obj):
+        from django.conf import settings
+        url = f"{settings.FRONTEND_URL}/admin/activate/{obj.invitation_code}/"
+        return format_html('<a href="{}" target="_blank">Ссылка для активации</a>', url)
+    invitation_link.short_description = "Ссылка"
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+            obj.invitation_code = code
+            
+            if not obj.expires_at:
+                obj.expires_at = timezone.now() + timedelta(days=7)
+        
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Cuisine)

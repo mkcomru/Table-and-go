@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Establishment, Branch
+from .models import Establishment, Branch, AdminInvitation, BranchAdmin
 
 
 class EstablishmentListSerializer(serializers.ModelSerializer):
@@ -192,6 +192,51 @@ class BranchDetailSerializer(serializers.ModelSerializer):
                 'created_at': review.created_at.strftime('%Y-%m-%d')
             }
         for review in reviews]
+
+
+class AdminInvitationSerializer(serializers.ModelSerializer):
+    establishment_name = serializers.ReadOnlyField(source='branch.establishment.name')
+    branch_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AdminInvitation
+        fields = [
+            'id',
+            'branch',
+            'establishment_name',
+            'branch_name',
+            'email',
+            'phone',
+            'invitation_code',
+            'is_used',
+            'created_at',
+            'expires_at',
+            'is_valid'
+        ]
+
+    def get_branch_name(self, obj):
+        return obj.branch.name
+    
+    def validate_email(self, email):
+        branch_id = self.initial_data.get('branch')
+        if branch_id:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                user = User.objects.get(email=email)
+                admin_exists = BranchAdmin.objects.filter(
+                    user=user,
+                    branch_id=branch_id,
+                    is_active=True
+                ).exists()
+                if admin_exists:
+                    raise serializers.ValidationError(
+                        "Пользователь с таким email уже является администратором данного филиала"
+                    )
+            except User.DoesNotExist:
+                pass
+        return email
+
 
 
 

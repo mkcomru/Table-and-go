@@ -39,13 +39,14 @@ class User(AbstractUser):
             self.username = f"{base}_{random_string}"
         super().save(*args, **kwargs)
 
-    def is_admin_of_establishment(self, establishment):
-        from establishments.models import EstablishmentAdmin
-        return EstablishmentAdmin.objects.filter(user=self, establishment=establishment, is_active=True).exists()
+    def is_admin_of_branch(self, branch):
+        from establishments.models import BranchAdmin
+        return BranchAdmin.objects.filter(user=self, branch=branch, is_active=True).exists()
     
-    def get_administered_establishments(self):
-        from establishments.models import Establishment
-        return Establishment.objects.filter(administrators__user=self, administrators__is_active=True)
+    def get_administered_branches(self):
+        from establishments.models import Branch, BranchAdmin
+        branch_ids = BranchAdmin.objects.filter(user=self, is_active=True).values_list('branch_id', flat=True)
+        return Branch.objects.filter(id__in=branch_ids)
     
     def get_booking(self):
         from bookings.models import Booking

@@ -200,27 +200,27 @@ class Table(models.Model):
         return not conflicting_bookings
 
 
-class EstablishmentAdmin(models.Model):
+class BranchAdmin(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='restaurant_admin_roles', verbose_name="Пользователь")
 
-    establishment = models.ForeignKey(Establishment, on_delete=models.CASCADE,
-                                    related_name='administrators', verbose_name="Заведение", null=True, blank=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE,
+                                    related_name='administrators', verbose_name="Филиал", null=True, blank=True)
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     date_added = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     objects = models.Manager()
 
     class Meta():
-        unique_together = ('user', 'establishment')
+        unique_together = ('user', 'branch')
         verbose_name = 'Администратор ресторана'
         verbose_name_plural = 'Администраторы ресторанов'
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} - {self.establishment.name}"
+        return f"{self.user.first_name} {self.user.last_name} - {self.branch.name}"
 
 
 class AdminInvitation(models.Model):
-    establishment = models.ForeignKey(Establishment, on_delete=models.CASCADE, 
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, 
                                     related_name='invitations', verbose_name="Ресторан")
     email = models.EmailField(verbose_name="Email приглашаемого")
     phone = models.CharField(max_length=15, blank=True, null=True, verbose_name="Телефон приглашаемого")
@@ -245,7 +245,7 @@ class AdminInvitation(models.Model):
         verbose_name_plural = 'Приглашения администраторов'
     
     def __str__(self):
-        return f"Приглашение для {self.email} в заведение {self.establishment.name}"
+        return f"Приглашение для {self.email} в заведение {self.branch.name}"
 
 
 class WorkingHours(models.Model):

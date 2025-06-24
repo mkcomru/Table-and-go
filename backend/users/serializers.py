@@ -36,6 +36,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['phone'] = user.phone
         token['is_system_admin'] = user.is_system_admin
+        
+        administered_branches = user.get_administered_branches()
+        token['is_branch_admin'] = administered_branches.exists()
+        
+        if token['is_branch_admin']:
+            token['administered_branch_ids'] = list(administered_branches.values_list('id', flat=True))
 
         return token
 

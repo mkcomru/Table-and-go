@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_celery_results',
+    'axes',
 
     'api',
     'bookings',
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'axes.middleware.AxesMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -198,6 +200,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 SITE_URL = 'http://127.0.0.1:8000'
+FRONTEND_URL = 'http://localhost:8080'
 
 # Настройки django-axes
 AXES_ENABLED = True

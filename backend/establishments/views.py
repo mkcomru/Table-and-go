@@ -1,5 +1,6 @@
 from django.db.models import Avg
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from .models import Establishment, Branch
 from .serializers import EstablishmentListSerializer, BranchListSerializer, BranchDetailSerializer
