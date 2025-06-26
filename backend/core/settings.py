@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_celery_results',
     'axes',
+    'corsheaders',
 
     'api',
     'bookings',
@@ -60,6 +61,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'axes.middleware.AxesMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -218,4 +221,7 @@ AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+
+CORS_ALLOW_ALL_ORIGINS = True
 

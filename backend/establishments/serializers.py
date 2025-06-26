@@ -83,7 +83,7 @@ class BranchListSerializer(serializers.ModelSerializer):
             'working_hours',
             'tables_count',
             'available_tables_count',
-            'cuisine_types',
+            'cuisine_types'
         ]
 
     def get_rating(self, obj):

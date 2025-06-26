@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadImages();
     initFilters();
     initBookingButtons();
+    loadEstablishments();
 });
 
 function loadImages() {
@@ -385,4 +386,112 @@ function initBookingButtons() {
             alert(`Бронирование столика в "${title}" будет реализовано позже`);
         });
     });
+}
+
+// Функция для загрузки заведений с API
+async function loadEstablishments() {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/branch/');
+    const data = await response.json();
+    
+    if (data && data.results) {
+      // Разделяем заведения на рестораны и бары
+      const restaurants = data.results.filter(item => item.establishment_type === 'restaurant');
+      const bars = data.results.filter(item => item.establishment_type === 'bar');
+      
+      // Отображаем рестораны
+      displayRestaurants(restaurants);
+      
+      // Отображаем бары (заменяем существующие статические карточки)
+      displayBars(bars);
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке заведений:', error);
+  }
+}
+
+// Функция для отображения ресторанов
+function displayRestaurants(restaurants) {
+  const container = document.getElementById('restaurants-container');
+  if (!container) return;
+  
+  // Очищаем контейнер
+  container.innerHTML = '';
+  
+  // Добавляем карточки ресторанов
+  restaurants.forEach(restaurant => {
+    const priceLevel = getPriceLevel(restaurant.average_check);
+    
+    const card = document.createElement('div');
+    card.className = 'card restaurant-card';
+    card.innerHTML = `
+      <div class="card-image">
+        <img src="${restaurant.photo}" alt="${restaurant.name}">
+      </div>
+      <div class="card-body">
+        <div class="card-header">
+          <h3 class="card-title">${restaurant.name}</h3>
+          <div class="rating">
+            <i class="fas fa-star"></i>
+            <span>${restaurant.rating}</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <p>${restaurant.cuisine_types.join(', ')} • ${priceLevel}</p>
+          <p class="address">${restaurant.address}</p>
+        </div>
+        <a href="#" class="btn book-btn">Забронировать</a>
+      </div>
+    `;
+    
+    container.appendChild(card);
+  });
+}
+
+// Функция для отображения баров
+function displayBars(bars) {
+  const container = document.getElementById('bars-container');
+  if (!container) return;
+  
+  // Очищаем контейнер
+  container.innerHTML = '';
+  
+  // Добавляем карточки баров
+  bars.forEach(bar => {
+    const priceLevel = getPriceLevel(bar.average_check);
+    
+    const card = document.createElement('div');
+    card.className = 'card bar-card';
+    card.innerHTML = `
+      <div class="card-image">
+        <img src="${bar.photo}" alt="${bar.name}">
+      </div>
+      <div class="card-body">
+        <div class="card-header">
+          <h3 class="card-title">${bar.name}</h3>
+          <div class="rating">
+            <i class="fas fa-star"></i>
+            <span>${bar.rating}</span>
+          </div>
+        </div>
+        <div class="card-info">
+          <p>${bar.cuisine_types.join(', ')} • ${priceLevel}</p>
+          <p class="address">${bar.address}</p>
+        </div>
+        <a href="#" class="btn book-btn">Забронировать</a>
+      </div>
+    `;
+    
+    container.appendChild(card);
+  });
+}
+
+// Функция для определения уровня цен (₽, ₽₽, ₽₽₽, ₽₽₽₽)
+function getPriceLevel(averageCheck) {
+  const check = parseFloat(averageCheck);
+  
+  if (check <= 1000) return '₽';
+  if (check <= 2000) return '₽₽';
+  if (check <= 3000) return '₽₽₽';
+  return '₽₽₽₽';
 }
