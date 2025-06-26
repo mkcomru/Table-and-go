@@ -90,7 +90,7 @@ function initFilters() {
     const searchButton = document.querySelector('.search-btn');
     if (searchButton) {
         searchButton.addEventListener('click', function() {
-            alert('Функция поиска будет реализована позже');
+            applyFilters();
         });
     }
     
@@ -136,7 +136,17 @@ function initSorting() {
                         sortBtnText.textContent = sort.name;
                     }
                     
-                    console.log(`Сортировка: ${sort.value}`);
+                    // Применяем сортировку к обоим типам заведений
+                    let ratingDirection = '';
+                    if (sort.value === 'rating-desc') {
+                        ratingDirection = 'desc';
+                    } else if (sort.value === 'rating-asc') {
+                        ratingDirection = 'asc';
+                    }
+                    
+                    if (ratingDirection) {
+                        loadEstablishments({ rating: ratingDirection });
+                    }
                     
                     sortList.remove();
                     sortContainer.classList.remove('open');
@@ -380,43 +390,124 @@ function initBookingButtons() {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             
-            const card = this.closest('.restaurant-card');
-            const title = card ? card.querySelector('.card-title').textContent : 'ресторан';
+            const card = this.closest('.card');
+            const title = card ? card.querySelector('.card-title').textContent : 'заведение';
             
-            alert(`Бронирование столика в "${title}" будет реализовано позже`);
+            console.log(`Бронирование столика в "${title}"`);
         });
     });
 }
 
 // Функция для загрузки заведений с API
-async function loadEstablishments() {
+async function loadEstablishments(params = {}) {
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/branch/');
+    // Загружаем рестораны и бары отдельными запросами
+    await Promise.all([
+      loadRestaurants(params),
+      loadBars(params)
+    ]);
+  } catch (error) {
+    console.error('Ошибка при загрузке заведений:', error);
+  }
+}
+
+// Функция для загрузки ресторанов
+async function loadRestaurants(params = {}) {
+  try {
+    // Строим URL с query-параметрами
+    let url = 'http://127.0.0.1:8000/api/branch/';
+    
+    // Копируем параметры и добавляем тип заведения
+    const restaurantParams = { ...params, type: 'restaurant' };
+    
+    const queryParams = [];
+    for (const [key, value] of Object.entries(restaurantParams)) {
+      if (value) {
+        queryParams.push(`${key}=${encodeURIComponent(value)}`);
+      }
+    }
+    
+    if (queryParams.length > 0) {
+      url += '?' + queryParams.join('&');
+    }
+    
+    console.log('Загрузка ресторанов с URL:', url);
+    
+    const response = await fetch(url);
     const data = await response.json();
     
     if (data && data.results) {
-      // Разделяем заведения на рестораны и бары
-      const restaurants = data.results.filter(item => item.establishment_type === 'restaurant');
-      const bars = data.results.filter(item => item.establishment_type === 'bar');
-      
       // Отображаем рестораны
-      displayRestaurants(restaurants);
-      
-      // Отображаем бары (заменяем существующие статические карточки)
-      displayBars(bars);
+      displayRestaurants(data.results);
+      return data.results;
     }
+    return [];
   } catch (error) {
-    console.error('Ошибка при загрузке заведений:', error);
+    console.error('Ошибка при загрузке ресторанов:', error);
+    displayRestaurants([]);
+    return [];
+  }
+}
+
+// Функция для загрузки баров
+async function loadBars(params = {}) {
+  try {
+    // Строим URL с query-параметрами
+    let url = 'http://127.0.0.1:8000/api/branch/';
+    
+    // Копируем параметры и добавляем тип заведения
+    const barParams = { ...params, type: 'bar' };
+    
+    const queryParams = [];
+    for (const [key, value] of Object.entries(barParams)) {
+      if (value) {
+        queryParams.push(`${key}=${encodeURIComponent(value)}`);
+      }
+    }
+    
+    if (queryParams.length > 0) {
+      url += '?' + queryParams.join('&');
+    }
+    
+    console.log('Загрузка баров с URL:', url);
+    
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data && data.results) {
+      // Отображаем бары
+      displayBars(data.results);
+      return data.results;
+    }
+    return [];
+  } catch (error) {
+    console.error('Ошибка при загрузке баров:', error);
+    displayBars([]);
+    return [];
   }
 }
 
 // Функция для отображения ресторанов
 function displayRestaurants(restaurants) {
   const container = document.getElementById('restaurants-container');
-  if (!container) return;
+  if (!container) {
+    console.error('Контейнер ресторанов не найден');
+    return;
+  }
+  
+  console.log('Отображение ресторанов:', restaurants.length, restaurants);
   
   // Очищаем контейнер
   container.innerHTML = '';
+  
+  // Проверяем, есть ли рестораны для отображения
+  if (restaurants.length === 0) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'empty-message';
+    emptyMessage.textContent = 'Рестораны не найдены';
+    container.appendChild(emptyMessage);
+    return;
+  }
   
   // Добавляем карточки ресторанов
   restaurants.forEach(restaurant => {
@@ -451,10 +542,24 @@ function displayRestaurants(restaurants) {
 // Функция для отображения баров
 function displayBars(bars) {
   const container = document.getElementById('bars-container');
-  if (!container) return;
+  if (!container) {
+    console.error('Контейнер баров не найден');
+    return;
+  }
+  
+  console.log('Отображение баров:', bars.length, bars);
   
   // Очищаем контейнер
   container.innerHTML = '';
+  
+  // Проверяем, есть ли бары для отображения
+  if (bars.length === 0) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'empty-message';
+    emptyMessage.textContent = 'Бары не найдены';
+    container.appendChild(emptyMessage);
+    return;
+  }
   
   // Добавляем карточки баров
   bars.forEach(bar => {
@@ -494,4 +599,93 @@ function getPriceLevel(averageCheck) {
   if (check <= 2000) return '₽₽';
   if (check <= 3000) return '₽₽₽';
   return '₽₽₽₽';
+}
+
+// Функция для применения фильтров
+function applyFilters() {
+    const params = {};
+    
+    // Добавляем параметры фильтрации по кухне
+    if (selectedCuisines.size > 0) {
+        // Сопоставление названий кухонь с их ID в бэкенде на основе предоставленной таблицы
+        const cuisineMapping = {
+            'Европейская': 65,
+            'Русская': 66,
+            'Грузинская': 67,
+            'Японская': 68,
+            'Китайская': 69,
+            'Итальянская': 70,
+            'Корейская': 71,
+            'Бельгийская': 72
+        };
+        
+        const selectedCuisineIds = Array.from(selectedCuisines)
+            .map(cuisine => {
+                // Удаляем описание в скобках, если есть
+                const cleanCuisine = cuisine.replace(/\s*\(.*\)\s*/, '').trim();
+                return cuisineMapping[cleanCuisine];
+            })
+            .filter(id => id !== undefined);
+        
+        if (selectedCuisineIds.length > 0) {
+            params.cuisine = selectedCuisineIds.join(',');
+            console.log('Выбранные кухни:', Array.from(selectedCuisines), 'ID:', selectedCuisineIds);
+        }
+    }
+    
+    // Добавляем параметры фильтрации по ценовому диапазону
+    if (selectedPrices.size > 0) {
+        // Сопоставление ценовых диапазонов с их ID на основе кода бэкенда
+        const priceMapping = {
+            'Низкий (до 500р)': 1,
+            'Средний (500 - 1500р)': 2,
+            'Выше среднего (1500 - 2500р)': 3,
+            'Высокий (2500р и выше)': 4
+        };
+        
+        const selectedPriceIds = Array.from(selectedPrices)
+            .map(price => {
+                // Удаляем описание в скобках, если есть
+                const cleanPrice = price.replace(/\s*\(.*\)\s*/, '').trim();
+                console.log('Обработка цены:', price, 'Очищенная:', cleanPrice, 'ID:', priceMapping[price]);
+                return priceMapping[price];
+            })
+            .filter(id => id !== undefined);
+        
+        if (selectedPriceIds.length > 0) {
+            params.check = selectedPriceIds.join(',');
+            console.log('Выбранные ценовые диапазоны:', Array.from(selectedPrices), 'ID:', selectedPriceIds);
+        }
+    }
+    
+    // Добавляем параметры фильтрации по району
+    if (selectedLocations.size > 0) {
+        // Сопоставление районов с их ID на основе предоставленной таблицы
+        const districtMapping = {
+            'Центр': 53,
+            'Чуркин': 54,
+            'Первая речка': 55,
+            'Вторая речка': 56,
+            'Тихая': 57
+        };
+        
+        const selectedDistrictIds = Array.from(selectedLocations)
+            .map(location => {
+                // Удаляем описание в скобках, если есть
+                const cleanLocation = location.replace(/\s*\(.*\)\s*/, '').trim();
+                console.log('Обработка района:', location, 'Очищенный:', cleanLocation, 'ID:', districtMapping[location]);
+                return districtMapping[location];
+            })
+            .filter(id => id !== undefined);
+        
+        if (selectedDistrictIds.length > 0) {
+            params.district = selectedDistrictIds.join(',');
+            console.log('Выбранные районы:', Array.from(selectedLocations), 'ID:', selectedDistrictIds);
+        }
+    }
+    
+    console.log('Итоговые параметры фильтрации:', params);
+    
+    // Загружаем заведения с применёнными фильтрами
+    loadEstablishments(params);
 }
