@@ -27,8 +27,8 @@ class User(AbstractUser):
 
     is_system_admin = models.BooleanField(default=False, verbose_name="Администратор системы")
     
-    USERNAME_FIELD = 'phone'  
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']  
+    USERNAME_FIELD = 'email'  
+    REQUIRED_FIELDS = ['phone', 'first_name', 'last_name']  
 
     objects = CustomUserManager()
     

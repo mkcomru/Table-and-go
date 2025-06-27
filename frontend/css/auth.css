@@ -162,4 +162,47 @@
         padding: 20px;
         padding-bottom: 15px;
     }
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: 4px;
+    display: none;
+    text-align: center;
+}
+
+.error-message.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.success-message {
+    color: #2ecc71;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: rgba(46, 204, 113, 0.1);
+    border-radius: 4px;
+    display: none;
+    text-align: center;
+}
+
+.success-message.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 } 
