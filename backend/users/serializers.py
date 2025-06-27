@@ -22,6 +22,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'email', 'phone', 'password']
 
     def create(self, validated_data):
+        validated_data['username'] = validated_data['email']  # Автоматически генерируем username из email
         user = User.objects.create_user(**validated_data)
         return user
 

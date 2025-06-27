@@ -5,10 +5,38 @@ document.addEventListener('DOMContentLoaded', function() {
         registerForm.addEventListener('submit', function(e) {
             e.preventDefault();
             if (validateForm(registerForm)) {
-                alert('Регистрация успешна! Вы будете перенаправлены на страницу входа.');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 1000);
+                const formData = {
+                    first_name: document.getElementById('first_name').value,
+                    last_name: document.getElementById('last_name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    password: document.getElementById('password').value
+                };
+
+                fetch('http://127.0.0.1:8000/auth/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Ошибка регистрации');
+                })
+                .then(data => {
+                    // Сохраняем токены в localStorage
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    
+                    // Перенаправляем на главную страницу
+                    window.location.href = 'index.html';
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
             }
         });
     }
