@@ -4,6 +4,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Проверяем, авторизован ли пользователь
     checkAuthStatus();
     
+    // Получаем параметр redirect из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
+    
+    // Если есть параметр redirect, сохраняем его в скрытом поле
+    if (redirectUrl) {
+        const redirectInput = document.getElementById('redirect-url');
+        if (redirectInput) {
+            redirectInput.value = redirectUrl;
+        }
+    }
+    
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -73,8 +85,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('user_data', JSON.stringify(userData));
                 }
                 
-                // Перенаправляем на главную страницу
-                window.location.href = 'index.html';
+                // Проверяем, есть ли URL для перенаправления
+                const redirectInput = document.getElementById('redirect-url');
+                const redirectUrl = redirectInput && redirectInput.value ? redirectInput.value : 'index.html';
+                
+                // Перенаправляем на указанную страницу или на главную
+                window.location.href = redirectUrl;
             })
             .catch(error => {
                 console.error('Ошибка входа:', error);

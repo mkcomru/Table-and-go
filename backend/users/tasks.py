@@ -20,12 +20,6 @@ def send_welcome_email(email, first_name):
     С уважением,
     Команда Table and Go
     """
-    html_message = f"""
-    <h1>Welcome, {first_name}!</h1>
-    <p>Thank you for joining our platform! We're excited to have you with us.</p>
-    <p>Explore our features and enjoy your experience.</p>
-    <p>Best regards,<br>Your Platform Team</p>
-    """
     try:
         send_mail(
             subject,
@@ -33,7 +27,6 @@ def send_welcome_email(email, first_name):
             settings.DEFAULT_FROM_EMAIL,
             [email],
             fail_silently=False,
-            html_message=html_message
         )
         logger.info(f"Welcome email sent to {email}")
     except Exception as e:
@@ -68,21 +61,12 @@ def send_password_reset_email(email, user_id):
         Best regards,
         Your Platform Team
         """
-        html_message = f"""
-        <h1>Password Reset Request</h1>
-        <p>Hi {user.first_name or user.email},</p>
-        <p>Please click the link below to reset your password:</p>
-        <p><a href="{reset_url}">{reset_url}</a></p>
-        <p>If you did not request this, please ignore this email.</p>
-        <p>Best regards,<br>Your Platform Team</p>
-        """
         send_mail(
             subject,
             message,
             settings.DEFAULT_FROM_EMAIL,
             [email],
             fail_silently=False,
-            html_message=html_message
         )
         logger.info(f"Password reset email sent to {email}")
     except Exception as e:
@@ -117,30 +101,12 @@ def send_admin_invitation_email(invitation_id):
         С уважением,
         Команда Table and Go
         """
-
-        html_message = f"""
-        <h1>Приглашение стать администратором</h1>
-        <p>Здравствуйте!</p>
-        <p>Вы были приглашены стать администратором филиала 
-            "<strong>{branch_name}</strong>" заведения "<strong>{establishment_name}</strong>" 
-            на платформе Table and Go.</p>
-        <p>Для подтверждения и настройки аккаунта, пожалуйста, перейдите по ссылке:</p>
-        <p><a href="{activation_url}" 
-                style="padding: 10px 15px; background-color: #4CAF50; color: white; 
-                        text-decoration: none; border-radius: 4px;">
-            Активировать аккаунт администратора</a></p>
-        <p>Или скопируйте эту ссылку в браузер: {activation_url}</p>
-        <p>Ссылка действительна до {invitation.expires_at.strftime('%d.%m.%Y %H:%M')}.</p>
-        <p>С уважением,<br>Команда Table and Go</p>
-        """
-
         send_mail(
             subject,
             message,
             settings.DEFAULT_FROM_EMAIL,
             [invitation.email],
             fail_silently=False,
-            html_message=html_message
         )
         logger.info(f"Admin invitation email sent to {invitation.email}")
         return True
