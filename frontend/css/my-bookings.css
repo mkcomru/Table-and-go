@@ -210,7 +210,7 @@
 }
 
 .booking-image {
-    width: 400px;
+    width: 350px;
     height: 100%;
     overflow: hidden;
     flex-shrink: 0;
@@ -226,7 +226,7 @@
 
 .booking-details {
     flex-grow: 1;
-    padding: 20px 30px;
+    padding: 15px 25px;
     display: flex;
     flex-direction: column;
 }
@@ -235,7 +235,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .booking-title-row {
@@ -245,7 +245,7 @@
 }
 
 .booking-restaurant {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 600;
     color: #333;
     margin: 0;
@@ -300,14 +300,14 @@
 .booking-info {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     flex-grow: 1;
 }
 
 .booking-info-item {
     display: flex;
     align-items: center;
-    font-size: 16px;
+    font-size: 15px;
     color: #333;
 }
 
@@ -423,7 +423,7 @@
 /* Адаптивность */
 @media (max-width: 1200px) {
     .booking-image {
-        width: 300px;
+        width: 250px;
     }
     
     .booking-content {
@@ -446,7 +446,7 @@
 
 @media (max-width: 992px) {
     .booking-image {
-        width: 250px;
+        width: 220px;
     }
     
     .booking-header {
