@@ -436,20 +436,41 @@
     color: var(--text-color);
 }
 
-/* Фотографии */
-.restaurant-gallery {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-    margin-bottom: 30px;
+/* Фотогалерея */
+.gallery-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
 }
 
-.restaurant-gallery h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 20px;
+#photos {
+    text-align: center;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+#photos .section-heading {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 15px;
     color: var(--text-color);
+    text-align: center;
+}
+
+.gallery-description {
+    margin-bottom: 25px;
+    font-size: 16px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.restaurant-gallery {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .gallery-grid {
