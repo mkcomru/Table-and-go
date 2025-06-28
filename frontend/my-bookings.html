@@ -12,7 +12,7 @@
     <header class="header">
         <div class="container header-container">
             <div class="header-left">
-                <a href="/" class="logo">
+                <a href="index.html" class="logo">
                     <div class="logo-text">
                         <span class="logo-table">Table</span>
                         <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
@@ -28,7 +28,7 @@
                 <nav class="main-nav">
                     <ul>
                         <li><a href="cooperation.html">Сотрудничество</a></li>
-                        <li><a href="#">Контакты</a></li>
+                        <li><a href="#contacts" class="scroll-to-contacts">Контакты</a></li>
                         <li><a href="my-bookings.html" class="active">Мои брони</a></li>
                     </ul>
                 </nav>
@@ -42,280 +42,47 @@
 
     <main>
         <section class="bookings-section">
-            <div class="container">
+            <div class="container bookings-container">
                 <h1 class="page-title">Мои брони</h1>
                 
                 <div class="bookings-tabs">
                     <div class="tabs-wrapper">
-                        <a href="#active" class="tab-item active">Активные (2)</a>
-                        <a href="#history" class="tab-item">История (8)</a>
-                        <a href="#cancelled" class="tab-item">Отмененные (1)</a>
+                        <a href="#active" class="tab-item active" id="active-tab">Активные</a>
+                        <a href="#history" class="tab-item" id="history-tab">История</a>
+                        <a href="#cancelled" class="tab-item" id="cancelled-tab">Отмененные</a>
                     </div>
                 </div>
                 
                 <div class="search-container">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Поиск по названию ресторана">
+                        <input type="text" id="booking-search" placeholder="Поиск по названию ресторана">
                     </div>
                 </div>
                 
                 <!-- Содержимое вкладки Активные -->
                 <div id="active" class="tab-content active">
-                    <div class="booking-list">
-                        <!-- Предстоящие брони -->
-                        <div class="booking-item">
-                            <div class="booking-image">
-                                <img src="assets/images/restaurants/millionka.jpg" alt="Миллионка">
-                            </div>
-                            <div class="booking-details">
-                                <div class="booking-header">
-                                    <div class="booking-title-row">
-                                        <h3 class="booking-restaurant">Миллионка</h3>
-                                        <div class="booking-status upcoming">Подтверждено</div>
-                                    </div>
-                                    <div class="booking-number">
-                                        <div class="booking-number-text">Номер брони: #NK2506-1</div>
-                                        <div class="booking-date">Забронировано 15.06.2025</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="booking-content">
-                                    <div class="booking-info">
-                                        <div class="booking-info-item">
-                                            <i class="far fa-calendar"></i>
-                                            <span>21 июня 2025, Суббота</span>
-                                            <i class="far fa-clock time-icon"></i>
-                                            <span>19:00</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-user-friends"></i>
-                                            <span>4 гостя</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>ул. Семеновская 3А</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="booking-actions">
-                                        <button class="btn-edit">
-                                            <i class="fas fa-pen"></i>
-                                            Изменить бронь
-                                        </button>
-                                        <button class="btn-cancel">
-                                            <i class="fas fa-times"></i>
-                                            Отменить бронь
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="booking-item">
-                            <div class="booking-image">
-                                <img src="assets/images/restaurants/brugge.jpg" alt="Brugge Pub">
-                            </div>
-                            <div class="booking-details">
-                                <div class="booking-header">
-                                    <div class="booking-title-row">
-                                        <h3 class="booking-restaurant">Brugge Pub</h3>
-                                        <div class="booking-status upcoming">Подтверждено</div>
-                                    </div>
-                                    <div class="booking-number">
-                                        <div class="booking-number-text">Номер брони: #NK2507-2</div>
-                                        <div class="booking-date">Забронировано 16.06.2025</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="booking-content">
-                                    <div class="booking-info">
-                                        <div class="booking-info-item">
-                                            <i class="far fa-calendar"></i>
-                                            <span>28 июня 2025, Понедельник</span>
-                                            <i class="far fa-clock time-icon"></i>
-                                            <span>20:30</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-user-friends"></i>
-                                            <span>2 гостя</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>ул. Светланская, д.44а</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="booking-actions">
-                                        <button class="btn-edit">
-                                            <i class="fas fa-pen"></i>
-                                            Изменить бронь
-                                        </button>
-                                        <button class="btn-cancel">
-                                            <i class="fas fa-times"></i>
-                                            Отменить бронь
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="booking-list" id="active-bookings">
+                        <!-- Здесь будут динамически отображаться активные брони -->
                     </div>
                 </div>
                 
                 <!-- Содержимое вкладки История -->
                 <div id="history" class="tab-content">
-                    <div class="booking-list">
-                        <!-- Прошедшие брони -->
-                        <div class="booking-item past">
-                            <div class="booking-image">
-                                <img src="assets/images/restaurants/supra.jpg" alt="Супра">
-                            </div>
-                            <div class="booking-details">
-                                <div class="booking-header">
-                                    <div class="booking-title-row">
-                                        <h3 class="booking-restaurant">Супра</h3>
-                                        <div class="booking-status completed">Завершено</div>
-                                    </div>
-                                    <div class="booking-number">
-                                        <div class="booking-number-text">Номер брони: #NK2501-1</div>
-                                        <div class="booking-date">Забронировано 10.05.2025</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="booking-content">
-                                    <div class="booking-info">
-                                        <div class="booking-info-item">
-                                            <i class="far fa-calendar"></i>
-                                            <span>15 мая 2025, Суббота</span>
-                                            <i class="far fa-clock time-icon"></i>
-                                            <span>18:00</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-user-friends"></i>
-                                            <span>6 гостей</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>ул. Адмирала Фокина 1Б</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="booking-actions">
-                                        <button class="btn-edit">
-                                            <i class="fas fa-star"></i>
-                                            Оставить отзыв
-                                        </button>
-                                        <button class="btn-cancel">
-                                            <i class="fas fa-redo"></i>
-                                            Забронировать снова
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="booking-item past">
-                            <div class="booking-image">
-                                <img src="assets/images/restaurants/mumiy.jpg" alt="Мумий Тролль">
-                            </div>
-                            <div class="booking-details">
-                                <div class="booking-header">
-                                    <div class="booking-title-row">
-                                        <h3 class="booking-restaurant">Мумий Тролль</h3>
-                                        <div class="booking-status completed">Завершено</div>
-                                    </div>
-                                    <div class="booking-number">
-                                        <div class="booking-number-text">Номер брони: #NK2498-3</div>
-                                        <div class="booking-date">Забронировано 01.05.2025</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="booking-content">
-                                    <div class="booking-info">
-                                        <div class="booking-info-item">
-                                            <i class="far fa-calendar"></i>
-                                            <span>5 мая 2025, Среда</span>
-                                            <i class="far fa-clock time-icon"></i>
-                                            <span>21:00</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-user-friends"></i>
-                                            <span>3 гостя</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>ул. Светланская, д.83</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="booking-actions">
-                                        <button class="btn-edit">
-                                            <i class="fas fa-star"></i>
-                                            Оставить отзыв
-                                        </button>
-                                        <button class="btn-cancel">
-                                            <i class="fas fa-redo"></i>
-                                            Забронировать снова
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="booking-list" id="history-bookings">
+                        <!-- Здесь будут динамически отображаться прошедшие брони -->
                     </div>
                 </div>
                 
                 <!-- Содержимое вкладки Отмененные -->
                 <div id="cancelled" class="tab-content">
-                    <div class="booking-list">
-                        <!-- Отмененные брони -->
-                        <div class="booking-item canceled">
-                            <div class="booking-image">
-                                <img src="assets/images/restaurants/zhuklevich.jpg" alt="Жуклевичъ">
-                            </div>
-                            <div class="booking-details">
-                                <div class="booking-header">
-                                    <div class="booking-title-row">
-                                        <h3 class="booking-restaurant">Жуклевичъ</h3>
-                                        <div class="booking-status canceled">Отменено</div>
-                                    </div>
-                                    <div class="booking-number">
-                                        <div class="booking-number-text">Номер брони: #NK2500-2</div>
-                                        <div class="booking-date">Забронировано 05.05.2025</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="booking-content">
-                                    <div class="booking-info">
-                                        <div class="booking-info-item">
-                                            <i class="far fa-calendar"></i>
-                                            <span>10 мая 2025, Понедельник</span>
-                                            <i class="far fa-clock time-icon"></i>
-                                            <span>19:30</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-user-friends"></i>
-                                            <span>2 гостя</span>
-                                        </div>
-                                        <div class="booking-info-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            <span>ул. Светланская, д.7</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="booking-actions">
-                                        <button class="btn-cancel">
-                                            <i class="fas fa-redo"></i>
-                                            Забронировать снова
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="booking-list" id="cancelled-bookings">
+                        <!-- Здесь будут динамически отображаться отмененные брони -->
                     </div>
                 </div>
                 
                 <!-- Пустое состояние (если нет броней) -->
-                <div class="empty-bookings" style="display: none;">
+                <div class="empty-bookings" id="empty-state">
                     <div class="empty-icon">
                         <i class="far fa-calendar-times"></i>
                     </div>
@@ -327,7 +94,7 @@
         </section>
     </main>
 
-    <footer class="footer">
+    <footer class="footer" id="contacts">
         <div class="container">
             <div class="footer-columns">
                 <div class="footer-column">

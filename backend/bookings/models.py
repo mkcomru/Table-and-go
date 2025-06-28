@@ -13,7 +13,7 @@ class Booking(models.Model):
                                 related_name="bookings", verbose_name="Пользователь")
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE,
                                     related_name='bookings', verbose_name="Филиал", null=True, blank=True)
-    table = models.ForeignKey(Table, on_delete=models.CASCADE,
+    table = models.ForeignKey(Table, on_delete=models.CASCADE, blank=True, null=True,
                                 related_name='bookings', verbose_name='Столик')
     booking_datetime = models.DateTimeField(verbose_name="Дата и время бронирования")
     duration = models.IntegerField(default=2, verbose_name="Продолжительность (часы)")

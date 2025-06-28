@@ -1,5 +1,13 @@
 /* Стили для страницы "Мои брони" */
 
+main {
+    min-height: calc(100vh - 300px); /* Минимальная высота для основного контента */
+}
+
+.bookings-section {
+    min-height: 70vh; /* Минимальная высота для секции с бронированиями */
+}
+
 .page-title {
     font-size: 32px;
     font-weight: 700;
@@ -396,12 +404,22 @@
     background-color: white;
     border-radius: 8px;
     box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    margin: 20px 0;
 }
 
 .empty-icon {
     font-size: 60px;
     color: var(--text-light);
     margin-bottom: 20px;
+}
+
+.empty-icon i {
+    opacity: 0.7;
 }
 
 .empty-title {
@@ -526,4 +544,80 @@
         padding: 8px 15px;
         font-size: 13px;
     }
-} 
+}
+
+/* Стили для индикатора загрузки */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 0;
+    font-size: 24px;
+    color: var(--primary-color);
+}
+
+.loading-spinner i {
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Стили для сообщения об ошибке */
+.error-message {
+    display: flex;
+    align-items: center;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    color: #c0392b;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.error-message i {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.error-message span {
+    flex-grow: 1;
+}
+
+.close-error {
+    background: none;
+    border: none;
+    color: #c0392b;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    margin-left: 10px;
+}
+
+/* Стили для сообщения о том, что ничего не найдено */
+.no-results-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-light);
+}
+
+.no-results-message i {
+    font-size: 36px;
+    margin-bottom: 15px;
+    color: #E0E0E0;
+}
+
+.no-results-message p {
+    font-size: 16px;
+    margin: 0;
+}

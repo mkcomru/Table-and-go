@@ -76,4 +76,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Плавная прокрутка к футеру (контактам)
+    const contactsLink = document.querySelector('.scroll-to-contacts');
+    
+    if (contactsLink) {
+        contactsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    }
+    
+    // Проверяем, есть ли в URL хэш #contacts
+    if (window.location.hash === '#contacts') {
+        setTimeout(() => {
+            const contactsSection = document.getElementById('contacts');
+            if (contactsSection) {
+                window.scrollTo({
+                    top: contactsSection.offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }
 }); 

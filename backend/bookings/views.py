@@ -1,7 +1,11 @@
 from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Booking
-from .serializers import BookingSerializer
+from .serializers import BookingSerializer, BookingRequestSerializer
 
 
 class BookingListView(ListAPIView):
@@ -21,6 +25,38 @@ class BookingListView(ListAPIView):
             queryset = queryset.filter(status='completed')
 
         return queryset
+
+
+class BookingCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = BookingRequestSerializer(data=request.data)
+
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+
+            booking = Booking.objects.create(
+                user=request.user,
+                branch=validated_data['branch'],
+                booking_datetime=validated_data['booking_datetime'],
+                guests_count=validated_data['guests_count'],
+                special_requests=validated_data.get('special_requests', ''),
+                status='pending'
+            )
+
+            return Response({
+                "success": True,
+                "message": "Заявка на бронирование успешно создана",
+                "booking_id": booking.id,
+                "booking_number": booking.book_number,
+                "booking_datetime": booking.booking_datetime,
+                "status": booking.status,
+                "branch_name": booking.branch.name
+            }, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors)
+
 
 
 

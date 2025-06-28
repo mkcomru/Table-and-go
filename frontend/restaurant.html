@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Токио Kawaii | Table&Go</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/restaurant.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-text">
+                        <span class="logo-table">Table</span>
+                        <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
+                    </div>
+                </a>
+                <div class="logo-divider"></div>
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Владивосток</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="cooperation.html">Сотрудничество</a></li>
+                        <li><a href="#contacts" class="scroll-to-contacts">Контакты</a></li>
+                        <li><a href="my-bookings.html">Мои брони</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="header-right">
+                <a href="login.html" class="btn btn-outline">Войти</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="restaurant-hero" id="restaurant-hero" style="background-image: url('assets/images/restaurants/Tokyo_Kawaii_1.jpg');">
+            <div class="container">
+                <div class="restaurant-info">
+                    <h1 class="restaurant-name">Tokyo Kawaii</h1>
+                    <div class="restaurant-rating-reviews">
+                        <div class="restaurant-rating">
+                            <i class="fas fa-star"></i>
+                            <span>4.6</span>
+                        </div>
+                        <div class="reviews-count">(9 отзывов)</div>
+                    </div>
+                    <div class="restaurant-meta">
+                        <div class="restaurant-cuisine">
+                            <i class="fas fa-utensils"></i>
+                            <span>Японская кухня</span>
+                        </div>
+                        <div class="restaurant-price">
+                            <i class="fas fa-wallet"></i>
+                            <span>Средний чек: 1350₽</span>
+                        </div>
+                    </div>
+                    <div class="restaurant-details-row">
+                        <div class="restaurant-address">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>ул. Семёновская, д.7В</span>
+                        </div>
+                        <div class="restaurant-hours">
+                            <i class="far fa-clock"></i>
+                            <span>ВС-ЧТ с 11:00 до 23:00; СБ-ПТ с 11:00 до 01:00</span>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <div class="booking-btn-container">
+                            <button class="btn btn-primary booking-btn">Забронировать</button>
+                        </div>
+                        <button class="share-btn">
+                            <i class="fas fa-share-alt"></i>
+                            <span>Поделиться</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="restaurant-content">
+            <div class="container">
+                <!-- Первый блок: О ресторане + Контактная информация -->
+                <div class="content-layout">
+                    <div class="main-content">
+                        <div id="about" class="content-block">
+                            <h2 class="section-heading">О ресторане</h2>
+                            <div class="about-restaurant">
+                                <div class="about-text">
+                                    <p>В самом сердце города, в старинном особняке заново ожил ресторан TOKYO «Kawaii» — место, которое прошло реновацию и преобразилось в новое стильное пространство, где каждый элемент интерьера пронизан духом японских сказок, мифов и легенд. Новый облик ресторана - это символ роста/изменений не только для бренда TOKYO, но и наших гостей, которые идут все время вместе с нами по пути новых открытий.</p>
+                                    <p>TOKYO «Kawaii» — это теперь не просто ресторан, это часть культуры города, обмен эмоциями и впечатлениями, это место, где каждый может найти свой уголок счастья, уйти от обыденности в сакральный мир волшебства. На протяжении 16 лет неизменным оставалась наша любовь и преданность, с которыми мы обращаемся к каждому блюду и каждому гостю. Мы приглашаем вас стать частью этой новой удивительной истории и вместе с нами открыть новую главу в мире эстетических наслаждений и гастрономических открытий.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="contact-info-block">
+                            <h3>Контактная информация</h3>
+                            <div class="contact-info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <p>ул. Семёновская, д.7В</p>
+                                    <p class="text-muted">Район: Центральный</p>
+                                </div>
+                            </div>
+                            <div class="contact-info-item">
+                                <i class="fas fa-phone"></i>
+                                <div>
+                                    <p>+7 999 888 77 66</p>
+                                </div>
+                            </div>
+                            <div class="contact-info-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <p>tokiokawaii@mail.ru</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="features-block">
+                            <h3>Особенности и удобства</h3>
+                            <div class="features-list">
+                                <div class="feature-item">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Банкеты</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="far fa-credit-card"></i>
+                                    <span>Оплата картой</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Еда навынос</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Второй блок: Меню ресторана (центрированный) -->
+                <div class="menu-section">
+                    <div id="menu" class="content-block">
+                        <h2 class="section-heading">Меню ресторана</h2>
+                        <div class="menu-content">
+                            <p>Откройте для себя разнообразие японских блюд в ресторане TOKYO "Kawaii"</p>
+                            <div class="download-menu-btn-container">
+                                <a href="#" class="download-menu-btn">
+                                    <i class="fas fa-file-pdf"></i> Скачать меню (PDF)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Остальные блоки -->
+                <div class="content-layout">
+                    <div class="main-content">
+                        <div id="photos" class="content-block">
+                            <h2 class="section-heading">Фотографии ресторана</h2>
+                            <div class="restaurant-gallery">
+                                <div class="gallery-grid">
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_1.jpg" alt="Интерьер ресторана"></div>
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_2.jpg" alt="Блюда ресторана"></div>
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_3.jpg" alt="Зал ресторана"></div>
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_4.jpg" alt="Бар ресторана"></div>
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_5.jpg" alt="Суши-бар"></div>
+                                    <div class="gallery-item"><img src="assets/images/restaurants/Tokyo_Kawaii_6.jpg" alt="Фирменные блюда"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="reviews" class="content-block">
+                            <h2 class="section-heading">Отзывы посетителей</h2>
+                            <div class="reviews-list">
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-name">Дмитрий Иванов</div>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <div class="review-date">15 июня 2023</div>
+                                    <div class="review-text">
+                                        <p>Великолепный ресторан с аутентичной японской кухней! Суши были свежими и вкусными, обслуживание на высоте. Интерьер очень стильный и уютный. Обязательно вернусь сюда снова!</p>
+                                    </div>
+                                </div>
+
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-name">Анна Петрова</div>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <div class="review-date">3 июня 2023</div>
+                                    <div class="review-text">
+                                        <p>Очень понравилось в этом ресторане! Атмосфера приятная, еда вкусная. Особенно рекомендую роллы "Филадельфия" и "Дракон". Единственный минус - немного долго ждали заказ, но оно того стоило.</p>
+                                    </div>
+                                </div>
+
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-name">Сергей Кузнецов</div>
+                                        <div class="review-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <div class="review-date">20 мая 2023</div>
+                                    <div class="review-text">
+                                        <p>Лучший японский ресторан во Владивостоке! Всегда свежие морепродукты, отличное обслуживание и приятная атмосфера. Мы с семьей постоянно сюда приходим и всегда остаемся довольны.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="all-reviews">
+                                <a href="#" class="btn btn-outline">Все отзывы</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="booking-section" id="booking-section">
+            <div class="container">
+                <h2>Забронировать столик</h2>
+                <form id="booking-form" class="booking-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="booking-date">Дата</label>
+                            <input type="date" id="booking-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-time">Время</label>
+                            <select id="booking-time" required>
+                                <option value="">Выберите время</option>
+                                <option value="12:00">12:00</option>
+                                <option value="13:00">13:00</option>
+                                <option value="14:00">14:00</option>
+                                <option value="15:00">15:00</option>
+                                <option value="16:00">16:00</option>
+                                <option value="17:00">17:00</option>
+                                <option value="18:00">18:00</option>
+                                <option value="19:00">19:00</option>
+                                <option value="20:00">20:00</option>
+                                <option value="21:00">21:00</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="guests-count">Количество гостей</label>
+                            <input type="number" id="guests-count" min="1" max="20" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="special-requests">Комментарий</label>
+                        <textarea id="special-requests" rows="4" placeholder="Особые пожелания, предпочтения по столику и т.д."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary submit-booking">Отправить заявку</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="restaurant-map">
+            <div class="container">
+                <h2>Как нас найти</h2>
+                <div class="map-container">
+                    <img src="assets/images/restaurants/map.jpg" alt="Карта расположения ресторана" class="restaurant-map-img">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" id="contacts">
+        <div class="container">
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3 class="footer-title">Социальные сети</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.instagram.com/table_and_go" target="_blank"><i class="fab fa-instagram"></i> https://www.instagram.com/table_and_go</a></li>
+                        <li><a href="https://vk.com/club229925858" target="_blank"><i class="fab fa-vk"></i> https://vk.com/club229992858</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Правовая информация</h3>
+                    <ul class="legal-links">
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Пользовательское соглашение</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Контакты</h3>
+                    <ul class="contacts">
+                        <li><i class="fas fa-phone"></i> <a href="tel:+79991234567">+7(999)123-45-67</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@tableandgo.ru">info@tableandgo.ru</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">©2025 Table&Go. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/restaurant.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html> 

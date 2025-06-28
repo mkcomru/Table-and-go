@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    loadImages();
+    // loadImages(); // Больше не нужно, так как используем динамическую загрузку
     initFilters();
     initBookingButtons();
     loadEstablishments();
+    initSmoothScroll();
 });
 
 function loadImages() {
@@ -688,4 +689,38 @@ function applyFilters() {
     
     // Загружаем заведения с применёнными фильтрами
     loadEstablishments(params);
+}
+
+// Функция для инициализации плавной прокрутки
+function initSmoothScroll() {
+    const contactsLink = document.querySelector('.scroll-to-contacts');
+    
+    if (contactsLink) {
+        contactsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    }
+    
+    // Проверяем, есть ли в URL хэш #contacts
+    if (window.location.hash === '#contacts') {
+        setTimeout(() => {
+            const contactsSection = document.getElementById('contacts');
+            if (contactsSection) {
+                window.scrollTo({
+                    top: contactsSection.offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
+    }
 }

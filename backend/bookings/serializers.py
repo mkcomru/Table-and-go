@@ -1,7 +1,8 @@
-from pydoc import ModuleScanner
-
 from rest_framework import serializers
 from .models import Booking
+from establishments.models import Branch
+from django.utils import timezone
+import datetime
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -41,6 +42,45 @@ class BookingSerializer(serializers.ModelSerializer):
         return obj.branch.address
 
 
+class BookingRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = [
+            'user',
+            'branch',
+            'booking_datetime',
+            'guests_count',
+            'special_requests'
+        ]
+
+    def validate_guests_count(self, gests_count: int) -> int:
+        if gests_count < 1:
+            raise serializers.ValidationError("Количество гостей должно быть больше 0")
+        return gests_count
+    
+    def validate_booking_datetime(self, booking_datetime: datetime) -> datetime:
+        if booking_datetime < datetime.now():
+            raise serializers.ValidationError("Дата и время бронирования не могут быть в прошлом")
+        return booking_datetime
+    
+    def validate_branch_id(self, branch_id:int) -> int:
+        try: 
+            branch = Branch.objects.get(id=branch_id)
+            return branch_id
+        except Branch.DoesNotExist:
+            raise serializers.ValidationError("Филиал не найден")
+        
+    def validate_branch_open_time(self, data: dict) -> dict:
+        branch = data['branch']
+        booking_datetime = data['booking_datetime']
+
+        if not branch.is_open_at(booking_datetime):
+            raise serializers.ValidationError("Филиал не работает в это время")
+        
+        if booking_datetime < timezone.now():
+            raise serializers.ValidationError("Дата и время бронирования не могут быть в прошлом")
+        
+        return data
 
 
 
