@@ -50,7 +50,7 @@ function getBranchIdFromUrl() {
 
 // Функция для загрузки данных о филиале
 function loadBranchDetails(branchId) {
-    const apiUrl = `http://127.0.0.1:8000/api/branch/${branchId}/`;
+    const apiUrl = `http://127.0.0.1:8000/api/branch/${branchId}`;
     
     fetch(apiUrl)
         .then(response => {
@@ -88,14 +88,14 @@ function updateBranchDetails(data) {
         ratingElement.textContent = data.average_rating.toFixed(1);
     }
     
-    if (reviewsCountElement && data.reviews_count !== undefined) {
-        reviewsCountElement.textContent = `(${data.reviews_count} отзывов)`;
+    if (reviewsCountElement) {
+        reviewsCountElement.textContent = `(${data.reviews ? data.reviews.length : 0} отзывов)`;
     }
     
     // Обновляем тип кухни
     const cuisineElement = document.querySelector('.restaurant-cuisine span');
-    if (cuisineElement && data.establishment && data.establishment.cuisines) {
-        cuisineElement.textContent = data.establishment.cuisines.map(cuisine => cuisine.name).join(', ');
+    if (cuisineElement && data.cuisine_types) {
+        cuisineElement.textContent = data.cuisine_types.join(', ');
     }
     
     // Обновляем средний чек
@@ -110,22 +110,18 @@ function updateBranchDetails(data) {
         addressElement.textContent = data.address;
     }
     
-    // Обновляем район в контактной информации
-    const districtElement = document.querySelector('.contact-info-item .text-muted');
-    if (districtElement && data.district) {
-        districtElement.textContent = `Район: ${data.district.name}`;
-    }
-    
     // Обновляем телефон
     const phoneElement = document.querySelector('.contact-info-item:nth-child(2) p');
     if (phoneElement && data.phone) {
-        phoneElement.textContent = `+7 ${data.phone}`;
+        // Форматируем номер телефона
+        const formattedPhone = formatPhoneNumber(data.phone);
+        phoneElement.textContent = formattedPhone;
     }
     
     // Обновляем email
     const emailElement = document.querySelector('.contact-info-item:nth-child(3) p');
-    if (emailElement && data.establishment && data.establishment.email) {
-        emailElement.textContent = data.establishment.email;
+    if (emailElement && data.email) {
+        emailElement.textContent = data.email;
     }
     
     // Обновляем часы работы
@@ -150,8 +146,9 @@ function updateBranchDetails(data) {
     
     // Обновляем фоновое изображение
     const heroSection = document.getElementById('restaurant-hero');
-    if (heroSection && data.main_image) {
-        heroSection.style.backgroundImage = `url('${data.main_image}')`;
+    if (heroSection && data.gallery && data.gallery.length > 0) {
+        const mainImage = data.gallery.find(img => img.is_main) || data.gallery[0];
+        heroSection.style.backgroundImage = `url('${mainImage.url}')`;
     }
     
     // Загружаем отзывы
@@ -160,28 +157,42 @@ function updateBranchDetails(data) {
     }
 }
 
+// Форматирование номера телефона
+function formatPhoneNumber(phone) {
+    if (!phone) return '';
+    
+    // Убираем все нецифровые символы
+    const digits = phone.replace(/\D/g, '');
+    
+    // Форматируем номер в формате +7 (XXX) XXX-XX-XX
+    if (digits.length === 10) {
+        return `+7 (${digits.substring(0, 3)}) ${digits.substring(3, 6)}-${digits.substring(6, 8)}-${digits.substring(8, 10)}`;
+    } else if (digits.length === 11) {
+        return `+7 (${digits.substring(1, 4)}) ${digits.substring(4, 7)}-${digits.substring(7, 9)}-${digits.substring(9, 11)}`;
+    }
+    
+    // Если формат не соответствует, возвращаем как есть
+    return `+7 ${phone}`;
+}
+
 // Форматирование часов работы
 function formatWorkingHours(workingHours) {
     if (!workingHours || workingHours.length === 0) {
         return 'Часы работы не указаны';
     }
     
-    const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
-    
     // Группируем дни с одинаковым расписанием
     const scheduleGroups = [];
     let currentGroup = {
         days: [workingHours[0].day_of_week],
-        opening_time: workingHours[0].opening_time,
-        closing_time: workingHours[0].closing_time,
+        status: workingHours[0].status,
         is_closed: workingHours[0].is_closed
     };
     
     for (let i = 1; i < workingHours.length; i++) {
         const current = workingHours[i];
         
-        if (current.opening_time === currentGroup.opening_time && 
-            current.closing_time === currentGroup.closing_time && 
+        if (current.status === currentGroup.status && 
             current.is_closed === currentGroup.is_closed) {
             // Добавляем день к текущей группе
             currentGroup.days.push(current.day_of_week);
@@ -190,8 +201,7 @@ function formatWorkingHours(workingHours) {
             scheduleGroups.push(currentGroup);
             currentGroup = {
                 days: [current.day_of_week],
-                opening_time: current.opening_time,
-                closing_time: current.closing_time,
+                status: current.status,
                 is_closed: current.is_closed
             };
         }
@@ -201,6 +211,8 @@ function formatWorkingHours(workingHours) {
     scheduleGroups.push(currentGroup);
     
     // Форматируем каждую группу
+    const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+    
     const formattedSchedule = scheduleGroups.map(group => {
         // Форматируем дни
         let daysText;
@@ -232,21 +244,13 @@ function formatWorkingHours(workingHours) {
         if (group.is_closed) {
             timeText = 'выходной';
         } else {
-            const openingTime = group.opening_time ? formatTime(group.opening_time) : '';
-            const closingTime = group.closing_time ? formatTime(group.closing_time) : '';
-            timeText = `${openingTime}-${closingTime}`;
+            timeText = group.status;
         }
         
         return `${daysText}: ${timeText}`;
     }).join('; ');
     
     return formattedSchedule;
-}
-
-// Форматирование времени из "HH:MM:SS" в "HH:MM"
-function formatTime(timeString) {
-    if (!timeString) return '';
-    return timeString.substring(0, 5);
 }
 
 // Обновление отзывов

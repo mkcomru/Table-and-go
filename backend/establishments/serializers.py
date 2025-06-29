@@ -138,6 +138,7 @@ class BranchDetailSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField()
     menu_pdf = serializers.SerializerMethodField()
     gallery = serializers.SerializerMethodField()
+    district_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Branch
@@ -145,7 +146,7 @@ class BranchDetailSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'address',
-            'district',
+            'district_name',
             'cuisine_types',
             'average_check',
             'average_rating',
@@ -176,7 +177,7 @@ class BranchDetailSerializer(serializers.ModelSerializer):
 
             result.append({
                 'day_of_week': hour.day_of_week,
-                'day_name': hour.day_of_week,
+                'day_name': hour.get_day_of_week_display(),
                 'status': status,
                 'is_closed': hour.is_closed
             })
@@ -185,6 +186,9 @@ class BranchDetailSerializer(serializers.ModelSerializer):
 
     def get_email(self, obj):
         return obj.establishment.email
+    
+    def get_district_name(self, obj):
+        return obj.district.name
 
     def get_reviews(self, obj):
         reviews = obj.reviews.all()
