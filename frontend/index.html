@@ -7,6 +7,84 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/carousel.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #888;
+            font-size: 18px;
+        }
+        
+        /* Стили для карусели */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .restaurant-cards,
+        .bar-cards {
+            display: flex;
+            transition: transform 0.5s ease;
+            gap: 20px;
+        }
+        
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-arrow.prev {
+            left: -20px;
+        }
+        
+        .carousel-arrow.next {
+            right: -20px;
+        }
+        
+        .carousel-arrow.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .card {
+            min-width: calc(25% - 15px);
+            flex: 0 0 calc(25% - 15px);
+        }
+        
+        @media (max-width: 1024px) {
+            .card {
+                min-width: calc(33.333% - 14px);
+                flex: 0 0 calc(33.333% - 14px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                min-width: calc(50% - 10px);
+                flex: 0 0 calc(50% - 10px);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .card {
+                min-width: 100%;
+                flex: 0 0 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -94,6 +172,7 @@
                 </button>
                 <div class="carousel-container">
                     <div id="restaurants-container" class="restaurant-cards">
+                        <!-- Здесь будут карточки ресторанов -->
                     </div>
                 </div>
                 <button type="button" class="carousel-arrow next">
@@ -112,6 +191,7 @@
                 </button>
                 <div class="carousel-container">
                     <div id="bars-container" class="bar-cards">
+                        <!-- Здесь будут карточки баров -->
                     </div>
                 </div>
                 <button type="button" class="carousel-arrow next">
@@ -188,9 +268,6 @@
 
     <script src="js/filters-data.js"></script>
     <script src="js/images.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/restaurants-carousel.js"></script>
-    <script src="js/carousel.js"></script>
     <script src="js/restaurants.js"></script>
     <script src="js/login.js"></script>
 </body>

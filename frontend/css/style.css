@@ -661,9 +661,33 @@ ul {
     margin-bottom: 10px;
 }
 
+.cuisine-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.cuisine {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.price-category {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
 .address {
     margin-top: 5px;
     font-size: 13px;
+    color: #888;
 }
 
 .special-offers {
@@ -878,14 +902,11 @@ ul {
 
 /* Стиль для сообщения о пустых результатах */
 .empty-message {
-    width: 100%;
-    padding: 20px;
     text-align: center;
-    color: #666;
-    font-size: 16px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
-    margin: 20px 0;
+    padding: 30px;
+    color: #888;
+    font-size: 18px;
+    width: 100%;
 }
 
 /* Стили для профиля пользователя в шапке */
@@ -1003,4 +1024,10 @@ ul {
     justify-content: center;
     width: 100%;
     height: 100%;
+}
+
+.card .price {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
 }
