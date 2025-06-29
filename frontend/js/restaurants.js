@@ -12,17 +12,32 @@ function createEstablishmentCard(establishment) {
     // Получаем данные для отображения
     let photo = establishment.photo;
     
-    // Если фото нет, пробуем найти локальное изображение по названию заведения
-    if (!photo || photo === '') {
+    // Проверяем, является ли URL фото действительным
+    const isValidUrl = photo && (
+        photo.startsWith('http://') || 
+        photo.startsWith('https://') || 
+        photo.startsWith('/media/') ||
+        photo.startsWith('/static/')
+    );
+    
+    // Если фото нет или URL недействительный, используем локальное изображение
+    if (!isValidUrl) {
         const name = establishment.name.replace(/\s+/g, '_');
         const type = establishment.establishment_type === 'bar' ? 'bars' : 'restaurants';
-        const localPath = `assets/images/${type}/${name}.jpg`;
         
-        // Проверяем, существует ли такое локальное изображение
-        photo = localPath;
+        // Проверяем наличие локального изображения по имени заведения
+        try {
+            const localPath = `assets/images/${type}/${name}.jpg`;
+            photo = localPath;
+        } catch (e) {
+            // Если локальное изображение не найдено, используем заглушку
+            photo = '';
+        }
     }
     
-    const defaultImage = 'assets/images/vdk_panorama.png'; // Используем существующее изображение как заглушку
+    // Заглушка на случай, если ни одно изображение не доступно
+    const defaultImage = 'assets/images/vdk_panorama.png';
+    
     const rating = parseFloat(establishment.rating || 0).toFixed(1);
     const cuisines = Array.isArray(establishment.cuisine_types) && establishment.cuisine_types.length > 0 
         ? establishment.cuisine_types.join(', ') 
@@ -153,6 +168,7 @@ function displayEmptyMessage(containerId, message) {
 // Функция для получения данных о заведениях с сервера
 function fetchEstablishments(type) {
     const apiUrl = `http://127.0.0.1:8000/api/branch/?type=${type}`;
+    const baseUrl = 'http://127.0.0.1:8000';
     
     console.log(`Запрос к API: ${apiUrl}`);
     
@@ -179,13 +195,21 @@ function fetchEstablishments(type) {
                 }
                 
                 return results.map(item => {
+                    // Обрабатываем URL изображения
+                    let photoUrl = item.photo || '';
+                    
+                    // Если URL начинается с /, но не с //, добавляем базовый URL
+                    if (photoUrl && photoUrl.startsWith('/') && !photoUrl.startsWith('//')) {
+                        photoUrl = baseUrl + photoUrl;
+                    }
+                    
                     return {
                         id: item.id,
                         name: item.establishment_name || item.name,
                         address: item.address || '',
                         district: item.district || '',
                         rating: item.rating || 0,
-                        photo: item.photo || '',
+                        photo: photoUrl,
                         cuisine_types: item.cuisine_types || [],
                         average_check: item.average_check || 0,
                         establishment_type: type
