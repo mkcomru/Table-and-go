@@ -602,71 +602,148 @@
 
 /* Форма бронирования */
 .booking-section {
-    padding: 40px 0;
-    background-color: white;
+    padding: 60px 0;
+    background-color: #f8f8f8;
 }
 
-.booking-section h2 {
-    font-size: 24px;
+.booking-container {
+    display: flex;
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.booking-form-container {
+    flex: 1;
+    padding: 40px;
+}
+
+.booking-form-container h2 {
+    font-size: 28px;
     font-weight: 600;
     margin-bottom: 30px;
-    text-align: center;
+    color: var(--text-color);
 }
 
 .booking-form {
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: #f8f8f8;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    margin-bottom: 20px;
+    max-width: 100%;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.booking-form .form-row {
+    display: flex;
+    gap: 15px;
 }
 
-.form-group:last-child {
+.booking-form .form-row .form-group {
+    flex: 1;
+}
+
+.booking-form .form-group {
     margin-bottom: 0;
 }
 
-.form-group label {
+.booking-form label {
     display: block;
     font-weight: 500;
     margin-bottom: 8px;
     color: var(--text-color);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-family: 'Montserrat', sans-serif;
     font-size: 14px;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.booking-form input,
+.booking-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.booking-form input:focus,
+.booking-form textarea:focus {
     outline: none;
     border-color: var(--primary-color);
 }
 
-.submit-booking {
-    width: 100%;
-    padding: 12px;
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon input {
+    padding-right: 40px;
+}
+
+.input-with-icon i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.guests-counter {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.counter-btn {
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+}
+
+.counter-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.guests-counter input {
+    flex: 1;
+    border: none;
+    text-align: center;
+    font-weight: 500;
+    padding: 0;
+    height: 40px;
+}
+
+.btn-booking {
+    padding: 14px;
+    background-color: #8b1a1a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
     font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
     margin-top: 10px;
+}
+
+.btn-booking:hover {
+    background-color: #6e1414;
+}
+
+.booking-image {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+}
+
+.booking-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* Карта */
@@ -701,6 +778,15 @@
     }
     
     .sidebar {
+        order: -1;
+    }
+    
+    .booking-container {
+        flex-direction: column;
+    }
+    
+    .booking-image {
+        height: 300px;
         order: -1;
     }
 }
@@ -761,6 +847,146 @@
     }
     
     .feature-item {
+        width: 100%;
+    }
+    
+    .booking-form-container {
+        padding: 25px;
+    }
+    
+    .booking-form .form-row {
+        flex-direction: column;
+    }
+}
+
+/* Форма отправки отзыва */
+.leave-review-block {
+    margin-top: 40px;
+    background-color: #f9f9f9;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+}
+
+.leave-review-block h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-color);
+}
+
+.leave-review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.rating-select {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rating-select p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.star-rating {
+    display: flex;
+    gap: 5px;
+}
+
+.star-rating i {
+    font-size: 24px;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star-rating i:hover,
+.star-rating i.fas {
+    color: var(--rating-color);
+}
+
+.review-textarea textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.review-textarea textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.review-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-photo-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.add-photo-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.add-photo-btn i {
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.submit-review-btn {
+    padding: 12px 24px;
+    background-color: #8b1a1a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-review-btn:hover {
+    background-color: #6e1414;
+}
+
+@media (max-width: 576px) {
+    .rating-select {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .review-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .add-photo-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .submit-review-btn {
         width: 100%;
     }
 } 
