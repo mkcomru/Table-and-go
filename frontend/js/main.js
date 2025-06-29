@@ -1,3 +1,46 @@
+// Функция для получения данных пользователя из localStorage
+function getUserData() {
+    const userJson = localStorage.getItem('user');
+    if (!userJson) return null;
+    
+    try {
+        return JSON.parse(userJson);
+    } catch (e) {
+        console.error('Ошибка при парсинге данных пользователя:', e);
+        return null;
+    }
+}
+
+// Функция для проверки авторизации пользователя
+function isAuthenticated() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+    
+    try {
+        // Проверяем формат токена JWT
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) return false;
+        
+        // Декодируем payload токена
+        const payload = JSON.parse(atob(tokenParts[1]));
+        
+        // Проверяем срок действия токена
+        const expTime = payload.exp * 1000; // exp в секундах, преобразуем в миллисекунды
+        
+        if (expTime < Date.now()) {
+            // Если токен истек, удаляем его
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            return false;
+        }
+        
+        return true;
+    } catch (e) {
+        console.error('Ошибка при проверке токена:', e);
+        return false;
+    }
+}
+
 // Функция для обновления UI в зависимости от состояния авторизации
 function updateUIForAuthState() {
     const isUserAuthenticated = isAuthenticated();
@@ -14,9 +57,40 @@ function updateUIForAuthState() {
         const userData = getUserData();
         const userNameElements = document.querySelectorAll('.user-name');
         if (userData && userNameElements.length > 0) {
-            const displayName = userData.first_name ? `${userData.first_name} ${userData.last_name || ''}` : 'Пользователь';
+            let displayName = 'Пользователь';
+            
+            // Формируем отображаемое имя
+            if (userData.first_name && userData.last_name) {
+                displayName = `${userData.first_name} ${userData.last_name}`;
+            } else if (userData.first_name) {
+                displayName = userData.first_name;
+            } else if (userData.username) {
+                displayName = userData.username;
+            } else if (userData.email) {
+                displayName = userData.email;
+            }
+            
             userNameElements.forEach(element => {
                 element.textContent = displayName;
+            });
+        }
+        
+        // Обновляем аватары пользователя
+        const userAvatars = document.querySelectorAll('.user-avatar .default-avatar');
+        if (userData && userAvatars.length > 0) {
+            let firstLetter = 'П';
+            
+            // Получаем первую букву имени или другого идентификатора
+            if (userData.first_name) {
+                firstLetter = userData.first_name.charAt(0).toUpperCase();
+            } else if (userData.username) {
+                firstLetter = userData.username.charAt(0).toUpperCase();
+            } else if (userData.email) {
+                firstLetter = userData.email.charAt(0).toUpperCase();
+            }
+            
+            userAvatars.forEach(element => {
+                element.textContent = firstLetter;
             });
         }
         
@@ -63,6 +137,30 @@ function initUserDropdown() {
             logout();
         });
     });
+}
+
+// Функция для выхода из аккаунта
+function logout() {
+    // Удаляем токен и информацию о пользователе
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    
+    // Обновляем UI
+    updateUIForAuthState();
+    
+    // Если мы находимся на странице, требующей авторизации, перенаправляем на главную
+    const currentPath = window.location.pathname;
+    const authRequiredPages = [
+        '/profile.html', 
+        '/my-bookings.html'
+    ];
+    
+    if (authRequiredPages.some(page => currentPath.endsWith(page))) {
+        window.location.href = 'index.html';
+    } else {
+        // Иначе просто перезагружаем текущую страницу
+        window.location.reload();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

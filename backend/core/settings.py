@@ -208,12 +208,12 @@ FRONTEND_URL = 'http://localhost:8080'
 
 # Настройки django-axes
 AXES_ENABLED = True
-AXES_FAILURE_LIMIT = 5
-AXES_COOLOFF_TIME = 1
+AXES_FAILURE_LIMIT = 10
+AXES_COOLOFF_TIME = 5
 AXES_LOCKOUT_TEMPLATE = 'users/lockout.html'
 AXES_LOGIN_FAILURE_LOG_LEVEL = 'WARNING'
-AXES_USERNAME_FIELD = 'phone'
-AXES_LOCKOUT_URL = None  # Если задано, перенаправляет на указанный URL при блокировке
+AXES_USERNAME_FIELD = 'username'
+AXES_LOCKOUT_URL = None
 AXES_VERBOSE = True
 AXES_RESET_ON_SUCCESS = True
 

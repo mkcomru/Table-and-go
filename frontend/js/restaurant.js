@@ -624,7 +624,32 @@ function initTimePicker() {
 function checkUserAuthentication() {
     // Проверяем наличие токена в localStorage
     const token = localStorage.getItem('authToken');
-    return !!token;
+    
+    if (!token) {
+        return false;
+    }
+    
+    // Проверяем, не истек ли токен (если это JWT)
+    try {
+        // Простая проверка формата JWT (без проверки подписи)
+        if (token.split('.').length === 3) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expTime = payload.exp * 1000; // exp в секундах, преобразуем в миллисекунды
+            
+            if (expTime < Date.now()) {
+                console.log('Токен истек');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                return false;
+            }
+        }
+    } catch (e) {
+        console.error('Ошибка при проверке токена:', e);
+        // Если возникла ошибка при проверке, считаем токен действительным
+        // Сервер все равно проверит его при запросе
+    }
+    
+    return true;
 }
 
 // Функция для отправки запроса на бронирование
@@ -752,6 +777,15 @@ function initReviewForm() {
         submitReviewBtn.addEventListener('click', function(e) {
             e.preventDefault();
             
+            // Проверяем авторизацию пользователя перед валидацией формы
+            const isLoggedIn = checkUserAuthentication();
+            
+            if (!isLoggedIn) {
+                // Если пользователь не авторизован, сразу перенаправляем на страницу логина
+                window.location.href = 'login.html';
+                return;
+            }
+            
             const reviewText = document.querySelector('.review-textarea textarea').value;
             
             if (selectedRating === 0) {
@@ -764,13 +798,107 @@ function initReviewForm() {
                 return;
             }
             
-            // Здесь будет логика отправки отзыва на сервер
-            alert(`Спасибо за ваш отзыв! Рейтинг: ${selectedRating}, Текст: ${reviewText}`);
+            // Получаем ID филиала из URL
+            const branchId = getBranchIdFromUrl();
+            if (!branchId) {
+                alert('Не удалось определить ID заведения');
+                return;
+            }
             
-            // Сбросить форму
-            resetReviewForm(stars);
+            // Формируем данные для отправки
+            const reviewData = {
+                branch: branchId,
+                rating: selectedRating,
+                comment: reviewText,
+                visit_date: getCurrentDate() // Текущая дата как дата посещения
+            };
+            
+            // Отправляем отзыв
+            submitReview(reviewData, function() {
+                // Колбэк после успешной отправки
+                resetReviewForm(stars);
+                
+                // Перезагружаем данные о филиале, чтобы обновить отзывы
+                loadBranchDetails(branchId);
+            });
         });
     }
+}
+
+// Получение текущей даты в формате YYYY-MM-DD
+function getCurrentDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Функция для отправки отзыва на сервер
+function submitReview(reviewData, successCallback) {
+    const apiUrl = 'http://127.0.0.1:8000/api/review/create';
+    
+    // Получаем токен авторизации
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+        alert('Для отправки отзыва необходимо авторизоваться');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Отладочная информация
+    console.log('Отправляемые данные отзыва:', reviewData);
+    
+    // Отправляем запрос
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(reviewData)
+    })
+    .then(response => {
+        // Отладочная информация
+        console.log('Статус ответа:', response.status);
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Если токен недействителен, перенаправляем на страницу логина
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                throw new Error('Сессия истекла. Пожалуйста, авторизуйтесь снова.');
+            } else if (response.status === 400) {
+                return response.json().then(data => {
+                    console.log('Ошибка от сервера:', data);
+                    throw new Error(Object.values(data).flat().join('\n'));
+                });
+            } else {
+                throw new Error('Ошибка при отправке отзыва');
+            }
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Успешный ответ:', data);
+        
+        // Проверяем формат ответа
+        if (data.success || data.id || (data.status && data.status === 'success')) {
+            alert('Ваш отзыв успешно отправлен! После модерации он появится на странице заведения.');
+            if (successCallback) successCallback();
+        } else {
+            alert('Произошла ошибка при отправке отзыва');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        // Показываем сообщение об ошибке только если это не ошибка авторизации
+        if (!error.message.includes('авторизуйтесь')) {
+            alert(error.message || 'Произошла ошибка при отправке отзыва');
+        }
+    });
 }
 
 // Обновление отображения звезд

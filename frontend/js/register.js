@@ -73,22 +73,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .then(data => {
-                // Сохраняем токены в localStorage
-                localStorage.setItem('access_token', data.access);
-                localStorage.setItem('refresh_token', data.refresh);
+                console.log('Успешная регистрация:', data);
+                
+                // Сохраняем токен в localStorage
+                if (data.access) {
+                    localStorage.setItem('authToken', data.access);
+                } else if (data.token) {
+                    // Альтернативное имя поля для токена
+                    localStorage.setItem('authToken', data.token);
+                }
+                
+                // Сохраняем информацию о пользователе
+                let userData = {};
+                
+                // Проверяем, откуда получить информацию о пользователе
+                if (data.user) {
+                    // Если информация о пользователе в поле user
+                    userData = data.user;
+                } else {
+                    // Пробуем извлечь информацию из токена JWT
+                    try {
+                        const token = data.access || data.token;
+                        if (token) {
+                            const tokenParts = token.split('.');
+                            if (tokenParts.length === 3) {
+                                const payload = JSON.parse(atob(tokenParts[1]));
+                                // Копируем нужные поля из payload токена
+                                if (payload.first_name) userData.first_name = payload.first_name;
+                                if (payload.last_name) userData.last_name = payload.last_name;
+                                if (payload.email) userData.email = payload.email;
+                                if (payload.username) userData.username = payload.username;
+                                if (payload.phone) userData.phone = payload.phone;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Ошибка при декодировании токена:', e);
+                    }
+                }
                 
                 // Сохраняем данные пользователя
-                if (data.user) {
-                    localStorage.setItem('user_data', JSON.stringify(data.user));
-                }
+                localStorage.setItem('user', JSON.stringify(userData));
                 
                 // Показываем сообщение об успешной регистрации
                 showSuccess('register-success', 'Регистрация успешно завершена! Перенаправление...');
                 
-                // Перенаправляем на главную страницу через 2 секунды
+                // Перенаправляем на главную страницу через 1 секунду
                 setTimeout(() => {
                     window.location.href = 'index.html';
-                }, 2000);
+                }, 1000);
             })
             .catch(error => {
                 console.error('Ошибка регистрации:', error);
@@ -169,15 +201,51 @@ function validateField(inputElement, isValid) {
 
 // Функция для проверки статуса авторизации
 function checkAuthStatus() {
-    const accessToken = localStorage.getItem('access_token');
-    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const token = localStorage.getItem('authToken');
     
     // Если есть токен доступа, считаем пользователя авторизованным
-    if (accessToken) {
-        console.log('Пользователь авторизован:', userData);
-        
-        // Обновляем интерфейс для авторизованного пользователя
-        updateAuthUI(userData);
+    if (token) {
+        try {
+            // Проверяем формат токена JWT
+            const tokenParts = token.split('.');
+            if (tokenParts.length !== 3) {
+                // Если токен не в формате JWT, удаляем его
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                return;
+            }
+            
+            // Декодируем payload токена
+            const payload = JSON.parse(atob(tokenParts[1]));
+            
+            // Проверяем срок действия токена
+            const expTime = payload.exp * 1000; // exp в секундах, преобразуем в миллисекунды
+            
+            if (expTime < Date.now()) {
+                // Если токен истек, удаляем его
+                console.log('Токен истек');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                return;
+            }
+            
+            // Если токен действителен, получаем данные пользователя
+            const userJson = localStorage.getItem('user');
+            if (userJson) {
+                const userData = JSON.parse(userJson);
+                console.log('Пользователь авторизован:', userData);
+                
+                // Обновляем интерфейс для авторизованного пользователя
+                updateAuthUI(userData);
+                
+                // Если пользователь авторизован, перенаправляем его на главную страницу
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error('Ошибка при проверке токена:', error);
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+        }
     }
 }
 
@@ -193,19 +261,39 @@ function updateAuthUI(userData) {
     const userProfileElement = document.createElement('div');
     userProfileElement.className = 'user-profile';
     
+    // Получаем имя для отображения
+    let displayName = 'Пользователь';
+    let firstLetter = 'П';
+    
+    if (userData) {
+        if (userData.first_name && userData.last_name) {
+            displayName = `${userData.first_name} ${userData.last_name}`;
+            firstLetter = userData.first_name.charAt(0).toUpperCase();
+        } else if (userData.first_name) {
+            displayName = userData.first_name;
+            firstLetter = userData.first_name.charAt(0).toUpperCase();
+        } else if (userData.username) {
+            displayName = userData.username;
+            firstLetter = userData.username.charAt(0).toUpperCase();
+        } else if (userData.email) {
+            displayName = userData.email;
+            firstLetter = userData.email.charAt(0).toUpperCase();
+        }
+    }
+    
     // Добавляем аватар и имя пользователя
     userProfileElement.innerHTML = `
         <div class="user-avatar">
-            <img src="${userData.photo || 'assets/default-avatar.png'}" alt="Аватар" onerror="this.src='assets/default-avatar.png'">
+            <div class="default-avatar">${firstLetter}</div>
         </div>
         <div class="user-info">
-            <span class="user-name">${userData.first_name || ''} ${userData.last_name || ''}</span>
+            <span class="user-name">${displayName}</span>
             <i class="fas fa-chevron-down"></i>
         </div>
         <div class="user-dropdown">
             <ul>
-                <li><a href="#"><i class="fas fa-user"></i> Профиль</a></li>
-                <li><a href="#"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+                <li><a href="my-bookings.html"><i class="fas fa-calendar-check"></i> Мои брони</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>
         </div>
@@ -233,9 +321,8 @@ function updateAuthUI(userData) {
 // Функция для выхода из аккаунта
 function logout() {
     // Удаляем данные авторизации
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
     
     // Перезагружаем страницу
     window.location.reload();
