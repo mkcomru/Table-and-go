@@ -270,5 +270,109 @@
     <script src="js/images.js"></script>
     <script src="js/restaurants.js"></script>
     <script src="js/login.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Загрузка данных с API
+        loadRestaurants();
+        loadBars();
+        
+        // Инициализация слайдеров
+        initSliders();
+        
+        // Инициализация фильтров
+        initFilters();
+    });
+
+    // Функция для загрузки ресторанов
+    function loadRestaurants() {
+        fetch('http://127.0.0.1:8000/api/branch/?type=restaurant')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке данных');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderCards(data.results, 'restaurants-slider');
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+    }
+
+    // Функция для загрузки баров
+    function loadBars() {
+        fetch('http://127.0.0.1:8000/api/branch/?type=bar')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке данных');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderCards(data.results, 'bars-slider');
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+    }
+
+    // Функция для отрисовки карточек заведений
+    function renderCards(items, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        // Очищаем контейнер
+        container.innerHTML = '';
+        
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-id', item.id);
+            
+            // Добавляем обработчик клика для перехода на страницу ресторана
+            card.addEventListener('click', function() {
+                window.location.href = `restaurant.html?id=${item.id}`;
+            });
+            
+            // Создаем содержимое карточки
+            const imageUrl = item.main_image || 'assets/images/default-restaurant.jpg';
+            
+            card.innerHTML = `
+                <div class="card-image" style="background-image: url('${imageUrl}')">
+                    <div class="card-rating">
+                        <i class="fas fa-star"></i>
+                        <span>${item.average_rating ? item.average_rating.toFixed(1) : 'Нет'}</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${item.name}</h3>
+                    <div class="card-info">
+                        <div class="card-cuisine">
+                            <i class="fas fa-utensils"></i>
+                            <span>${item.establishment && item.establishment.cuisines ? 
+                                item.establishment.cuisines.map(c => c.name).join(', ') : 'Разная кухня'}</span>
+                        </div>
+                        <div class="card-price">
+                            <i class="fas fa-wallet"></i>
+                            <span>${item.average_check ? `${item.average_check}₽` : 'Цена не указана'}</span>
+                        </div>
+                    </div>
+                    <div class="card-address">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${item.address || 'Адрес не указан'}</span>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+        });
+        
+        // Обновляем слайдер после добавления карточек
+        if (containerId === 'restaurants-slider' || containerId === 'bars-slider') {
+            initSlider(containerId);
+        }
+    }
+    </script>
 </body>
 </html>

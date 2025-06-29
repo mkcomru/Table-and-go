@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Получаем id филиала из URL
+    const branchId = getBranchIdFromUrl();
+    
+    if (branchId) {
+        // Загружаем данные о филиале
+        loadBranchDetails(branchId);
+    } else {
+        console.error('ID филиала не найден в URL');
+    }
+    
     // Инициализация формы бронирования
     initBookingForm();
     
@@ -14,6 +24,297 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функционал для формы отправки отзыва
     initReviewForm();
 });
+
+// Функция для получения id филиала из URL
+function getBranchIdFromUrl() {
+    // Получаем текущий URL
+    const url = window.location.href;
+    
+    // Проверяем наличие параметра id в URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('id')) {
+        return urlParams.get('id');
+    }
+    
+    // Если параметра нет, пытаемся извлечь id из пути URL
+    const pathParts = window.location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    // Проверяем, является ли последняя часть пути числом
+    if (/^\d+$/.test(lastPart)) {
+        return lastPart;
+    }
+    
+    return null;
+}
+
+// Функция для загрузки данных о филиале
+function loadBranchDetails(branchId) {
+    const apiUrl = `http://127.0.0.1:8000/api/branch/${branchId}/`;
+    
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке данных о филиале');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем информацию на странице
+            updateBranchDetails(data);
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Не удалось загрузить информацию о ресторане. Пожалуйста, попробуйте позже.');
+        });
+}
+
+// Функция для обновления информации о филиале на странице
+function updateBranchDetails(data) {
+    // Обновляем заголовок страницы
+    document.title = `${data.name} | Table&Go`;
+    
+    // Обновляем название ресторана
+    const restaurantNameElement = document.querySelector('.restaurant-name');
+    if (restaurantNameElement) {
+        restaurantNameElement.textContent = data.name;
+    }
+    
+    // Обновляем рейтинг и количество отзывов
+    const ratingElement = document.querySelector('.restaurant-rating span');
+    const reviewsCountElement = document.querySelector('.reviews-count');
+    
+    if (ratingElement && data.average_rating !== undefined) {
+        ratingElement.textContent = data.average_rating.toFixed(1);
+    }
+    
+    if (reviewsCountElement && data.reviews_count !== undefined) {
+        reviewsCountElement.textContent = `(${data.reviews_count} отзывов)`;
+    }
+    
+    // Обновляем тип кухни
+    const cuisineElement = document.querySelector('.restaurant-cuisine span');
+    if (cuisineElement && data.establishment && data.establishment.cuisines) {
+        cuisineElement.textContent = data.establishment.cuisines.map(cuisine => cuisine.name).join(', ');
+    }
+    
+    // Обновляем средний чек
+    const priceElement = document.querySelector('.restaurant-price span');
+    if (priceElement && data.average_check) {
+        priceElement.textContent = `Средний чек: ${data.average_check}₽`;
+    }
+    
+    // Обновляем адрес
+    const addressElement = document.querySelector('.restaurant-address span');
+    if (addressElement && data.address) {
+        addressElement.textContent = data.address;
+    }
+    
+    // Обновляем район в контактной информации
+    const districtElement = document.querySelector('.contact-info-item .text-muted');
+    if (districtElement && data.district) {
+        districtElement.textContent = `Район: ${data.district.name}`;
+    }
+    
+    // Обновляем телефон
+    const phoneElement = document.querySelector('.contact-info-item:nth-child(2) p');
+    if (phoneElement && data.phone) {
+        phoneElement.textContent = `+7 ${data.phone}`;
+    }
+    
+    // Обновляем email
+    const emailElement = document.querySelector('.contact-info-item:nth-child(3) p');
+    if (emailElement && data.establishment && data.establishment.email) {
+        emailElement.textContent = data.establishment.email;
+    }
+    
+    // Обновляем часы работы
+    const hoursElement = document.querySelector('.restaurant-hours span');
+    if (hoursElement && data.working_hours) {
+        const workingHoursText = formatWorkingHours(data.working_hours);
+        hoursElement.textContent = workingHoursText;
+    }
+    
+    // Обновляем ссылку на PDF меню
+    const menuLinkElement = document.querySelector('.download-menu-btn');
+    if (menuLinkElement && data.menu_pdf) {
+        menuLinkElement.href = data.menu_pdf;
+        menuLinkElement.style.display = 'inline-block';
+    } else if (menuLinkElement) {
+        menuLinkElement.style.display = 'none';
+        const menuContent = document.querySelector('.menu-content');
+        if (menuContent) {
+            menuContent.innerHTML = '<p>Меню в формате PDF недоступно</p>';
+        }
+    }
+    
+    // Обновляем фоновое изображение
+    const heroSection = document.getElementById('restaurant-hero');
+    if (heroSection && data.main_image) {
+        heroSection.style.backgroundImage = `url('${data.main_image}')`;
+    }
+    
+    // Загружаем отзывы
+    if (data.reviews && data.reviews.length > 0) {
+        updateReviews(data.reviews);
+    }
+}
+
+// Форматирование часов работы
+function formatWorkingHours(workingHours) {
+    if (!workingHours || workingHours.length === 0) {
+        return 'Часы работы не указаны';
+    }
+    
+    const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+    
+    // Группируем дни с одинаковым расписанием
+    const scheduleGroups = [];
+    let currentGroup = {
+        days: [workingHours[0].day_of_week],
+        opening_time: workingHours[0].opening_time,
+        closing_time: workingHours[0].closing_time,
+        is_closed: workingHours[0].is_closed
+    };
+    
+    for (let i = 1; i < workingHours.length; i++) {
+        const current = workingHours[i];
+        
+        if (current.opening_time === currentGroup.opening_time && 
+            current.closing_time === currentGroup.closing_time && 
+            current.is_closed === currentGroup.is_closed) {
+            // Добавляем день к текущей группе
+            currentGroup.days.push(current.day_of_week);
+        } else {
+            // Сохраняем текущую группу и создаем новую
+            scheduleGroups.push(currentGroup);
+            currentGroup = {
+                days: [current.day_of_week],
+                opening_time: current.opening_time,
+                closing_time: current.closing_time,
+                is_closed: current.is_closed
+            };
+        }
+    }
+    
+    // Добавляем последнюю группу
+    scheduleGroups.push(currentGroup);
+    
+    // Форматируем каждую группу
+    const formattedSchedule = scheduleGroups.map(group => {
+        // Форматируем дни
+        let daysText;
+        if (group.days.length === 7) {
+            daysText = 'Ежедневно';
+        } else if (group.days.length === 1) {
+            daysText = daysOfWeek[group.days[0]];
+        } else {
+            // Проверяем, идут ли дни подряд
+            const sortedDays = [...group.days].sort((a, b) => a - b);
+            let isConsecutive = true;
+            
+            for (let i = 1; i < sortedDays.length; i++) {
+                if (sortedDays[i] !== sortedDays[i-1] + 1) {
+                    isConsecutive = false;
+                    break;
+                }
+            }
+            
+            if (isConsecutive) {
+                daysText = `${daysOfWeek[sortedDays[0]]}-${daysOfWeek[sortedDays[sortedDays.length - 1]]}`;
+            } else {
+                daysText = sortedDays.map(day => daysOfWeek[day]).join(', ');
+            }
+        }
+        
+        // Форматируем время
+        let timeText;
+        if (group.is_closed) {
+            timeText = 'выходной';
+        } else {
+            const openingTime = group.opening_time ? formatTime(group.opening_time) : '';
+            const closingTime = group.closing_time ? formatTime(group.closing_time) : '';
+            timeText = `${openingTime}-${closingTime}`;
+        }
+        
+        return `${daysText}: ${timeText}`;
+    }).join('; ');
+    
+    return formattedSchedule;
+}
+
+// Форматирование времени из "HH:MM:SS" в "HH:MM"
+function formatTime(timeString) {
+    if (!timeString) return '';
+    return timeString.substring(0, 5);
+}
+
+// Обновление отзывов
+function updateReviews(reviews) {
+    const reviewsList = document.querySelector('.reviews-list');
+    if (!reviewsList) return;
+    
+    // Очищаем список отзывов
+    reviewsList.innerHTML = '';
+    
+    // Ограничиваем количество отзывов для отображения
+    const maxReviews = 3;
+    const displayedReviews = reviews.slice(0, maxReviews);
+    
+    // Добавляем отзывы на страницу
+    displayedReviews.forEach(review => {
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card';
+        
+        // Форматируем дату
+        const reviewDate = new Date(review.created_at);
+        const formattedDate = reviewDate.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        // Создаем HTML для отзыва
+        reviewCard.innerHTML = `
+            <div class="reviewer-info">
+                <div class="reviewer-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="reviewer-details">
+                    <div class="reviewer-name">${review.user_name || 'Анонимный пользователь'}</div>
+                    <div class="review-date">${formattedDate}</div>
+                </div>
+            </div>
+            <div class="review-rating">
+                ${generateStars(review.rating)}
+            </div>
+            <div class="review-text">
+                <p>${review.comment || 'Без комментария'}</p>
+            </div>
+        `;
+        
+        reviewsList.appendChild(reviewCard);
+    });
+    
+    // Обновляем счетчик отзывов
+    const reviewsCountElement = document.querySelector('.reviews-count');
+    if (reviewsCountElement) {
+        reviewsCountElement.textContent = `(${reviews.length} отзывов)`;
+    }
+}
+
+// Генерация HTML для звезд рейтинга
+function generateStars(rating) {
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            starsHtml += '<i class="fas fa-star"></i>';
+        } else {
+            starsHtml += '<i class="far fa-star"></i>';
+        }
+    }
+    return starsHtml;
+}
 
 // Функция для инициализации формы бронирования
 function initBookingForm() {
