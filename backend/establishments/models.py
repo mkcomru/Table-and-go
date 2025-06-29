@@ -287,29 +287,18 @@ class WorkingHours(models.Model):
 class Menu(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE,
                                 related_name="menu", verbose_name="Филиал", null=True, blank=True)
-    name = models.CharField(max_length=150, verbose_name="Название блюда")
-    description = models.TextField(blank=True, null=True, verbose_name="Описание")
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
+    title = models.CharField(max_length=100, verbose_name="Название меню")
+    pdf_menu = models.FileField(upload_to='branch_menu/', verbose_name="PDF меню")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
     objects = models.Manager()
-
-    CATEGORY_CHOICES = [
-        ('starter', 'Закуска'),
-        ('main', 'Основное блюдо'),
-        ('dessert', 'Десерт'),
-        ('drink', 'Напиток'),
-        ('salad', 'Салат'),
-    ]
-    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, verbose_name="Категория")
-    image = models.ImageField(upload_to='menu/', blank=True, null=True, verbose_name="Фото блюда")
-    is_available = models.BooleanField(default=True, verbose_name="Доступно")
     
     class Meta:
-        verbose_name = "Пункты меню"
-        verbose_name_plural = "Пункты меню"
-        ordering = ['category', 'name']
+        verbose_name = "PDF меню"
+        verbose_name_plural = "PDF меню"
+        ordering = ['uploaded_at']
 
     def __str__(self):
-        return f"{self.name} - {self.price} руб. ({self.branch.establishment.name} - {self.branch.name})"
+        return f"{self.title} ({self.branch.establishment.name} - {self.branch.name})"
 
 
 class BranchImage(models.Model):

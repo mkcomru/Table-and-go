@@ -94,10 +94,9 @@ class WorkingHoursAdmin(admin.ModelAdmin):
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):
-    list_display = ('name', 'branch', 'category', 'price', 'is_available')
-    list_filter = ('branch', 'category', 'is_available')
-    search_fields = ('name', 'branch__name', 'description')
-    list_editable = ('price', 'is_available')
+    list_display = ('title', 'branch', 'uploaded_at')
+    list_filter = ('branch',)
+    search_fields = ('title', 'branch__name')
 
 
 @admin.register(BranchImage)

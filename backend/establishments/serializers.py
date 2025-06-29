@@ -136,6 +136,8 @@ class BranchDetailSerializer(serializers.ModelSerializer):
     working_hours = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
+    menu_pdf = serializers.SerializerMethodField()
+    gallery = serializers.SerializerMethodField()
 
     class Meta:
         model = Branch
@@ -152,6 +154,8 @@ class BranchDetailSerializer(serializers.ModelSerializer):
             'email',
             'reviews',
             'allow_to_book',
+            'menu_pdf',
+            'gallery'
         ]
 
     def get_cuisine_types(self, obj):
@@ -192,6 +196,25 @@ class BranchDetailSerializer(serializers.ModelSerializer):
                 'created_at': review.created_at.strftime('%Y-%m-%d')
             }
         for review in reviews]
+    
+    def get_menu_pdf(self, obj):
+        menu = obj.menu.first()
+        if menu and menu.pdf_menu:
+            request = self.context.get('request')
+            return request.build_absolute_uri(menu.pdf_menu.url) if request else menu.pdf_menu.url
+        return None
+
+    def get_gallery(self, obj):
+        images = obj.images.all()
+        request = self.context.get('request')
+        return [
+            {
+                'id': img.id,
+                'url': request.build_absolute_uri(img.image.url) if request else img.image.url,
+                'caption': img.caption,
+                'is_main': img.is_main
+            } for img in images
+        ]
 
 
 class AdminInvitationSerializer(serializers.ModelSerializer):
