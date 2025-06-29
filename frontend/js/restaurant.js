@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadBranchDetails(branchId);
     } else {
         console.error('ID филиала не найден в URL');
+        showErrorMessage('Не удалось определить ID заведения. Пожалуйста, проверьте URL.');
     }
     
     // Инициализация формы бронирования
@@ -24,6 +25,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функционал для формы отправки отзыва
     initReviewForm();
 });
+
+// Функция для отображения сообщения об ошибке
+function showErrorMessage(message) {
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>${message}</p>
+            </div>
+        `;
+        mainContent.prepend(errorDiv);
+    }
+}
 
 // Функция для получения id филиала из URL
 function getBranchIdFromUrl() {
@@ -65,104 +82,214 @@ function loadBranchDetails(branchId) {
         })
         .catch(error => {
             console.error('Ошибка:', error);
-            alert('Не удалось загрузить информацию о ресторане. Пожалуйста, попробуйте позже.');
+            showErrorMessage('Не удалось загрузить информацию о заведении. Пожалуйста, попробуйте позже.');
         });
 }
 
 // Функция для обновления информации о филиале на странице
 function updateBranchDetails(data) {
     // Обновляем заголовок страницы
-    document.title = `${data.name} | Table&Go`;
+    document.title = data.name ? `${data.name} | Table&Go` : 'Table&Go';
     
     // Обновляем название ресторана
     const restaurantNameElement = document.querySelector('.restaurant-name');
     if (restaurantNameElement) {
-        restaurantNameElement.textContent = data.name;
+        restaurantNameElement.textContent = data.name || 'Название заведения недоступно';
+    }
+    
+    // Обновляем описание заведения
+    const aboutTextElement = document.querySelector('.about-text');
+    if (aboutTextElement) {
+        if (data.description) {
+            // Разбиваем описание на абзацы (если есть переносы строк)
+            const paragraphs = data.description.split('\n').filter(p => p.trim() !== '');
+            
+            // Очищаем текущее содержимое
+            aboutTextElement.innerHTML = '';
+            
+            // Добавляем каждый абзац как отдельный элемент <p>
+            paragraphs.forEach(paragraph => {
+                const p = document.createElement('p');
+                p.textContent = paragraph.trim();
+                aboutTextElement.appendChild(p);
+            });
+        } else {
+            // Если описания нет, добавляем стандартный текст
+            aboutTextElement.innerHTML = '<p>Информация о заведении временно недоступна.</p>';
+        }
     }
     
     // Обновляем рейтинг и количество отзывов
     const ratingElement = document.querySelector('.restaurant-rating span');
     const reviewsCountElement = document.querySelector('.reviews-count');
     
-    if (ratingElement && data.average_rating !== undefined) {
-        ratingElement.textContent = data.average_rating.toFixed(1);
+    if (ratingElement) {
+        ratingElement.textContent = data.average_rating !== undefined ? data.average_rating.toFixed(1) : '0.0';
     }
     
     if (reviewsCountElement) {
-        reviewsCountElement.textContent = `(${data.reviews ? data.reviews.length : 0} отзывов)`;
+        const reviewsCount = data.reviews ? data.reviews.length : 0;
+        reviewsCountElement.textContent = `(${reviewsCount} отзывов)`;
     }
     
     // Обновляем тип кухни
     const cuisineElement = document.querySelector('.restaurant-cuisine span');
-    if (cuisineElement && data.cuisine_types) {
-        cuisineElement.textContent = data.cuisine_types.join(', ');
+    if (cuisineElement) {
+        if (data.cuisine_types && data.cuisine_types.length > 0) {
+            cuisineElement.textContent = data.cuisine_types.join(', ');
+        } else {
+            cuisineElement.textContent = 'Тип кухни не указан';
+        }
     }
     
     // Обновляем средний чек
     const priceElement = document.querySelector('.restaurant-price span');
-    if (priceElement && data.average_check) {
-        priceElement.textContent = `Средний чек: ${data.average_check}₽`;
+    if (priceElement) {
+        if (data.average_check) {
+            priceElement.textContent = `Средний чек: ${data.average_check}₽`;
+        } else {
+            priceElement.textContent = 'Средний чек не указан';
+        }
     }
     
-    // Обновляем адрес
+    // Обновляем адрес в шапке
+    const headerAddressElement = document.querySelector('.restaurant-address span');
+    if (headerAddressElement) {
+        headerAddressElement.textContent = data.address || 'Адрес не указан';
+    }
+    
+    // Обновляем адрес в блоке контактной информации
     const addressElement = document.querySelector('.contact-info-item.address-item p');
-    if (addressElement && data.address) {
-        addressElement.textContent = data.address;
+    if (addressElement) {
+        addressElement.textContent = data.address || 'Адрес не указан';
     }
     
     // Обновляем район в контактной информации
     const districtElement = document.querySelector('.contact-info-district p');
-    if (districtElement && data.district) {
-        // Если district это объект с полем name, используем его, иначе используем как есть
-        const districtName = typeof data.district === 'object' ? data.district.name : data.district;
-        districtElement.textContent = `Район: ${districtName}`;
+    if (districtElement) {
+        if (data.district) {
+            // Если district это объект с полем name, используем его, иначе используем как есть
+            const districtName = typeof data.district === 'object' ? data.district.name : data.district;
+            districtElement.textContent = `Район: ${districtName}`;
+        } else {
+            districtElement.textContent = 'Район не указан';
+        }
     }
     
     // Обновляем телефон
     const phoneElement = document.querySelector('.contact-info-item.phone-item p');
-    if (phoneElement && data.phone) {
-        // Форматируем номер телефона
-        const formattedPhone = formatPhoneNumber(data.phone);
-        phoneElement.textContent = formattedPhone;
+    if (phoneElement) {
+        if (data.phone) {
+            // Форматируем номер телефона
+            const formattedPhone = formatPhoneNumber(data.phone);
+            phoneElement.textContent = formattedPhone;
+        } else {
+            phoneElement.textContent = 'Телефон не указан';
+        }
     }
     
     // Обновляем email
     const emailElement = document.querySelector('.contact-info-item.email-item p');
-    if (emailElement && data.email) {
-        emailElement.textContent = data.email;
+    if (emailElement) {
+        emailElement.textContent = data.email || 'Email не указан';
     }
     
     // Обновляем часы работы
     const hoursElement = document.querySelector('.restaurant-hours span');
-    if (hoursElement && data.working_hours) {
-        const workingHoursText = formatWorkingHours(data.working_hours);
-        hoursElement.textContent = workingHoursText;
+    if (hoursElement) {
+        if (data.working_hours && data.working_hours.length > 0) {
+            const workingHoursText = formatWorkingHours(data.working_hours);
+            hoursElement.textContent = workingHoursText;
+        } else {
+            hoursElement.textContent = 'Часы работы не указаны';
+        }
     }
     
     // Обновляем ссылку на PDF меню
     const menuLinkElement = document.querySelector('.download-menu-btn');
-    if (menuLinkElement && data.menu_pdf) {
-        menuLinkElement.href = data.menu_pdf;
-        menuLinkElement.style.display = 'inline-block';
-    } else if (menuLinkElement) {
-        menuLinkElement.style.display = 'none';
-        const menuContent = document.querySelector('.menu-content');
-        if (menuContent) {
-            menuContent.innerHTML = '<p>Меню в формате PDF недоступно</p>';
+    const menuContent = document.querySelector('.menu-content p');
+    
+    if (menuLinkElement && menuContent) {
+        if (data.menu_pdf) {
+            menuLinkElement.href = data.menu_pdf;
+            menuLinkElement.style.display = 'inline-block';
+            menuContent.textContent = `Меню заведения "${data.name}" доступно для скачивания.`;
+        } else {
+            menuLinkElement.style.display = 'none';
+            menuContent.textContent = 'Меню в формате PDF недоступно';
         }
     }
     
     // Обновляем фоновое изображение
     const heroSection = document.getElementById('restaurant-hero');
-    if (heroSection && data.gallery && data.gallery.length > 0) {
-        const mainImage = data.gallery.find(img => img.is_main) || data.gallery[0];
-        heroSection.style.backgroundImage = `url('${mainImage.url}')`;
+    if (heroSection) {
+        if (data.gallery && data.gallery.length > 0) {
+            const mainImage = data.gallery.find(img => img.is_main) || data.gallery[0];
+            heroSection.style.backgroundImage = `url('${mainImage.url}')`;
+            
+            // Загружаем галерею изображений
+            updateGallery(data.gallery);
+            
+            // Обновляем изображение для блока бронирования
+            updateBookingImage(data.gallery);
+        } else {
+            // Если нет изображений, используем стандартный фон
+            heroSection.style.backgroundImage = 'linear-gradient(to right, #8b1a1a, #d32f2f)';
+        }
     }
     
     // Загружаем отзывы
     if (data.reviews && data.reviews.length > 0) {
         updateReviews(data.reviews);
+    } else {
+        // Если отзывов нет, показываем сообщение
+        const reviewsList = document.querySelector('.reviews-list');
+        if (reviewsList) {
+            reviewsList.innerHTML = '<div class="no-reviews-message">Отзывов пока нет. Будьте первым, кто оставит отзыв!</div>';
+        }
     }
+}
+
+// Функция для обновления галереи изображений
+function updateGallery(gallery) {
+    const galleryGrid = document.querySelector('.gallery-grid');
+    if (!galleryGrid || !gallery || gallery.length === 0) return;
+    
+    // Очищаем текущее содержимое
+    galleryGrid.innerHTML = '';
+    
+    // Добавляем изображения в галерею
+    gallery.forEach(image => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        
+        const img = document.createElement('img');
+        img.src = image.url;
+        img.alt = image.caption || 'Фото заведения';
+        
+        galleryItem.appendChild(img);
+        galleryGrid.appendChild(galleryItem);
+    });
+}
+
+// Функция для обновления изображения в блоке бронирования
+function updateBookingImage(gallery) {
+    const bookingImage = document.querySelector('.booking-image');
+    if (!bookingImage || !gallery || gallery.length === 0) return;
+    
+    // Выбираем изображение (не главное, если возможно)
+    const image = gallery.length > 1 ? 
+        gallery.find(img => !img.is_main) || gallery[0] : 
+        gallery[0];
+    
+    // Создаем элемент изображения
+    const img = document.createElement('img');
+    img.src = image.url;
+    img.alt = 'Фото заведения';
+    
+    // Очищаем и добавляем изображение
+    bookingImage.innerHTML = '';
+    bookingImage.appendChild(img);
 }
 
 // Форматирование номера телефона
@@ -269,6 +396,12 @@ function updateReviews(reviews) {
     // Очищаем список отзывов
     reviewsList.innerHTML = '';
     
+    // Если отзывов нет, показываем сообщение
+    if (!reviews || reviews.length === 0) {
+        reviewsList.innerHTML = '<div class="no-reviews-message">Отзывов пока нет. Будьте первым, кто оставит отзыв!</div>';
+        return;
+    }
+    
     // Ограничиваем количество отзывов для отображения
     const maxReviews = 3;
     const displayedReviews = reviews.slice(0, maxReviews);
@@ -307,12 +440,6 @@ function updateReviews(reviews) {
         
         reviewsList.appendChild(reviewCard);
     });
-    
-    // Обновляем счетчик отзывов
-    const reviewsCountElement = document.querySelector('.reviews-count');
-    if (reviewsCountElement) {
-        reviewsCountElement.textContent = `(${reviews.length} отзывов)`;
-    }
 }
 
 // Генерация HTML для звезд рейтинга

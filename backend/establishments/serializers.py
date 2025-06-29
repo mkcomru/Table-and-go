@@ -139,6 +139,7 @@ class BranchDetailSerializer(serializers.ModelSerializer):
     menu_pdf = serializers.SerializerMethodField()
     gallery = serializers.SerializerMethodField()
     district_name = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
     class Meta:
         model = Branch
@@ -156,7 +157,8 @@ class BranchDetailSerializer(serializers.ModelSerializer):
             'reviews',
             'allow_to_book',
             'menu_pdf',
-            'gallery'
+            'gallery',
+            'description'
         ]
 
     def get_cuisine_types(self, obj):
@@ -219,6 +221,9 @@ class BranchDetailSerializer(serializers.ModelSerializer):
                 'is_main': img.is_main
             } for img in images
         ]
+    
+    def get_description(self, obj):
+        return obj.establishment.description
 
 
 class AdminInvitationSerializer(serializers.ModelSerializer):
