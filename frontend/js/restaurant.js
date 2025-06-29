@@ -105,13 +105,21 @@ function updateBranchDetails(data) {
     }
     
     // Обновляем адрес
-    const addressElement = document.querySelector('.restaurant-address span');
+    const addressElement = document.querySelector('.contact-info-item.address-item p');
     if (addressElement && data.address) {
         addressElement.textContent = data.address;
     }
     
+    // Обновляем район в контактной информации
+    const districtElement = document.querySelector('.contact-info-district p');
+    if (districtElement && data.district) {
+        // Если district это объект с полем name, используем его, иначе используем как есть
+        const districtName = typeof data.district === 'object' ? data.district.name : data.district;
+        districtElement.textContent = `Район: ${districtName}`;
+    }
+    
     // Обновляем телефон
-    const phoneElement = document.querySelector('.contact-info-item:nth-child(2) p');
+    const phoneElement = document.querySelector('.contact-info-item.phone-item p');
     if (phoneElement && data.phone) {
         // Форматируем номер телефона
         const formattedPhone = formatPhoneNumber(data.phone);
@@ -119,7 +127,7 @@ function updateBranchDetails(data) {
     }
     
     // Обновляем email
-    const emailElement = document.querySelector('.contact-info-item:nth-child(3) p');
+    const emailElement = document.querySelector('.contact-info-item.email-item p');
     if (emailElement && data.email) {
         emailElement.textContent = data.email;
     }
