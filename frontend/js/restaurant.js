@@ -660,7 +660,7 @@ function sendBookingRequest(formData) {
     // Имитация отправки запроса
     setTimeout(() => {
         // Показываем сообщение об успешном бронировании
-        alert('Ваша заявка на бронирование успешно отправлена! Мы свяжемся с вами для подтверждения.');
+        showNotification('Ваша заявка на бронирование успешно отправлена! Мы свяжемся с вами для подтверждения.', 'success');
         
         // Очищаем форму
         document.getElementById('booking-form').reset();
@@ -709,7 +709,7 @@ function initShareButton() {
                 document.body.removeChild(tempInput);
                 
                 // Показываем уведомление
-                alert('Ссылка скопирована в буфер обмена');
+                showNotification('Ссылка скопирована в буфер обмена', 'success');
             }
         });
     }
@@ -734,6 +734,30 @@ function initSmoothScroll() {
             }
         });
     });
+}
+
+// Функция для создания и отображения уведомлений
+function showNotification(message, type = 'success') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Добавляем уведомление в DOM
+    document.body.appendChild(notification);
+    
+    // Через секунду добавляем класс для анимации появления
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Через 5 секунд удаляем уведомление
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
 }
 
 function initReviewForm() {
@@ -767,7 +791,7 @@ function initReviewForm() {
         addPhotoBtn.addEventListener('click', function(e) {
             e.preventDefault();
             // Здесь будет логика для добавления фото
-            alert('Функционал добавления фото будет реализован позже');
+            showNotification('Функционал добавления фото будет реализован позже', 'info');
         });
     }
 
@@ -789,19 +813,19 @@ function initReviewForm() {
             const reviewText = document.querySelector('.review-textarea textarea').value;
             
             if (selectedRating === 0) {
-                alert('Пожалуйста, выберите рейтинг');
+                showNotification('Пожалуйста, выберите рейтинг', 'error');
                 return;
             }
             
             if (!reviewText.trim()) {
-                alert('Пожалуйста, напишите отзыв');
+                showNotification('Пожалуйста, напишите отзыв', 'error');
                 return;
             }
             
             // Получаем ID филиала из URL
             const branchId = getBranchIdFromUrl();
             if (!branchId) {
-                alert('Не удалось определить ID заведения');
+                showNotification('Не удалось определить ID заведения', 'error');
                 return;
             }
             
@@ -817,9 +841,14 @@ function initReviewForm() {
             submitReview(reviewData, function() {
                 // Колбэк после успешной отправки
                 resetReviewForm(stars);
+                selectedRating = 0; // Сбрасываем выбранный рейтинг
                 
-                // Перезагружаем данные о филиале, чтобы обновить отзывы
-                loadBranchDetails(branchId);
+                // Добавляем небольшую задержку перед обновлением данных,
+                // чтобы дать серверу время на обработку отзыва
+                setTimeout(() => {
+                    // Перезагружаем данные о филиале, чтобы обновить отзывы
+                    loadBranchDetails(branchId);
+                }, 1000);
             });
         });
     }
@@ -836,19 +865,23 @@ function getCurrentDate() {
 
 // Функция для отправки отзыва на сервер
 function submitReview(reviewData, successCallback) {
-    const apiUrl = 'http://127.0.0.1:8000/api/review/create';
+    // Добавляем слеш в конце URL для Django (APPEND_SLASH=True)
+    const apiUrl = 'http://127.0.0.1:8000/api/review/create/';
     
     // Получаем токен авторизации
     const token = localStorage.getItem('authToken');
     
     if (!token) {
-        alert('Для отправки отзыва необходимо авторизоваться');
+        showNotification('Для отправки отзыва необходимо авторизоваться', 'error');
         window.location.href = 'login.html';
         return;
     }
     
     // Отладочная информация
     console.log('Отправляемые данные отзыва:', reviewData);
+    
+    // Показываем уведомление о процессе отправки
+    showNotification('Отправка отзыва...', 'info');
     
     // Отправляем запрос
     fetch(apiUrl, {
@@ -884,19 +917,28 @@ function submitReview(reviewData, successCallback) {
     .then(data => {
         console.log('Успешный ответ:', data);
         
-        // Проверяем формат ответа
-        if (data.success || data.id || (data.status && data.status === 'success')) {
-            alert('Ваш отзыв успешно отправлен! После модерации он появится на странице заведения.');
+        // Проверяем формат ответа - если сервер вернул статус 200, считаем отзыв успешно отправленным
+        if (data.success || data.id || data.review_id || 
+            (data.status && data.status === 'success') || 
+            data.user || Object.keys(data).length > 0) {
+            
+            // Показываем сообщение в зависимости от ответа сервера
+            if (data.message && data.message.includes('обновлен')) {
+                showNotification('Ваш предыдущий отзыв был успешно обновлен! После модерации он появится на странице заведения.', 'success');
+            } else {
+                showNotification('Ваш отзыв успешно отправлен! После модерации он появится на странице заведения.', 'success');
+            }
+            
             if (successCallback) successCallback();
         } else {
-            alert('Произошла ошибка при отправке отзыва');
+            showNotification('Произошла ошибка при отправке отзыва', 'error');
         }
     })
     .catch(error => {
         console.error('Ошибка:', error);
         // Показываем сообщение об ошибке только если это не ошибка авторизации
         if (!error.message.includes('авторизуйтесь')) {
-            alert(error.message || 'Произошла ошибка при отправке отзыва');
+            showNotification(error.message || 'Произошла ошибка при отправке отзыва', 'error');
         }
     });
 }
