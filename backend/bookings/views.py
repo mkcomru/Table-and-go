@@ -1,11 +1,11 @@
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, UpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Booking
-from .serializers import BookingListSerializer, BookingCreateSerializer
+from .serializers import BookingListSerializer, BookingCreateSerializer, BookingUpdateSerializer
 
 
 class BookingListBranchView(ListAPIView):
@@ -108,6 +108,13 @@ class BookingCancelView(APIView):
                 "message": "Бронирование не найдено или у вас нет прав на его отмену"
             }, status=status.HTTP_404_NOT_FOUND)
 
+
+class BookingUpdateView(UpdateAPIView):
+    serializer_class = BookingUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Booking.objects.filter(user=self.request.user)
 
 
 

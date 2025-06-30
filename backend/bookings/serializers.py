@@ -84,6 +84,20 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+class BookingUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = [
+            'booking_datetime',
+            'guests_count',
+            'special_requests'
+        ]
+
+
+
+
+
+
 
 
 
