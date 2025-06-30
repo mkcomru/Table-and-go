@@ -110,11 +110,11 @@ function filterBookings(searchQuery) {
 
 // Функция для проверки статуса авторизации
 function checkAuthStatus() {
-    const accessToken = localStorage.getItem('access_token');
+    const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
     
     // Если есть токен доступа, считаем пользователя авторизованным
-    if (accessToken) {
+    if (authToken) {
         console.log('Пользователь авторизован:', userData);
         
         // Обновляем интерфейс для авторизованного пользователя
@@ -216,8 +216,7 @@ function updateAuthUI(userData) {
 // Функция для выхода из аккаунта
 function logout() {
     // Удаляем данные авторизации
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user_data');
     
     // Перенаправляем на главную страницу
@@ -587,7 +586,7 @@ async function cancelBooking(bookingId) {
         }
         
         // Запрос к API для отмены бронирования
-        const response = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/cancel/`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,

@@ -58,14 +58,14 @@ class Booking(models.Model):
     
         return not conflicting_bookings
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
+    # def clean(self):
+    #     from django.core.exceptions import ValidationError
         
-        if not self.branch.is_open_at(self.booking_datetime):
-            raise ValidationError("Ресторан закрыт в указанное время")
+    #     if not self.branch.is_open_at(self.booking_datetime):
+    #         raise ValidationError("Ресторан закрыт в указанное время")
             
-        # if self.table.branch != self.branch:
-            # raise ValidationError("Столик не принадлежит указанному ресторану")
+    #     if self.table.branch != self.branch:
+    #         raise ValidationError("Столик не принадлежит указанному ресторану")
     
     def save(self, *args, **kwargs):
         if not self.book_number:

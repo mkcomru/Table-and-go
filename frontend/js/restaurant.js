@@ -482,6 +482,22 @@ function initBookingForm() {
     const bookingForm = document.getElementById('booking-form');
     
     if (bookingForm) {
+        // При инициализации формы проверяем авторизацию пользователя
+        const isLoggedIn = checkUserAuthentication();
+        
+        // Если пользователь не авторизован, показываем предупреждение
+        const submitButton = bookingForm.querySelector('.btn-booking');
+        if (!isLoggedIn && submitButton) {
+            submitButton.textContent = 'Войти для бронирования';
+            submitButton.classList.add('login-required');
+            
+            // Добавляем подсказку рядом с кнопкой
+            const helpText = document.createElement('div');
+            helpText.className = 'login-notice';
+            helpText.textContent = 'Требуется авторизация для бронирования';
+            submitButton.parentNode.insertBefore(helpText, submitButton.nextSibling);
+        }
+        
         // Инициализация счетчика гостей
         initGuestsCounter();
         
@@ -495,6 +511,17 @@ function initBookingForm() {
         bookingForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Проверяем авторизацию пользователя
+            const isLoggedIn = checkUserAuthentication();
+            
+            if (!isLoggedIn) {
+                // Если пользователь не авторизован, перенаправляем на страницу входа
+                // Сохраняем URL текущей страницы в localStorage для возврата после авторизации
+                localStorage.setItem('redirectAfterLogin', window.location.href);
+                window.location.href = 'login.html';
+                return;
+            }
+            
             // Получаем данные формы
             const formData = {
                 date: document.getElementById('booking-date').value,
@@ -503,13 +530,19 @@ function initBookingForm() {
                 comment: document.getElementById('booking-comment').value
             };
             
-            // Проверяем авторизацию пользователя
-            const isLoggedIn = checkUserAuthentication();
+            // Проверяем заполнение всех обязательных полей
+            if (!formData.date) {
+                showNotification('Пожалуйста, выберите дату', 'error');
+                return;
+            }
             
-            if (!isLoggedIn) {
-                // Если пользователь не авторизован, показываем сообщение
-                alert('Для бронирования необходимо авторизоваться');
-                window.location.href = 'login.html';
+            if (!formData.time) {
+                showNotification('Пожалуйста, выберите время', 'error');
+                return;
+            }
+            
+            if (!formData.guestsCount || parseInt(formData.guestsCount) < 1) {
+                showNotification('Пожалуйста, укажите количество гостей', 'error');
                 return;
             }
             
@@ -676,17 +709,140 @@ function checkUserAuthentication() {
 
 // Функция для отправки запроса на бронирование
 function sendBookingRequest(formData) {
-    // Здесь будет код для отправки запроса на сервер
-    console.log('Отправка запроса на бронирование:', formData);
+    // Получаем ID филиала из URL
+    const branchId = getBranchIdFromUrl();
+    if (!branchId) {
+        showNotification('Не удалось определить ID заведения', 'error');
+        return;
+    }
     
-    // Имитация отправки запроса
-    setTimeout(() => {
+    // Получаем токен авторизации из localStorage
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        showNotification('Для бронирования необходимо авторизоваться', 'error');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Создаем объект с данными для отправки
+    const bookingDateTime = createDateTime(formData.date, formData.time);
+    
+    // Проверяем валидность даты и времени
+    if (!bookingDateTime) {
+        showNotification('Указаны некорректные дата или время', 'error');
+        return;
+    }
+    
+    // Формируем данные для отправки в формате сериализатора
+    const bookingData = {
+        branch: parseInt(branchId),
+        booking_datetime: bookingDateTime.toISOString(),
+        guests_count: parseInt(formData.guestsCount),
+        special_requests: formData.comment || ''
+    };
+    
+    console.log('Отправка запроса на бронирование:', bookingData);
+    
+    // Показываем индикатор загрузки
+    const submitBtn = document.querySelector('.btn-booking');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Отправка...';
+    
+    // Отправляем запрос на сервер
+    fetch('http://127.0.0.1:8000/api/bookings/create/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(bookingData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Если сервер вернул ошибку, пытаемся получить детали
+            return response.json().then(errorData => {
+                throw new Error(JSON.stringify(errorData));
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Обработка успешного ответа
+        console.log('Ответ сервера:', data);
+        
         // Показываем сообщение об успешном бронировании
-        showNotification('Ваша заявка на бронирование успешно отправлена! Мы свяжемся с вами для подтверждения.', 'success');
+        showNotification(`Бронирование успешно создано. Номер брони: ${data.booking_number}`, 'success');
         
         // Очищаем форму
         document.getElementById('booking-form').reset();
-    }, 1000);
+        
+        // Можно перенаправить пользователя на страницу со своими бронированиями
+        setTimeout(() => {
+            window.location.href = 'my-bookings.html';
+        }, 3000);
+    })
+    .catch(error => {
+        // Обработка ошибок
+        console.error('Ошибка при бронировании:', error);
+        
+        // Пытаемся получить детальное сообщение об ошибке
+        let errorMessage = 'Не удалось выполнить бронирование. Пожалуйста, попробуйте позже.';
+        
+        try {
+            const errorData = JSON.parse(error.message);
+            
+            // Проверяем различные возможные форматы ошибок от сервера
+            if (errorData.message) {
+                errorMessage = errorData.message;
+            } else if (errorData.detail) {
+                errorMessage = errorData.detail;
+            } else if (errorData.booking_datetime) {
+                errorMessage = `Ошибка даты/времени: ${errorData.booking_datetime}`;
+            } else if (errorData.guests_count) {
+                errorMessage = `Ошибка количества гостей: ${errorData.guests_count}`;
+            } else if (errorData.branch) {
+                errorMessage = `Ошибка выбора заведения: ${errorData.branch}`;
+            }
+        } catch (e) {
+            // Если не удалось разобрать JSON, используем общее сообщение
+            errorMessage = error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
+    })
+    .finally(() => {
+        // Возвращаем кнопку в исходное состояние
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+    });
+}
+
+// Вспомогательная функция для создания объекта DateTime из строковых значений даты и времени
+function createDateTime(dateStr, timeStr) {
+    try {
+        // Преобразуем строку даты в формат YYYY-MM-DD
+        let formattedDate = dateStr;
+        
+        // Если дата в формате ДД.ММ.ГГГГ, преобразуем её
+        if (dateStr.includes('.')) {
+            const [day, month, year] = dateStr.split('.');
+            formattedDate = `${year}-${month}-${day}`;
+        }
+        
+        // Создаем объект даты/времени
+        const dateTime = new Date(`${formattedDate}T${timeStr}`);
+        
+        // Проверяем валидность
+        if (isNaN(dateTime.getTime())) {
+            return null;
+        }
+        
+        return dateTime;
+    } catch (e) {
+        console.error('Ошибка при создании даты/времени:', e);
+        return null;
+    }
 }
 
 // Функция для инициализации кнопки бронирования в шапке

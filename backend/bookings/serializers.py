@@ -5,7 +5,7 @@ from django.utils import timezone
 import datetime
 
 
-class BookingSerializer(serializers.ModelSerializer):
+class BookingListSerializer(serializers.ModelSerializer):
     branch_name = serializers.SerializerMethodField()
     branch_image = serializers.SerializerMethodField()
     booking_date = serializers.SerializerMethodField()
@@ -48,7 +48,6 @@ class BookingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'user',
             'branch',
             'booking_datetime',
             'guests_count',
@@ -61,7 +60,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         return gests_count
     
     def validate_booking_datetime(self, booking_datetime: datetime) -> datetime:
-        if booking_datetime < datetime.now():
+        if booking_datetime < timezone.now():
             raise serializers.ValidationError("Дата и время бронирования не могут быть в прошлом")
         return booking_datetime
     
@@ -83,6 +82,9 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Дата и время бронирования не могут быть в прошлом")
         
         return data
+
+
+
 
 
 
