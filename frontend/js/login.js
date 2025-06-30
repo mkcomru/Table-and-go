@@ -226,7 +226,6 @@ function updateAuthUI(isLoggedIn) {
         // Получаем информацию о пользователе
         const userJson = localStorage.getItem('user');
         let displayName = 'Пользователь';
-        let firstLetter = 'П';
         
         if (userJson) {
             try {
@@ -234,16 +233,12 @@ function updateAuthUI(isLoggedIn) {
                 // Проверяем наличие имени и фамилии
                 if (user.first_name && user.last_name) {
                     displayName = `${user.first_name} ${user.last_name}`;
-                    firstLetter = user.first_name.charAt(0).toUpperCase();
                 } else if (user.first_name) {
                     displayName = user.first_name;
-                    firstLetter = user.first_name.charAt(0).toUpperCase();
                 } else if (user.username) {
                     displayName = user.username;
-                    firstLetter = user.username.charAt(0).toUpperCase();
                 } else if (user.email) {
                     displayName = user.email;
-                    firstLetter = user.email.charAt(0).toUpperCase();
                 }
             } catch (e) {
                 console.error('Ошибка при парсинге данных пользователя:', e);
@@ -265,7 +260,7 @@ function updateAuthUI(isLoggedIn) {
         userProfile.className = 'user-profile';
         userProfile.innerHTML = `
             <div class="user-avatar">
-                <div class="default-avatar">${firstLetter}</div>
+                <img src="assets/default-avatar.png" alt="Аватар" class="avatar-image">
             </div>
             <div class="user-info">
                 <span class="user-name">${displayName}</span>

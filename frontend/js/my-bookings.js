@@ -133,6 +133,45 @@ function updateAuthUI(userData) {
     // Очищаем текущие элементы
     headerRight.innerHTML = '';
     
+    // Получаем данные пользователя из localStorage, если они не были переданы
+    if (!userData || Object.keys(userData).length === 0) {
+        const userJson = localStorage.getItem('user');
+        if (userJson) {
+            try {
+                userData = JSON.parse(userJson);
+            } catch (e) {
+                console.error('Ошибка при парсинге данных пользователя:', e);
+                userData = {};
+            }
+        }
+    }
+    
+    // Определяем имя для отображения
+    let firstName = userData.first_name || '';
+    let lastName = userData.last_name || '';
+    
+    // Если нет имени и фамилии, пробуем получить их из токена JWT
+    if (!firstName && !lastName) {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    firstName = payload.first_name || '';
+                    lastName = payload.last_name || '';
+                }
+            } catch (e) {
+                console.error('Ошибка при декодировании токена:', e);
+            }
+        }
+    }
+    
+    // Если всё еще нет имени, используем имя пользователя или email
+    const displayName = (firstName || lastName) ? 
+        `${firstName} ${lastName}`.trim() : 
+        (userData.username || userData.email || 'Пользователь');
+    
     // Создаем элемент с информацией о пользователе
     const userProfileElement = document.createElement('div');
     userProfileElement.className = 'user-profile';
@@ -143,7 +182,7 @@ function updateAuthUI(userData) {
             <img src="${userData.photo || 'assets/default-avatar.png'}" alt="Аватар" onerror="this.src='assets/default-avatar.png'">
         </div>
         <div class="user-info">
-            <span class="user-name">${userData.first_name || ''} ${userData.last_name || ''}</span>
+            <span class="user-name">${displayName}</span>
             <i class="fas fa-chevron-down"></i>
         </div>
         <div class="user-dropdown">
