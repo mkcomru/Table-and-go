@@ -94,6 +94,45 @@ class BookingUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class BookingDetailsSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source='branch.name')
+    branch_address = serializers.CharField(source='branch.address')
+    branch_image = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(read_only=True)
+    booking_date = serializers.SerializerMethodField()
+    booking_time = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Booking
+        fields = [
+            'id',
+            'branch',
+            'branch_name',
+            'branch_address',
+            'branch_image',
+            'booking_datetime',
+            'booking_date',
+            'booking_time',
+            'guests_count',
+            'special_requests',
+            'status',
+            'book_number',
+            'created_at'
+        ]
+    
+    def get_branch_image(self, obj):
+        if hasattr(obj.branch, 'photo') and obj.branch.photo:
+            return obj.branch.photo.url
+        return None
+    
+    def get_booking_date(self, obj):
+        return obj.booking_datetime.date().isoformat()
+    
+    def get_booking_time(self, obj):
+        return obj.booking_datetime.time().strftime("%H:%M")
+
+
+
 
 
 

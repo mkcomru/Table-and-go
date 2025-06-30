@@ -354,9 +354,14 @@ function createBookingElement(booking) {
     // Получаем номер брони или используем ID как запасной вариант
     const bookingNumber = booking.book_number || `ID-${booking.id}`;
     
+    // Создаем HTML для изображения
+    const imageHtml = booking.branch_image 
+        ? `<img src="${booking.branch_image}" alt="${booking.branch_name}">`
+        : '';
+    
     bookingItem.innerHTML = `
-        <div class="booking-image">
-            <img src="${booking.branch_image || 'assets/default-restaurant.jpg'}" alt="${booking.branch_name}">
+        <div class="booking-image" style="background-color: ${booking.branch_image ? 'transparent' : '#ff0000'}">
+            ${imageHtml}
         </div>
         <div class="booking-details">
             <div class="booking-header">
@@ -548,16 +553,16 @@ function addButtonHandlers(containerId) {
         const action = button.dataset.action;
         const bookingItem = button.closest('.booking-item');
         const bookingId = bookingItem.dataset.id;
-            const restaurantName = bookingItem.querySelector('.booking-restaurant').textContent;
+        const restaurantName = bookingItem.querySelector('.booking-restaurant').textContent;
         
         // Выполняем соответствующее действие
         switch (action) {
             case 'edit':
-                window.location.href = `edit-booking.html?id=${bookingId}`;
+                await showEditBookingModal(bookingId);
                 break;
             
             case 'cancel':
-            if (confirm(`Вы уверены, что хотите отменить бронь в ресторане "${restaurantName}"?`)) {
+                if (confirm(`Вы уверены, что хотите отменить бронь в ресторане "${restaurantName}"?`)) {
                     await cancelBooking(bookingId);
                 }
                 break;
@@ -574,6 +579,353 @@ function addButtonHandlers(containerId) {
                 break;
         }
     });
+}
+
+// Функция для получения деталей бронирования
+async function getBookingDetails(bookingId) {
+    try {
+        const authToken = localStorage.getItem('authToken');
+        
+        if (!authToken) {
+            throw new Error('Пользователь не авторизован');
+        }
+        
+        const response = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при получении информации о бронировании');
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка при получении деталей бронирования:', error);
+        showError('Не удалось получить информацию о бронировании. Пожалуйста, попробуйте позже.');
+        return null;
+    }
+}
+
+// Функция для отображения модального окна редактирования брони
+async function showEditBookingModal(bookingId) {
+    try {
+        // Получаем детали бронирования
+        const booking = await getBookingDetails(bookingId);
+        if (!booking) return;
+        
+        // Создаем модальное окно, если его еще нет
+        let modal = document.getElementById('edit-booking-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'edit-booking-modal';
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+        }
+        
+        // Форматируем дату и время
+        const bookingDate = new Date(booking.booking_datetime);
+        const formattedDate = formatDate(bookingDate, true);
+        const formattedTime = booking.booking_time || formatTime(bookingDate);
+        
+        // Создаем содержимое модального окна
+        modal.innerHTML = `
+            <div class="modal-content booking-edit-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">${booking.branch_name || 'Редактирование брони'}</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="booking-edit-container">
+                        <div class="booking-image-container" style="background-color: #ff0000;">
+                            ${booking.branch_image ? `<img src="${booking.branch_image}" alt="${booking.branch_name}">` : ''}
+                        </div>
+                        <div class="booking-details-container">
+                            <div class="booking-info-row">
+                                <span class="booking-info-label">Номер брони:</span>
+                                <span class="booking-info-value">#${booking.book_number || `ID-${booking.id}`}</span>
+                            </div>
+                            <div class="booking-info-row">
+                                <span class="booking-info-label">Забронировано:</span>
+                                <span class="booking-info-value">${booking.created_at ? new Date(booking.created_at).toLocaleDateString() : 'Н/Д'}</span>
+                            </div>
+                            
+                            <form id="edit-booking-form">
+                                <div class="form-group">
+                                    <label for="edit-booking-date">Дата</label>
+                                    <input type="date" id="edit-booking-date" class="form-control" value="${booking.booking_date || formattedDate.split('.').reverse().join('-')}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-booking-time">Время</label>
+                                    <input type="time" id="edit-booking-time" class="form-control" value="${booking.booking_time || formattedTime}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-booking-guests">Количество гостей</label>
+                                    <div class="guests-counter">
+                                        <button type="button" class="counter-btn" id="decrease-guests">-</button>
+                                        <input type="number" id="edit-booking-guests" class="form-control" value="${booking.guests_count || 2}" min="1" max="20" required>
+                                        <button type="button" class="counter-btn" id="increase-guests">+</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-booking-comments">Комментарий (необязательно)</label>
+                                    <textarea id="edit-booking-comments" class="form-control" rows="3">${booking.special_requests || ''}</textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline modal-cancel">Отменить</button>
+                    <button class="btn btn-primary" id="save-booking-changes">Сохранить изменения</button>
+                </div>
+            </div>
+        `;
+        
+        // Добавляем стили для модального окна редактирования, если их нет
+        if (!document.getElementById('edit-booking-modal-styles')) {
+            const style = document.createElement('style');
+            style.id = 'edit-booking-modal-styles';
+            style.textContent = `
+                .booking-edit-modal {
+                    max-width: 700px;
+                }
+                .booking-edit-container {
+                    display: flex;
+                    gap: 20px;
+                }
+                .booking-image-container {
+                    flex: 0 0 40%;
+                    max-width: 40%;
+                    height: 200px;
+                    border-radius: 10px;
+                    overflow: hidden;
+                }
+                .booking-image-container img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .booking-details-container {
+                    flex: 1;
+                }
+                .booking-info-row {
+                    margin-bottom: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .booking-info-label {
+                    font-weight: 500;
+                    color: #666;
+                }
+                .booking-info-value {
+                    font-weight: 600;
+                }
+                .form-group {
+                    margin-bottom: 15px;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: 500;
+                }
+                .form-control {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                .guests-counter {
+                    display: flex;
+                    align-items: center;
+                }
+                .counter-btn {
+                    width: 30px;
+                    height: 30px;
+                    background: #f5f5f5;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+                #edit-booking-guests {
+                    width: 60px;
+                    text-align: center;
+                    margin: 0 10px;
+                }
+                
+                @media (max-width: 768px) {
+                    .booking-edit-container {
+                        flex-direction: column;
+                    }
+                    .booking-image-container {
+                        max-width: 100%;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Отображаем модальное окно
+        modal.classList.add('show');
+        
+        // Добавляем обработчики событий
+        const closeButton = modal.querySelector('.modal-close');
+        const cancelButton = modal.querySelector('.modal-cancel');
+        const saveButton = document.getElementById('save-booking-changes');
+        const decreaseButton = document.getElementById('decrease-guests');
+        const increaseButton = document.getElementById('increase-guests');
+        const guestsInput = document.getElementById('edit-booking-guests');
+        
+        // Закрытие модального окна
+        closeButton.addEventListener('click', () => modal.classList.remove('show'));
+        cancelButton.addEventListener('click', () => modal.classList.remove('show'));
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('show');
+        });
+        
+        // Увеличение/уменьшение количества гостей
+        decreaseButton.addEventListener('click', () => {
+            const currentValue = parseInt(guestsInput.value);
+            if (currentValue > 1) {
+                guestsInput.value = currentValue - 1;
+            }
+        });
+        
+        increaseButton.addEventListener('click', () => {
+            const currentValue = parseInt(guestsInput.value);
+            if (currentValue < 20) {
+                guestsInput.value = currentValue + 1;
+            }
+        });
+        
+        // Сохранение изменений
+        saveButton.addEventListener('click', async () => {
+            const dateInput = document.getElementById('edit-booking-date');
+            const timeInput = document.getElementById('edit-booking-time');
+            const guestsInput = document.getElementById('edit-booking-guests');
+            const commentsInput = document.getElementById('edit-booking-comments');
+            
+            // Валидация формы
+            if (!dateInput.value || !timeInput.value || !guestsInput.value) {
+                showNotification('Пожалуйста, заполните все обязательные поля', 'error');
+                return;
+            }
+            
+            // Создаем объект с данными для отправки
+            const formData = {
+                date: dateInput.value,
+                time: timeInput.value,
+                guests_count: parseInt(guestsInput.value),
+                special_requests: commentsInput.value
+            };
+            
+            // Отправляем запрос на обновление
+            await updateBooking(bookingId, formData);
+            
+            // Закрываем модальное окно
+            modal.classList.remove('show');
+        });
+        
+    } catch (error) {
+        console.error('Ошибка при отображении модального окна редактирования:', error);
+        showError('Не удалось отобразить форму редактирования. Пожалуйста, попробуйте позже.');
+    }
+}
+
+// Функция для обновления бронирования
+async function updateBooking(bookingId, formData) {
+    try {
+        const authToken = localStorage.getItem('authToken');
+        
+        if (!authToken) {
+            throw new Error('Пользователь не авторизован');
+        }
+        
+        // Создаем дату в формате ISO
+        const bookingDateTime = new Date(`${formData.date}T${formData.time}`);
+        
+        // Проверяем, не в прошлом ли дата
+        if (bookingDateTime < new Date()) {
+            showNotification('Дата и время бронирования не могут быть в прошлом', 'error');
+            return false;
+        }
+        
+        // Показываем уведомление о загрузке
+        showNotification('Обновление бронирования...', 'info');
+        
+        // Отправляем запрос на обновление
+        const response = await fetch(`http://127.0.0.1:8000/api/bookings/update/${bookingId}/`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                booking_datetime: bookingDateTime.toISOString(),
+                guests_count: formData.guests_count,
+                special_requests: formData.special_requests
+            })
+        });
+        
+        if (!response.ok) {
+            // Пытаемся получить текст ошибки из ответа
+            let errorText = 'Ошибка при обновлении бронирования';
+            try {
+                const errorData = await response.json();
+                errorText = errorData.detail || errorData.message || errorText;
+            } catch (e) {
+                // Если не удалось распарсить JSON, используем стандартный текст
+            }
+            
+            throw new Error(errorText);
+        }
+        
+        // Показываем уведомление об успехе
+        showNotification('Бронирование успешно обновлено', 'success');
+        
+        // Перезагружаем бронирования
+        loadBookings();
+        
+        return true;
+    } catch (error) {
+        console.error('Ошибка при обновлении бронирования:', error);
+        showError(error.message || 'Не удалось обновить бронирование. Пожалуйста, попробуйте позже.');
+        return false;
+    }
+}
+
+// Функция для создания даты и времени из строковых значений
+function createDateTime(dateStr, timeStr) {
+    try {
+        // Проверяем формат даты (может быть YYYY-MM-DD или DD.MM.YYYY)
+        let formattedDate = dateStr;
+        if (dateStr.includes('.')) {
+            // Преобразуем из DD.MM.YYYY в YYYY-MM-DD
+            const parts = dateStr.split('.');
+            formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        
+        // Создаем объект Date
+        const dateTime = new Date(`${formattedDate}T${timeStr}`);
+        
+        // Проверяем валидность даты
+        if (isNaN(dateTime.getTime())) {
+            throw new Error('Неверный формат даты или времени');
+        }
+        
+        return dateTime;
+    } catch (error) {
+        console.error('Ошибка при создании объекта даты:', error);
+        return null;
+    }
 }
 
 // Функция для отмены бронирования
