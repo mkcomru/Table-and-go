@@ -107,7 +107,10 @@ class Branch(models.Model):
             working_hours = self.working_hours.get(day_of_week=day_of_week)
             if working_hours.is_closed:
                 return False
-            return working_hours.opening_time <= time_obj <= working_hours.closing_time
+            if working_hours.closing_time.hour == 0 and working_hours.closing_time.minute == 0:
+                return working_hours.opening_time <= time_obj
+            else:
+                return working_hours.opening_time <= time_obj <= working_hours.closing_time
         except WorkingHours.DoesNotExist:
             return False
 

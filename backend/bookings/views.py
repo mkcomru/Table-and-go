@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Booking
-from .serializers import BookingSerializer, BookingRequestSerializer
+from .serializers import BookingSerializer, BookingCreateSerializer
 
 
 class BookingListView(ListAPIView):
@@ -15,6 +15,7 @@ class BookingListView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = queryset.filter(user=self.request.user)
         status = self.request.query_params.get('status')
 
         if status == 'pending' or status == 'confirmed':
@@ -31,7 +32,7 @@ class BookingCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = BookingRequestSerializer(data=request.data)
+        serializer = BookingCreateSerializer(data=request.data)
 
         if serializer.is_valid():
             validated_data = serializer.validated_data

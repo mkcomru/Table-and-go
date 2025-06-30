@@ -6,11 +6,11 @@ import datetime
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    branch_name = serializers.ModelSerializer()
-    branch_image = serializers.ModelSerializer()
-    booking_date = serializers.ModelSerializer()
-    booking_time = serializers.ModelSerializer()
-    branch_address = serializers.ModelSerializer()
+    branch_name = serializers.SerializerMethodField()
+    branch_image = serializers.SerializerMethodField()
+    booking_date = serializers.SerializerMethodField()
+    booking_time = serializers.SerializerMethodField()
+    branch_address = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -27,10 +27,12 @@ class BookingSerializer(serializers.ModelSerializer):
         ]
 
     def get_branch_name(self, obj):
-        return obj.branch.name
+        return obj.branch.name if obj.branch else None
 
     def get_branch_image(self, obj):
-        return obj.get_branch_image()
+        if obj.branch:
+            return obj.branch.get_main_image()
+        return None
 
     def get_booking_date(self, obj):
         return obj.booking_datetime.date().strftime('%Y-%m-%d')
@@ -39,10 +41,10 @@ class BookingSerializer(serializers.ModelSerializer):
         return obj.booking_datetime.time().strftime('%H:%M')
 
     def get_branch_address(self, obj):
-        return obj.branch.address
+        return obj.branch.address if obj.branch else None
 
 
-class BookingRequestSerializer(serializers.ModelSerializer):
+class BookingCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [

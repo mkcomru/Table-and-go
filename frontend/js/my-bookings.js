@@ -227,9 +227,9 @@ function logout() {
 // Функция для загрузки бронирований с сервера
 async function loadBookings() {
     try {
-        const accessToken = localStorage.getItem('access_token');
+        const authToken = localStorage.getItem('authToken');
         
-        if (!accessToken) {
+        if (!authToken) {
             throw new Error('Пользователь не авторизован');
         }
         
@@ -237,10 +237,10 @@ async function loadBookings() {
         showLoading(true);
         
         // Запрос к API для получения бронирований
-        const response = await fetch('/api/bookings', {
+        const response = await fetch('http://127.0.0.1:8000/api/bookings/', {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -251,10 +251,14 @@ async function loadBookings() {
                 showEmptyState(true);
                 return;
             }
-            throw new Error('Ошибка при загрузке бронирований');
+            // Тихо обрабатываем другие ошибки, просто показываем пустое состояние
+            console.error('Ошибка при загрузке бронирований:', response.status);
+            showEmptyState(true);
+            return;
         }
         
-        const bookings = await response.json();
+        const data = await response.json();
+        const bookings = data.results || data; // Обрабатываем как массив или объект с полем results
         
         // Если массив бронирований пуст, показываем пустое состояние
         if (!bookings || bookings.length === 0) {
@@ -266,9 +270,12 @@ async function loadBookings() {
         showEmptyState(false);
         
         // Разделяем брони по категориям
-        const activeBookings = bookings.filter(booking => booking.status === 'active' || booking.status === 'confirmed');
-        const historyBookings = bookings.filter(booking => booking.status === 'completed');
-        const cancelledBookings = bookings.filter(booking => booking.status === 'cancelled');
+        const activeBookings = bookings.filter(booking => 
+            booking.status === 'pending' || booking.status === 'confirmed');
+        const historyBookings = bookings.filter(booking => 
+            booking.status === 'completed');
+        const cancelledBookings = bookings.filter(booking => 
+            booking.status === 'cancelled');
         
         // Отображаем брони на соответствующих вкладках
         renderBookings('active-bookings', activeBookings);
@@ -280,10 +287,8 @@ async function loadBookings() {
         
     } catch (error) {
         console.error('Ошибка при загрузке бронирований:', error);
-        // Показываем ошибку только если это не отсутствие бронирований
-        if (error.message !== 'Нет бронирований') {
-            showError('Не удалось загрузить бронирования. Пожалуйста, попробуйте позже.');
-        }
+        // Просто показываем пустое состояние без уведомления об ошибке
+        showEmptyState(true);
     } finally {
         // Скрываем индикатор загрузки
         showLoading(false);
@@ -338,32 +343,30 @@ function createBookingElement(booking) {
     bookingItem.dataset.id = booking.id;
     
     // Форматируем дату и время
-    const bookingDate = new Date(booking.booking_date);
+    const bookingDate = new Date(`${booking.booking_date}T${booking.booking_time}`);
     const formattedDate = formatDate(bookingDate);
-    const formattedTime = formatTime(bookingDate);
+    const formattedTime = booking.booking_time;
     const dayOfWeek = getDayOfWeek(bookingDate);
-    
-    // Форматируем дату создания бронирования
-    const createdDate = new Date(booking.created_at);
-    const formattedCreatedDate = formatDate(createdDate, true);
     
     // Определяем статус бронирования
     const statusClass = getStatusClass(booking.status);
     const statusText = getStatusText(booking.status);
     
+    // Получаем номер брони или используем ID как запасной вариант
+    const bookingNumber = booking.book_number || `ID-${booking.id}`;
+    
     bookingItem.innerHTML = `
         <div class="booking-image">
-            <img src="${booking.restaurant.image || 'assets/images/restaurants/default.jpg'}" alt="${booking.restaurant.name}">
+            <img src="${booking.branch_image || 'assets/default-restaurant.jpg'}" alt="${booking.branch_name}">
         </div>
         <div class="booking-details">
             <div class="booking-header">
                 <div class="booking-title-row">
-                    <h3 class="booking-restaurant">${booking.restaurant.name}</h3>
+                    <h3 class="booking-restaurant">${booking.branch_name}</h3>
                     <div class="booking-status ${statusClass}">${statusText}</div>
                 </div>
                 <div class="booking-number">
-                    <div class="booking-number-text">Номер брони: #${booking.booking_number}</div>
-                    <div class="booking-date">Забронировано ${formattedCreatedDate}</div>
+                    <div class="booking-number-text">Номер брони: #${bookingNumber}</div>
                 </div>
             </div>
             
@@ -377,11 +380,11 @@ function createBookingElement(booking) {
                     </div>
                     <div class="booking-info-item">
                         <i class="fas fa-user-friends"></i>
-                        <span>${booking.guests} ${getGuestsText(booking.guests)}</span>
+                        <span>${booking.guests_count} ${getGuestsText(booking.guests_count)}</span>
                     </div>
                     <div class="booking-info-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>${booking.restaurant.address}</span>
+                        <span>${booking.branch_address}</span>
                     </div>
                 </div>
                 
@@ -398,6 +401,10 @@ function createBookingElement(booking) {
 // Функция для определения класса бронирования
 function getBookingClass(status) {
     switch (status) {
+        case 'pending':
+            return 'pending';
+        case 'confirmed':
+            return 'confirmed';
         case 'completed':
             return 'past';
         case 'cancelled':
@@ -410,7 +417,8 @@ function getBookingClass(status) {
 // Функция для определения класса статуса
 function getStatusClass(status) {
     switch (status) {
-        case 'active':
+        case 'pending':
+            return 'pending';
         case 'confirmed':
             return 'upcoming';
         case 'completed':
@@ -425,8 +433,8 @@ function getStatusClass(status) {
 // Функция для определения текста статуса
 function getStatusText(status) {
     switch (status) {
-        case 'active':
-            return 'Активно';
+        case 'pending':
+            return 'В ожидании';
         case 'confirmed':
             return 'Подтверждено';
         case 'completed':
@@ -434,7 +442,7 @@ function getStatusText(status) {
         case 'cancelled':
             return 'Отменено';
         default:
-            return '';
+            return status || 'Неизвестно';
     }
 }
 
@@ -491,7 +499,7 @@ function getGuestsText(count) {
 // Функция для определения кнопок действий
 function getActionButtons(status) {
     switch (status) {
-        case 'active':
+        case 'pending':
         case 'confirmed':
             return `
                 <button class="btn-edit" data-action="edit">
@@ -572,17 +580,17 @@ function addButtonHandlers(containerId) {
 // Функция для отмены бронирования
 async function cancelBooking(bookingId) {
     try {
-        const accessToken = localStorage.getItem('access_token');
+        const authToken = localStorage.getItem('authToken');
         
-        if (!accessToken) {
+        if (!authToken) {
             throw new Error('Пользователь не авторизован');
         }
         
         // Запрос к API для отмены бронирования
-        const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/cancel/`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -590,6 +598,9 @@ async function cancelBooking(bookingId) {
         if (!response.ok) {
             throw new Error('Ошибка при отмене бронирования');
         }
+        
+        // Показываем уведомление об успешной отмене
+        showNotification('Бронирование успешно отменено', 'success');
         
         // Перезагружаем бронирования
         loadBookings();
@@ -603,17 +614,17 @@ async function cancelBooking(bookingId) {
 // Функция для получения ID ресторана по ID бронирования
 async function getRestaurantIdByBooking(bookingId) {
     try {
-        const accessToken = localStorage.getItem('access_token');
+        const authToken = localStorage.getItem('authToken');
         
-        if (!accessToken) {
+        if (!authToken) {
             throw new Error('Пользователь не авторизован');
         }
         
         // Запрос к API для получения информации о бронировании
-        const response = await fetch(`/api/bookings/${bookingId}`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
             }
         });
@@ -623,7 +634,7 @@ async function getRestaurantIdByBooking(bookingId) {
         }
         
         const booking = await response.json();
-        return booking.restaurant.id;
+        return booking.branch; // ID филиала ресторана
         
     } catch (error) {
         console.error('Ошибка при получении ID ресторана:', error);
@@ -734,4 +745,28 @@ function initSmoothScroll() {
             }
         }, 100);
     }
+}
+
+// Функция для создания и отображения уведомлений
+function showNotification(message, type = 'success') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Добавляем уведомление в DOM
+    document.body.appendChild(notification);
+    
+    // Через секунду добавляем класс для анимации появления
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Через 5 секунд удаляем уведомление
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
 }

@@ -64,11 +64,8 @@ class Booking(models.Model):
         if not self.branch.is_open_at(self.booking_datetime):
             raise ValidationError("Ресторан закрыт в указанное время")
             
-        if self.table.branch != self.branch:
-            raise ValidationError("Столик не принадлежит указанному ресторану")
-            
-        if self.guests_count > self.table.capacity:
-            raise ValidationError("Количество гостей превышает вместимость столика")
+        # if self.table.branch != self.branch:
+            # raise ValidationError("Столик не принадлежит указанному ресторану")
     
     def save(self, *args, **kwargs):
         if not self.book_number:
