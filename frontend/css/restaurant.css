@@ -1034,4 +1034,49 @@
 
 .notification.warning {
     border-left: 4px solid #FF9800;
+}
+
+/* Стили для блока с сообщением о невозможности онлайн-бронирования */
+.no-booking-container {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 40px;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.no-booking-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.no-booking-content h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.no-booking-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .no-booking-container {
+        padding: 30px 20px;
+    }
+    
+    .no-booking-content h2 {
+        font-size: 24px;
+    }
+    
+    .no-booking-content p {
+        font-size: 15px;
+    }
 } 

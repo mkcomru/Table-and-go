@@ -238,6 +238,28 @@ function updateBranchDetails(data) {
         }
     }
     
+    // Проверяем возможность онлайн-бронирования
+    const bookingFormContainer = document.getElementById('booking-form-container');
+    const noBookingMessage = document.getElementById('no-booking-message');
+    const bookingButton = document.querySelector('.booking-btn');
+    
+    if (bookingFormContainer && noBookingMessage) {
+        // Проверяем значение параметра allow_to_book
+        const allowToBook = data.allow_to_book !== undefined ? data.allow_to_book : true;
+        
+        if (allowToBook) {
+            // Если бронирование разрешено, показываем форму и кнопку
+            bookingFormContainer.style.display = 'flex';
+            noBookingMessage.style.display = 'none';
+            if (bookingButton) bookingButton.style.display = 'inline-block';
+        } else {
+            // Если бронирование запрещено, показываем сообщение и скрываем кнопку
+            bookingFormContainer.style.display = 'none';
+            noBookingMessage.style.display = 'block';
+            if (bookingButton) bookingButton.style.display = 'none';
+        }
+    }
+    
     // Загружаем отзывы
     if (data.reviews && data.reviews.length > 0) {
         updateReviews(data.reviews);
@@ -673,7 +695,11 @@ function initBookingButton() {
     
     if (bookingBtn) {
         bookingBtn.addEventListener('click', function() {
-            // Плавная прокрутка к форме бронирования
+            // Проверяем, доступно ли бронирование
+            const bookingFormContainer = document.getElementById('booking-form-container');
+            const noBookingMessage = document.getElementById('no-booking-message');
+            
+            // Плавная прокрутка к секции бронирования
             const bookingSection = document.getElementById('booking-section');
             if (bookingSection) {
                 bookingSection.scrollIntoView({ behavior: 'smooth' });

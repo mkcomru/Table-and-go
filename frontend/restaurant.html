@@ -200,7 +200,18 @@
 
         <section class="booking-section" id="booking-section">
             <div class="container">
-                <div class="booking-container">
+                <!-- Блок с сообщением о невозможности онлайн-бронирования -->
+                <div class="no-booking-container" id="no-booking-message" style="display: none;">
+                    <div class="no-booking-content">
+                        <h2>Уважаемые гости!</h2>
+                        <p>Извините за неудобства, но в данном филиале нельзя забронировать столик онлайн.</p>
+                        <p>Мы работаем по системе живой очереди, чтобы обеспечить справедливость и равный доступ для всех наших гостей.</p>
+                        <p>Мы будем рады видеть вас в любое удобное для вас время. Спасибо за понимание и надеемся на скорую встречу в нашем заведении!</p>
+                    </div>
+                </div>
+                
+                <!-- Форма бронирования -->
+                <div class="booking-container" id="booking-form-container">
                     <div class="booking-form-container">
                         <h2>Забронировать столик</h2>
                         <form id="booking-form" class="booking-form">
