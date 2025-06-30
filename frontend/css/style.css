@@ -380,11 +380,12 @@ ul {
     font-size: 14px;
     display: flex;
     align-items: center;
+    color: #000;
 }
 
 .filter-options li:hover {
     background-color: #f5f5f5;
-    color: var(--primary-color);
+    color: #e53935;
 }
 
 .filter-options li.active {
