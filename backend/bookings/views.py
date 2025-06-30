@@ -114,6 +114,8 @@ class BookingCancelView(APIView):
 class BookingUpdateView(UpdateAPIView):
     serializer_class = BookingUpdateSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+    lookup_url_kwarg = 'booking_id'
 
     def get_queryset(self):
         return Booking.objects.filter(user=self.request.user)

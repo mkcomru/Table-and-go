@@ -635,55 +635,62 @@ async function showEditBookingModal(bookingId) {
         modal.innerHTML = `
             <div class="modal-content booking-edit-modal">
                 <div class="modal-header">
-                    <h3 class="modal-title">${booking.branch_name || 'Редактирование брони'}</h3>
+                    <h3 class="modal-title">${booking.branch_name || 'Миллионка'}</h3>
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="booking-info-block">
-                        <div class="booking-number-block">
-                            <p>Номер брони: #${booking.book_number || `ID-${booking.id}`}</p>
+                    <div class="booking-details-container">
+                        <div class="booking-info-block">
+                            <div class="booking-number-block">
+                                Номер брони: #${booking.book_number || `SK2506-2`}
+                            </div>
+                            <div class="booking-created-block">
+                                Забронировано ${booking.created_at ? new Date(booking.created_at).toLocaleDateString() : '20.06.2025'}
+                            </div>
                         </div>
-                        <div class="booking-created-block">
-                            <p>Забронировано ${booking.created_at ? new Date(booking.created_at).toLocaleDateString() : 'Н/Д'}</p>
+                        
+                        <div class="booking-edit-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit-booking-date">Дата</label>
+                                    <div class="input-with-icon">
+                                        <input type="date" id="edit-booking-date" class="form-control" value="${booking.booking_date || formattedDate.split('.').reverse().join('-')}" required>
+                                        <i class="far fa-calendar"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-booking-time">Время</label>
+                                    <div class="input-with-icon">
+                                        <input type="time" id="edit-booking-time" class="form-control" value="${booking.booking_time || formattedTime}" required>
+                                        <i class="far fa-clock"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group guests-group">
+                                <label for="edit-booking-guests">Количество гостей</label>
+                                <div class="guests-counter">
+                                    <button type="button" class="counter-btn" id="decrease-guests">-</button>
+                                    <input type="number" id="edit-booking-guests" class="form-control" value="${booking.guests_count || 2}" min="1" max="20" readonly>
+                                    <button type="button" class="counter-btn" id="increase-guests">+</button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit-booking-comments">Комментарий (необязательно)</label>
+                                <textarea id="edit-booking-comments" class="form-control" rows="3" placeholder="Особые пожелания, аллергии и т.д.">${booking.special_requests || ''}</textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button class="btn btn-outline modal-cancel">Отменить</button>
+                            <button class="btn btn-primary" id="save-booking-changes">Сохранить изменения</button>
                         </div>
                     </div>
                     
-                    <div class="booking-edit-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="edit-booking-date">Дата</label>
-                                <div class="input-with-icon">
-                                    <input type="date" id="edit-booking-date" class="form-control" value="${booking.booking_date || formattedDate.split('.').reverse().join('-')}" required>
-                                    <i class="far fa-calendar"></i>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-booking-time">Время</label>
-                                <div class="input-with-icon">
-                                    <input type="time" id="edit-booking-time" class="form-control" value="${booking.booking_time || formattedTime}" required>
-                                    <i class="far fa-clock"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group guests-group">
-                            <label for="edit-booking-guests">Количество гостей</label>
-                            <div class="guests-counter">
-                                <button type="button" class="counter-btn" id="decrease-guests">-</button>
-                                <input type="number" id="edit-booking-guests" class="form-control" value="${booking.guests_count || 2}" min="1" max="20" readonly>
-                                <button type="button" class="counter-btn" id="increase-guests">+</button>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="edit-booking-comments">Комментарий (необязательно)</label>
-                            <textarea id="edit-booking-comments" class="form-control" rows="3" placeholder="Особые пожелания, аллергии и т.д.">${booking.special_requests || ''}</textarea>
-                        </div>
+                    <div class="booking-image-container">
+                        <img src="${booking.branch_image || 'img/restaurant-interior.jpg'}" alt="${booking.branch_name || 'Ресторан'}" onerror="this.src='img/restaurant-interior.jpg'">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-outline modal-cancel">Отменить</button>
-                    <button class="btn btn-primary" id="save-booking-changes">Сохранить изменения</button>
                 </div>
             </div>
         `;
@@ -716,13 +723,14 @@ async function showEditBookingModal(bookingId) {
                     to { opacity: 1; }
                 }
                 .booking-edit-modal {
-                    max-width: 550px;
+                    max-width: 800px;
                     border-radius: 10px;
                     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                     background-color: white;
                     position: relative;
                     width: 100%;
                     animation: slideIn 0.3s;
+                    overflow: hidden;
                 }
                 @keyframes slideIn {
                     from { transform: translateY(-20px); opacity: 0; }
@@ -737,7 +745,7 @@ async function showEditBookingModal(bookingId) {
                     margin: 0;
                     font-size: 20px;
                     font-weight: 600;
-                    text-align: center;
+                    text-align: left;
                 }
                 .modal-close {
                     position: absolute;
@@ -745,27 +753,43 @@ async function showEditBookingModal(bookingId) {
                     top: 15px;
                     background: none;
                     border: none;
-                    font-size: 20px;
+                    font-size: 24px;
                     cursor: pointer;
                     color: #999;
                 }
                 .modal-body {
+                    display: flex;
+                }
+                .booking-details-container {
+                    flex: 1;
                     padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .booking-image-container {
+                    width: 300px;
+                    height: 100%;
+                }
+                .booking-image-container img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
                 }
                 .booking-info-block {
                     margin-bottom: 15px;
+                    color: #666;
+                    font-size: 14px;
                 }
                 .booking-number-block {
                     margin-bottom: 5px;
-                    font-size: 14px;
-                    color: #555;
                 }
                 .booking-created-block {
-                    font-size: 14px;
-                    color: #777;
+                    color: #888;
                 }
                 .booking-edit-form {
                     margin-top: 20px;
+                    flex: 1;
                 }
                 .form-row {
                     display: flex;
@@ -780,17 +804,18 @@ async function showEditBookingModal(bookingId) {
                 }
                 .form-group label {
                     display: block;
-                    margin-bottom: 5px;
+                    margin-bottom: 8px;
                     font-size: 14px;
                     font-weight: 500;
-                    color: #555;
+                    color: #333;
                 }
                 .form-control {
                     width: 100%;
-                    padding: 8px 12px;
+                    padding: 10px 12px;
                     border: 1px solid #ddd;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     font-size: 14px;
+                    background-color: #fff;
                 }
                 .input-with-icon {
                     position: relative;
@@ -814,7 +839,7 @@ async function showEditBookingModal(bookingId) {
                     width: 100%;
                     max-width: 150px;
                     border: 1px solid #ddd;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     overflow: hidden;
                 }
                 .counter-btn {
@@ -840,14 +865,14 @@ async function showEditBookingModal(bookingId) {
                     min-height: 80px;
                 }
                 .modal-footer {
-                    padding: 15px 20px;
-                    border-top: 1px solid #eee;
+                    margin-top: auto;
+                    padding-top: 15px;
                     display: flex;
                     justify-content: space-between;
                 }
                 .btn {
                     padding: 10px 20px;
-                    border-radius: 4px;
+                    border-radius: 6px;
                     font-size: 14px;
                     font-weight: 500;
                     cursor: pointer;
@@ -873,6 +898,16 @@ async function showEditBookingModal(bookingId) {
                 
                 body.modal-open {
                     overflow: hidden;
+                }
+                
+                @media (max-width: 768px) {
+                    .modal-body {
+                        flex-direction: column-reverse;
+                    }
+                    .booking-image-container {
+                        width: 100%;
+                        height: 200px;
+                    }
                 }
                 
                 @media (max-width: 576px) {
