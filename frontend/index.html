@@ -129,27 +129,42 @@
                     </div>
                     <div class="filters">
                         <div class="filter-item">
-                            <button class="filter-btn">
+                            <button class="filter-btn" id="cuisine-filter-btn">
                                 <i class="fas fa-utensils"></i>
                                 <span>Кухня</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>
+                            <div class="filter-dropdown" id="cuisine-dropdown">
+                                <ul class="filter-options">
+                                    <!-- Опции будут добавлены через JavaScript -->
+                                </ul>
+                            </div>
                         </div>
                         <div class="filter-item">
-                            <button class="filter-btn">
+                            <button class="filter-btn" id="price-filter-btn">
                                 <i class="fas fa-wallet"></i>
                                 <span>Средний чек</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>
+                            <div class="filter-dropdown" id="price-dropdown">
+                                <ul class="filter-options">
+                                    <!-- Опции будут добавлены через JavaScript -->
+                                </ul>
+                            </div>
                         </div>
                         <div class="filter-item">
-                            <button class="filter-btn">
+                            <button class="filter-btn" id="location-filter-btn">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <span>Местоположение</span>
                                 <i class="fas fa-chevron-down"></i>
                             </button>
+                            <div class="filter-dropdown" id="location-dropdown">
+                                <ul class="filter-options">
+                                    <!-- Опции будут добавлены через JavaScript -->
+                                </ul>
+                            </div>
                         </div>
-                        <button class="search-btn">Найти рестораны</button>
+                        <button class="search-btn" id="search-btn">Найти рестораны</button>
                     </div>
                 </div>
             </div>
@@ -270,6 +285,7 @@
     <script src="js/images.js"></script>
     <script src="js/restaurants.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/filters.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Загрузка данных с API
