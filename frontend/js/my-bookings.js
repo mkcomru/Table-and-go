@@ -517,7 +517,7 @@ function getActionButtons(status) {
             `;
         case 'completed':
             return `
-                <button class="btn-edit" data-action="review">
+                <button class="btn-edit btn-gold" data-action="review">
                     <i class="fas fa-star"></i>
                     Оставить отзыв
                 </button>
@@ -568,13 +568,16 @@ function addButtonHandlers(containerId) {
                 break;
             
             case 'review':
-                window.location.href = `review.html?booking=${bookingId}`;
+                const restaurantId = await getRestaurantIdByBooking(bookingId);
+                if (restaurantId) {
+                    window.location.href = `restaurant.html?id=${restaurantId}#reviews`;
+                }
                 break;
             
             case 'rebook':
-                const restaurantId = await getRestaurantIdByBooking(bookingId);
-                if (restaurantId) {
-                    window.location.href = `restaurant.html?id=${restaurantId}`;
+                const restaurantId2 = await getRestaurantIdByBooking(bookingId);
+                if (restaurantId2) {
+                    window.location.href = `restaurant.html?id=${restaurantId2}`;
                 }
                 break;
         }
@@ -894,6 +897,17 @@ async function showEditBookingModal(bookingId) {
                 }
                 .btn-outline:hover {
                     background: #f5f5f5;
+                }
+                
+                .btn-gold {
+                    background: linear-gradient(145deg, #FFD700, #FFA500);
+                    color: #333;
+                    border: 1px solid #FFC107;
+                }
+                
+                .btn-gold:hover {
+                    background: linear-gradient(145deg, #FFE44D, #FFB347);
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 }
                 
                 body.modal-open {
