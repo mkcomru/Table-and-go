@@ -34,6 +34,11 @@ const SORT_DATA = [
     { id: 'asc', name: 'По возрастанию' }
 ];
 
+// Наборы для хранения выбранных фильтров (множественный выбор)
+const selectedCuisines = new Set();
+const selectedPrices = new Set();
+const selectedLocations = new Set();
+
 // Текущие фильтры
 let currentFilters = {
     cuisine: null,
@@ -60,17 +65,17 @@ document.addEventListener('DOMContentLoaded', function() {
 // Функция для инициализации фильтров
 function initFilters() {
     // Инициализация фильтра кухни
-    initFilter('cuisine-filter-btn', 'cuisine-dropdown', CUISINE_DATA);
+    initFilter('cuisine-filter-btn', 'cuisine-dropdown', CUISINE_DATA, 'cuisine', selectedCuisines);
     
     // Инициализация фильтра среднего чека
-    initFilter('price-filter-btn', 'price-dropdown', PRICE_DATA);
+    initFilter('price-filter-btn', 'price-dropdown', PRICE_DATA, 'price', selectedPrices);
     
     // Инициализация фильтра местоположения
-    initFilter('location-filter-btn', 'location-dropdown', LOCATION_DATA);
+    initFilter('location-filter-btn', 'location-dropdown', LOCATION_DATA, 'location', selectedLocations);
 }
 
 // Функция для инициализации одного фильтра
-function initFilter(buttonId, dropdownId, data) {
+function initFilter(buttonId, dropdownId, data, filterType, selectedSet) {
     const filterBtn = document.getElementById(buttonId);
     const dropdown = document.getElementById(dropdownId);
     
@@ -81,66 +86,130 @@ function initFilter(buttonId, dropdownId, data) {
         e.preventDefault();
         e.stopPropagation();
         
-        // Закрываем все другие выпадающие списки
-        closeAllDropdowns(this.closest('.filter-item'));
-        
-        // Переключаем состояние текущего фильтра
-        this.closest('.filter-item').classList.toggle('open');
-        
-        // Заполняем выпадающий список, если он еще не заполнен
-        if (dropdown.querySelector('.filter-options').children.length === 0) {
-            populateFilterDropdown(dropdown, data, dropdownId.split('-')[0]);
+        // Переключаем отображение выпадающего списка
+        if (dropdown.style.display === 'block') {
+            dropdown.style.display = 'none';
+            this.closest('.filter-item').classList.remove('open');
+        } else {
+            // Закрываем все другие выпадающие списки
+            closeAllDropdowns();
+            
+            // Открываем текущий выпадающий список
+            dropdown.style.display = 'block';
+            this.closest('.filter-item').classList.add('open');
+            
+            // Заполняем выпадающий список, если он еще не заполнен
+            if (dropdown.querySelector('.filter-options').children.length === 0) {
+                populateFilterDropdown(dropdown, data, filterType, selectedSet, filterBtn);
+            }
         }
+    });
+    
+    // Предотвращаем закрытие при клике внутри выпадающего списка
+    dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
     });
 }
 
 // Функция для заполнения выпадающего списка
-function populateFilterDropdown(dropdown, data, filterType) {
+function populateFilterDropdown(dropdown, data, filterType, selectedSet, filterBtn) {
     const optionsList = dropdown.querySelector('.filter-options');
     if (!optionsList) return;
     
     // Очищаем список
     optionsList.innerHTML = '';
     
-    // Добавляем опции
+    // Добавляем опцию "Все"
+    const allOption = document.createElement('li');
+    allOption.textContent = 'Все';
+    allOption.setAttribute('data-id', '0');
+    allOption.classList.add(selectedSet.size === 0 ? 'active' : '');
+    
+    allOption.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Если опция "Все" выбрана, снимаем выбор со всех других опций
+        selectedSet.clear();
+        
+        // Обновляем отображение
+        optionsList.querySelectorAll('li').forEach(li => {
+            li.classList.remove('active');
+        });
+        allOption.classList.add('active');
+        
+        // Обновляем текст кнопки фильтра
+        updateFilterButtonText(filterBtn, selectedSet, getDefaultTextForFilter(filterType));
+    });
+    
+    optionsList.appendChild(allOption);
+    
+    // Добавляем остальные опции (кроме "Все")
     data.forEach(item => {
+        if (item.id === 0) return; // Пропускаем "Все", оно уже добавлено выше
+        
         const li = document.createElement('li');
         li.textContent = item.name;
         li.setAttribute('data-id', item.id);
+        li.setAttribute('data-name', item.name);
         
-        // Если это опция "Все", делаем её активной по умолчанию
-        if (item.id === 0) {
+        // Если эта опция уже была выбрана, делаем её активной
+        if (selectedSet.has(item.name)) {
             li.classList.add('active');
         }
         
-        // Добавляем обработчик клика
-        li.addEventListener('click', function() {
-            // Убираем активный класс у всех опций
-            optionsList.querySelectorAll('li').forEach(el => {
-                el.classList.remove('active');
-            });
+        // Добавляем обработчик клика для множественного выбора
+        li.addEventListener('click', function(e) {
+            e.stopPropagation();
             
-            // Добавляем активный класс текущей опции
-            this.classList.add('active');
+            // Переключаем состояние выбора текущей опции
+            const isSelected = this.classList.contains('active');
             
-            // Обновляем текст кнопки фильтра
-            const filterBtn = dropdown.closest('.filter-item').querySelector('.filter-btn span');
-            filterBtn.textContent = this.textContent;
-            
-            // Сохраняем выбранный фильтр
-            const id = parseInt(this.getAttribute('data-id'));
-            if (id === 0) {
-                currentFilters[filterType] = null; // "Все" = null
+            if (isSelected) {
+                // Снимаем выбор
+                selectedSet.delete(this.getAttribute('data-name'));
+                this.classList.remove('active');
             } else {
-                currentFilters[filterType] = id;
+                // Устанавливаем выбор
+                selectedSet.add(this.getAttribute('data-name'));
+                this.classList.add('active');
+                
+                // Если выбрана конкретная опция, снимаем выбор с "Все"
+                const allOptionEl = optionsList.querySelector('li[data-id="0"]');
+                if (allOptionEl) {
+                    allOptionEl.classList.remove('active');
+                }
             }
             
-            // Закрываем выпадающий список
-            dropdown.closest('.filter-item').classList.remove('open');
+            // Обновляем текст кнопки фильтра
+            updateFilterButtonText(filterBtn, selectedSet, getDefaultTextForFilter(filterType));
         });
         
         optionsList.appendChild(li);
     });
+}
+
+// Вспомогательная функция для обновления текста кнопки фильтра
+function updateFilterButtonText(button, selectedSet, defaultText) {
+    const buttonText = button.querySelector('span');
+    if (!buttonText) return;
+    
+    if (selectedSet.size === 0) {
+        buttonText.textContent = defaultText;
+    } else if (selectedSet.size === 1) {
+        buttonText.textContent = Array.from(selectedSet)[0];
+    } else {
+        buttonText.textContent = `Выбрано ${selectedSet.size}`;
+    }
+}
+
+// Возвращает текст по умолчанию для фильтра
+function getDefaultTextForFilter(filterType) {
+    switch(filterType) {
+        case 'cuisine': return 'Кухня';
+        case 'price': return 'Средний чек';
+        case 'location': return 'Местоположение';
+        default: return 'Фильтр';
+    }
 }
 
 // Функция для настройки кнопки сортировки
@@ -171,9 +240,6 @@ function setupSortingButton() {
                 // Закрываем выпадающий список
                 sortDropdown.style.display = 'none';
                 sortBtn.closest('.sort-by').classList.remove('open');
-                
-                // Выполняем запрос с новыми фильтрами
-                applyFilters();
             });
             
             sortDropdown.appendChild(option);
@@ -209,7 +275,11 @@ function setupSearchButton() {
     if (!searchBtn) return;
     
     searchBtn.addEventListener('click', function() {
+        // Применяем фильтры только при нажатии на кнопку
         applyFilters();
+        
+        // Закрываем все выпадающие списки
+        closeAllDropdowns();
     });
 }
 
@@ -218,14 +288,20 @@ function closeAllDropdowns(exceptItem = null) {
     document.querySelectorAll('.filter-item.open').forEach(item => {
         if (item !== exceptItem) {
             item.classList.remove('open');
+            const dropdown = item.querySelector('.filter-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
         }
     });
     
     document.querySelectorAll('.sort-by.open').forEach(item => {
-        item.classList.remove('open');
-        const dropdown = item.querySelector('.sort-dropdown');
-        if (dropdown) {
-            dropdown.style.display = 'none';
+        if (item !== exceptItem) {
+            item.classList.remove('open');
+            const dropdown = item.querySelector('.sort-dropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
         }
     });
 }
@@ -235,17 +311,43 @@ function applyFilters() {
     // Формируем параметры запроса
     const params = new URLSearchParams();
     
-    // Добавляем параметры фильтрации
-    if (currentFilters.cuisine) {
-        params.append('cuisine', currentFilters.cuisine);
+    // Добавляем параметры фильтрации по кухне
+    if (selectedCuisines.size > 0) {
+        const cuisineIds = Array.from(selectedCuisines).map(cuisine => {
+            // Находим ID кухни по имени
+            const cuisineObj = CUISINE_DATA.find(item => item.name === cuisine);
+            return cuisineObj ? cuisineObj.id : null;
+        }).filter(id => id !== null);
+        
+        if (cuisineIds.length > 0) {
+            params.append('cuisine', cuisineIds.join(','));
+        }
     }
     
-    if (currentFilters.price) {
-        params.append('check', currentFilters.price);
+    // Добавляем параметры фильтрации по цене
+    if (selectedPrices.size > 0) {
+        const priceIds = Array.from(selectedPrices).map(price => {
+            // Находим ID ценовой категории по имени
+            const priceObj = PRICE_DATA.find(item => item.name === price);
+            return priceObj ? priceObj.id : null;
+        }).filter(id => id !== null);
+        
+        if (priceIds.length > 0) {
+            params.append('check', priceIds.join(','));
+        }
     }
     
-    if (currentFilters.location) {
-        params.append('district', currentFilters.location);
+    // Добавляем параметры фильтрации по местоположению
+    if (selectedLocations.size > 0) {
+        const locationIds = Array.from(selectedLocations).map(location => {
+            // Находим ID местоположения по имени
+            const locationObj = LOCATION_DATA.find(item => item.name === location);
+            return locationObj ? locationObj.id : null;
+        }).filter(id => id !== null);
+        
+        if (locationIds.length > 0) {
+            params.append('district', locationIds.join(','));
+        }
     }
     
     if (currentFilters.rating) {
@@ -261,8 +363,10 @@ function applyFilters() {
 
 // Функция для загрузки отфильтрованных заведений
 function fetchFilteredEstablishments(type, queryParams) {
-    // Показываем индикатор загрузки (используем существующую структуру HTML)
+    // Определяем идентификаторы контейнеров
     const containerId = type === 'restaurant' ? 'restaurants-container' : 'bars-container';
+    // Для renderCards нужно передавать именно эти ID
+    const sliderContainerId = containerId;
     const container = document.getElementById(containerId);
     
     if (!container) return;
@@ -285,11 +389,13 @@ function fetchFilteredEstablishments(type, queryParams) {
             return response.json();
         })
         .then(data => {
-            // Отображаем результаты, используя существующую функцию renderCards из основного файла
+            // Проверяем доступность функции renderCards
             if (typeof window.renderCards === 'function') {
-                window.renderCards(data.results || [], containerId);
+                // Используем оригинальную функцию renderCards для единообразного отображения
+                window.renderCards(data.results || [], sliderContainerId);
             } else {
-                // Если функция не определена в глобальной области, используем локальную версию
+                console.error('Функция renderCards не найдена в глобальной области');
+                // Если основная функция недоступна, используем локальную версию
                 renderCardsLocal(data.results || [], containerId);
             }
         })
@@ -315,7 +421,7 @@ function renderCardsLocal(items, containerId) {
         return;
     }
     
-    // Создаем карточки для каждого заведения
+    // Создаем карточки для каждого заведения, полностью идентичные карточкам из глобальной функции renderCards
     items.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card';

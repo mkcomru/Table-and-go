@@ -309,7 +309,7 @@
                 return response.json();
             })
             .then(data => {
-                renderCards(data.results, 'restaurants-slider');
+                renderCards(data.results, 'restaurants-slider'); //slider
             })
             .catch(error => {
                 console.error('Ошибка:', error);
@@ -352,7 +352,7 @@
             });
             
             // Создаем содержимое карточки
-            const imageUrl = item.main_image || 'assets/images/default-restaurant.jpg';
+            const imageUrl = item.main_image || 'assets/images/vdk_panorama.png';
             
             card.innerHTML = `
                 <div class="card-image" style="background-image: url('${imageUrl}')">

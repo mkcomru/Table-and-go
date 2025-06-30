@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initSmoothScroll();
 });
 
+// Экспортируем функцию loadEstablishments в глобальную область видимости
+window.loadEstablishments = loadEstablishments;
+
 function loadImages() {
     if (typeof IMAGES === 'undefined') {
         console.error('Объект IMAGES не найден. Убедитесь, что файл images.js загружен перед script.js');
@@ -401,6 +404,8 @@ function initBookingButtons() {
 
 // Функция для загрузки заведений с API
 async function loadEstablishments(params = {}) {
+  console.log('loadEstablishments вызвана с параметрами:', params);
+  
   try {
     // Загружаем рестораны и бары отдельными запросами
     await Promise.all([
@@ -512,28 +517,44 @@ function displayRestaurants(restaurants) {
   
   // Добавляем карточки ресторанов
   restaurants.forEach(restaurant => {
-    const priceLevel = getPriceLevel(restaurant.average_check);
-    
     const card = document.createElement('div');
-    card.className = 'card restaurant-card';
+    card.className = 'card';
+    card.setAttribute('data-id', restaurant.id);
+    
+    // Добавляем обработчик клика для перехода на страницу ресторана
+    card.addEventListener('click', function() {
+        window.location.href = `restaurant.html?id=${restaurant.id}`;
+    });
+    
+    // Создаем содержимое карточки - используем тот же формат, что и в renderCards из index.html
+    const imageUrl = restaurant.photo || restaurant.main_image || 'assets/images/vdk_panorama.png';
+    
     card.innerHTML = `
-      <div class="card-image">
-        <img src="${restaurant.photo}" alt="${restaurant.name}">
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <h3 class="card-title">${restaurant.name}</h3>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <span>${restaurant.rating}</span>
-          </div>
+        <div class="card-image" style="background-image: url('${imageUrl}')">
+            <div class="card-rating">
+                <i class="fas fa-star"></i>
+                <span>${restaurant.average_rating || restaurant.rating ? (restaurant.average_rating || restaurant.rating).toFixed(1) : 'Нет'}</span>
+            </div>
         </div>
-        <div class="card-info">
-          <p>${restaurant.cuisine_types.join(', ')} • ${priceLevel}</p>
-          <p class="address">${restaurant.address}</p>
+        <div class="card-content">
+            <h3 class="card-title">${restaurant.name}</h3>
+            <div class="card-info">
+                <div class="card-cuisine">
+                    <i class="fas fa-utensils"></i>
+                    <span>${restaurant.establishment && restaurant.establishment.cuisines ? 
+                      restaurant.establishment.cuisines.map(c => c.name).join(', ') : 
+                      (restaurant.cuisine_types ? restaurant.cuisine_types.join(', ') : 'Разная кухня')}</span>
+                </div>
+                <div class="card-price">
+                    <i class="fas fa-wallet"></i>
+                    <span>${restaurant.average_check ? `${restaurant.average_check}₽` : 'Цена не указана'}</span>
+                </div>
+            </div>
+            <div class="card-address">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${restaurant.address || 'Адрес не указан'}</span>
+            </div>
         </div>
-        <a href="#" class="btn book-btn">Забронировать</a>
-      </div>
     `;
     
     container.appendChild(card);
@@ -562,30 +583,46 @@ function displayBars(bars) {
     return;
   }
   
-  // Добавляем карточки баров
+  // Добавляем карточки баров - используем тот же формат, что и для ресторанов
   bars.forEach(bar => {
-    const priceLevel = getPriceLevel(bar.average_check);
-    
     const card = document.createElement('div');
-    card.className = 'card bar-card';
+    card.className = 'card';
+    card.setAttribute('data-id', bar.id);
+    
+    // Добавляем обработчик клика для перехода на страницу бара
+    card.addEventListener('click', function() {
+        window.location.href = `restaurant.html?id=${bar.id}`;
+    });
+    
+    // Создаем содержимое карточки - используем тот же формат, что и в renderCards из index.html
+    const imageUrl = bar.photo || bar.main_image || 'assets/images/vdk_panorama.png';
+    
     card.innerHTML = `
-      <div class="card-image">
-        <img src="${bar.photo}" alt="${bar.name}">
-      </div>
-      <div class="card-body">
-        <div class="card-header">
-          <h3 class="card-title">${bar.name}</h3>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <span>${bar.rating}</span>
-          </div>
+        <div class="card-image" style="background-image: url('${imageUrl}')">
+            <div class="card-rating">
+                <i class="fas fa-star"></i>
+                <span>${bar.average_rating || bar.rating ? (bar.average_rating || bar.rating).toFixed(1) : 'Нет'}</span>
+            </div>
         </div>
-        <div class="card-info">
-          <p>${bar.cuisine_types.join(', ')} • ${priceLevel}</p>
-          <p class="address">${bar.address}</p>
+        <div class="card-content">
+            <h3 class="card-title">${bar.name}</h3>
+            <div class="card-info">
+                <div class="card-cuisine">
+                    <i class="fas fa-utensils"></i>
+                    <span>${bar.establishment && bar.establishment.cuisines ? 
+                      bar.establishment.cuisines.map(c => c.name).join(', ') : 
+                      (bar.cuisine_types ? bar.cuisine_types.join(', ') : 'Разная кухня')}</span>
+                </div>
+                <div class="card-price">
+                    <i class="fas fa-wallet"></i>
+                    <span>${bar.average_check ? `${bar.average_check}₽` : 'Цена не указана'}</span>
+                </div>
+            </div>
+            <div class="card-address">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${bar.address || 'Адрес не указан'}</span>
+            </div>
         </div>
-        <a href="#" class="btn book-btn">Забронировать</a>
-      </div>
     `;
     
     container.appendChild(card);
