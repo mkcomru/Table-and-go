@@ -639,42 +639,45 @@ async function showEditBookingModal(bookingId) {
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="booking-edit-container">
-                        <div class="booking-image-container" style="background-color: #ff0000;">
-                            ${booking.branch_image ? `<img src="${booking.branch_image}" alt="${booking.branch_name}">` : ''}
+                    <div class="booking-info-block">
+                        <div class="booking-number-block">
+                            <p>Номер брони: #${booking.book_number || `ID-${booking.id}`}</p>
                         </div>
-                        <div class="booking-details-container">
-                            <div class="booking-info-row">
-                                <span class="booking-info-label">Номер брони:</span>
-                                <span class="booking-info-value">#${booking.book_number || `ID-${booking.id}`}</span>
-                            </div>
-                            <div class="booking-info-row">
-                                <span class="booking-info-label">Забронировано:</span>
-                                <span class="booking-info-value">${booking.created_at ? new Date(booking.created_at).toLocaleDateString() : 'Н/Д'}</span>
-                            </div>
-                            
-                            <form id="edit-booking-form">
-                                <div class="form-group">
-                                    <label for="edit-booking-date">Дата</label>
+                        <div class="booking-created-block">
+                            <p>Забронировано ${booking.created_at ? new Date(booking.created_at).toLocaleDateString() : 'Н/Д'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="booking-edit-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-booking-date">Дата</label>
+                                <div class="input-with-icon">
                                     <input type="date" id="edit-booking-date" class="form-control" value="${booking.booking_date || formattedDate.split('.').reverse().join('-')}" required>
+                                    <i class="far fa-calendar"></i>
                                 </div>
-                                <div class="form-group">
-                                    <label for="edit-booking-time">Время</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-booking-time">Время</label>
+                                <div class="input-with-icon">
                                     <input type="time" id="edit-booking-time" class="form-control" value="${booking.booking_time || formattedTime}" required>
+                                    <i class="far fa-clock"></i>
                                 </div>
-                                <div class="form-group">
-                                    <label for="edit-booking-guests">Количество гостей</label>
-                                    <div class="guests-counter">
-                                        <button type="button" class="counter-btn" id="decrease-guests">-</button>
-                                        <input type="number" id="edit-booking-guests" class="form-control" value="${booking.guests_count || 2}" min="1" max="20" required>
-                                        <button type="button" class="counter-btn" id="increase-guests">+</button>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="edit-booking-comments">Комментарий (необязательно)</label>
-                                    <textarea id="edit-booking-comments" class="form-control" rows="3">${booking.special_requests || ''}</textarea>
-                                </div>
-                            </form>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group guests-group">
+                            <label for="edit-booking-guests">Количество гостей</label>
+                            <div class="guests-counter">
+                                <button type="button" class="counter-btn" id="decrease-guests">-</button>
+                                <input type="number" id="edit-booking-guests" class="form-control" value="${booking.guests_count || 2}" min="1" max="20" readonly>
+                                <button type="button" class="counter-btn" id="increase-guests">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-booking-comments">Комментарий (необязательно)</label>
+                            <textarea id="edit-booking-comments" class="form-control" rows="3" placeholder="Особые пожелания, аллергии и т.д.">${booking.special_requests || ''}</textarea>
                         </div>
                     </div>
                 </div>
@@ -690,39 +693,87 @@ async function showEditBookingModal(bookingId) {
             const style = document.createElement('style');
             style.id = 'edit-booking-modal-styles';
             style.textContent = `
-                .booking-edit-modal {
-                    max-width: 700px;
-                }
-                .booking-edit-container {
-                    display: flex;
-                    gap: 20px;
-                }
-                .booking-image-container {
-                    flex: 0 0 40%;
-                    max-width: 40%;
-                    height: 200px;
-                    border-radius: 10px;
-                    overflow: hidden;
-                }
-                .booking-image-container img {
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
+                    background-color: rgba(255, 255, 255, 0.8);
+                    z-index: 1000;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: auto;
+                    padding: 20px;
                 }
-                .booking-details-container {
-                    flex: 1;
-                }
-                .booking-info-row {
-                    margin-bottom: 10px;
+                .modal.show {
                     display: flex;
-                    justify-content: space-between;
+                    animation: fadeIn 0.3s;
                 }
-                .booking-info-label {
-                    font-weight: 500;
-                    color: #666;
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
                 }
-                .booking-info-value {
+                .booking-edit-modal {
+                    max-width: 550px;
+                    border-radius: 10px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    background-color: white;
+                    position: relative;
+                    width: 100%;
+                    animation: slideIn 0.3s;
+                }
+                @keyframes slideIn {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                .modal-header {
+                    padding: 15px 20px;
+                    border-bottom: 1px solid #eee;
+                    position: relative;
+                }
+                .modal-title {
+                    margin: 0;
+                    font-size: 20px;
                     font-weight: 600;
+                    text-align: center;
+                }
+                .modal-close {
+                    position: absolute;
+                    right: 15px;
+                    top: 15px;
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: #999;
+                }
+                .modal-body {
+                    padding: 20px;
+                }
+                .booking-info-block {
+                    margin-bottom: 15px;
+                }
+                .booking-number-block {
+                    margin-bottom: 5px;
+                    font-size: 14px;
+                    color: #555;
+                }
+                .booking-created-block {
+                    font-size: 14px;
+                    color: #777;
+                }
+                .booking-edit-form {
+                    margin-top: 20px;
+                }
+                .form-row {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 15px;
+                }
+                .form-row .form-group {
+                    flex: 1;
                 }
                 .form-group {
                     margin-bottom: 15px;
@@ -730,7 +781,9 @@ async function showEditBookingModal(bookingId) {
                 .form-group label {
                     display: block;
                     margin-bottom: 5px;
+                    font-size: 14px;
                     font-weight: 500;
+                    color: #555;
                 }
                 .form-control {
                     width: 100%;
@@ -739,34 +792,93 @@ async function showEditBookingModal(bookingId) {
                     border-radius: 4px;
                     font-size: 14px;
                 }
+                .input-with-icon {
+                    position: relative;
+                }
+                .input-with-icon i {
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #999;
+                }
+                .input-with-icon input {
+                    padding-right: 30px;
+                }
+                .guests-group {
+                    margin-bottom: 20px;
+                }
                 .guests-counter {
                     display: flex;
                     align-items: center;
-                }
-                .counter-btn {
-                    width: 30px;
-                    height: 30px;
-                    background: #f5f5f5;
+                    width: 100%;
+                    max-width: 150px;
                     border: 1px solid #ddd;
                     border-radius: 4px;
-                    font-size: 16px;
+                    overflow: hidden;
+                }
+                .counter-btn {
+                    width: 40px;
+                    height: 40px;
+                    background: #f5f5f5;
+                    border: none;
+                    font-size: 18px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     cursor: pointer;
                 }
                 #edit-booking-guests {
-                    width: 60px;
+                    flex: 1;
+                    border: none;
                     text-align: center;
-                    margin: 0 10px;
+                    font-size: 16px;
+                    padding: 8px 0;
+                }
+                textarea.form-control {
+                    resize: none;
+                    min-height: 80px;
+                }
+                .modal-footer {
+                    padding: 15px 20px;
+                    border-top: 1px solid #eee;
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .btn {
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    border: none;
+                    transition: all 0.2s;
+                }
+                .btn-outline {
+                    background: white;
+                    border: 1px solid #ddd;
+                    color: #555;
+                }
+                .btn-primary {
+                    background: #8B0000;
+                    color: white;
+                    border: 1px solid #8B0000;
+                }
+                .btn-primary:hover {
+                    background: #6B0000;
+                }
+                .btn-outline:hover {
+                    background: #f5f5f5;
                 }
                 
-                @media (max-width: 768px) {
-                    .booking-edit-container {
+                body.modal-open {
+                    overflow: hidden;
+                }
+                
+                @media (max-width: 576px) {
+                    .form-row {
                         flex-direction: column;
-                    }
-                    .booking-image-container {
-                        max-width: 100%;
+                        gap: 10px;
                     }
                 }
             `;
@@ -775,6 +887,7 @@ async function showEditBookingModal(bookingId) {
         
         // Отображаем модальное окно
         modal.classList.add('show');
+        document.body.classList.add('modal-open');
         
         // Добавляем обработчики событий
         const closeButton = modal.querySelector('.modal-close');
@@ -785,10 +898,20 @@ async function showEditBookingModal(bookingId) {
         const guestsInput = document.getElementById('edit-booking-guests');
         
         // Закрытие модального окна
-        closeButton.addEventListener('click', () => modal.classList.remove('show'));
-        cancelButton.addEventListener('click', () => modal.classList.remove('show'));
+        const closeModal = () => {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+        };
+        
+        closeButton.addEventListener('click', closeModal);
+        cancelButton.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('show');
+            if (e.target === modal) closeModal();
+        });
+        
+        // Предотвращаем закрытие при клике на содержимое модального окна
+        modal.querySelector('.modal-content').addEventListener('click', (e) => {
+            e.stopPropagation();
         });
         
         // Увеличение/уменьшение количества гостей
@@ -831,7 +954,7 @@ async function showEditBookingModal(bookingId) {
             await updateBooking(bookingId, formData);
             
             // Закрываем модальное окно
-            modal.classList.remove('show');
+            closeModal();
         });
         
     } catch (error) {
