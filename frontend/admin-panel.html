@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table&Go - Панель администратора ресторана</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin-panel.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-text">
+                        <span class="logo-table">Table</span>
+                        <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
+                    </div>
+                </a>
+                <div class="logo-divider"></div>
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Владивосток</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img src="assets/default-avatar.png" alt="Аватар" class="avatar-image">
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">Администратор Tokyo (Kawaii)</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-dropdown">
+                        <ul>
+                            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-header">
+        <div class="container">
+            <h1>Панель администратора ресторана</h1>
+        </div>
+    </div>
+
+    <main class="admin-main">
+        <div class="container">
+            <section class="admin-section">
+                <h2>Управление бронированием</h2>
+                
+                <div class="bookings-panel">
+                    <div class="bookings-header">
+                        <div class="date-filter">
+                            <input type="date" id="booking-date-filter" class="date-input">
+                        </div>
+                        <div class="status-filter">
+                            <select id="status-filter" class="status-select">
+                                <option value="all">Все статусы</option>
+                                <option value="pending">В ожидании</option>
+                                <option value="confirmed">Подтверждено</option>
+                                <option value="completed">Завершено</option>
+                                <option value="cancelled">Отменено</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="bookings-table">
+                        <div class="bookings-table-header">
+                            <div class="booking-column booking-number">НОМЕР БРОНИ</div>
+                            <div class="booking-column booking-name">ИМЯ</div>
+                            <div class="booking-column booking-phone">ТЕЛЕФОН</div>
+                            <div class="booking-column booking-datetime">ДАТА И ВРЕМЯ</div>
+                            <div class="booking-column booking-table">СТОЛ</div>
+                            <div class="booking-column booking-guests">ГОСТЕЙ</div>
+                            <div class="booking-column booking-status">СТАТУС</div>
+                            <div class="booking-column booking-actions">ДЕЙСТВИЯ</div>
+                        </div>
+                        
+                        <div class="bookings-table-body">
+                            <!-- Бронь 1 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK2456-5</div>
+                                <div class="booking-column booking-name">Андрей</div>
+                                <div class="booking-column booking-phone">+7 (999) 010-00-11</div>
+                                <div class="booking-column booking-datetime">23.06.2025, 19:00</div>
+                                <div class="booking-column booking-table">Ожидает назначения</div>
+                                <div class="booking-column booking-guests">2</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-pending">Новое</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- Бронь 2 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK2246-7</div>
+                                <div class="booking-column booking-name">Василий</div>
+                                <div class="booking-column booking-phone">+7 (999) 111-23-45</div>
+                                <div class="booking-column booking-datetime">23.06.2025, 18:00</div>
+                                <div class="booking-column booking-table">Стол 5</div>
+                                <div class="booking-column booking-guests">4</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-confirmed">Подтверждено</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- Бронь 3 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK2523-9</div>
+                                <div class="booking-column booking-name">Дарья</div>
+                                <div class="booking-column booking-phone">+7 (999) 666-34-22</div>
+                                <div class="booking-column booking-datetime">23.06.2025, 18:30</div>
+                                <div class="booking-column booking-table">Стол 4</div>
+                                <div class="booking-column booking-guests">3</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-confirmed">Подтверждено</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- Бронь 4 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK2346-4</div>
+                                <div class="booking-column booking-name">София</div>
+                                <div class="booking-column booking-phone">+7 (999) 777-22-11</div>
+                                <div class="booking-column booking-datetime">23.06.2025, 20:00</div>
+                                <div class="booking-column booking-table">Стол 7</div>
+                                <div class="booking-column booking-guests">2</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-confirmed">Подтверждено</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- Бронь 5 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK2323-2</div>
+                                <div class="booking-column booking-name">Иван</div>
+                                <div class="booking-column booking-phone">+7 (999) 876-54-32</div>
+                                <div class="booking-column booking-datetime">23.06.2025, 19:30</div>
+                                <div class="booking-column booking-table">Стол 6</div>
+                                <div class="booking-column booking-guests">4</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-confirmed">Подтверждено</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                            
+                            <!-- Бронь 6 -->
+                            <div class="booking-row">
+                                <div class="booking-column booking-number">#NK3423-8</div>
+                                <div class="booking-column booking-name">Катя</div>
+                                <div class="booking-column booking-phone">+7 (999) 888-77-66</div>
+                                <div class="booking-column booking-datetime">22.06.2025, 19:00</div>
+                                <div class="booking-column booking-table">Стол 3</div>
+                                <div class="booking-column booking-guests">4</div>
+                                <div class="booking-column booking-status">
+                                    <span class="status-badge status-completed">Завершено</span>
+                                </div>
+                                <div class="booking-column booking-actions">
+                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bookings-pagination">
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">></button>
+                    </div>
+                    
+                    <div class="bookings-summary">
+                        <p>Показано 5 из 25 бронирований</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer" id="contacts">
+        <div class="container">
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3 class="footer-title">Социальные сети</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.instagram.com/table_and_go" target="_blank"><i class="fab fa-instagram"></i> https://www.instagram.com/table_and_go</a></li>
+                        <li><a href="https://vk.com/club229925858" target="_blank"><i class="fab fa-vk"></i> https://vk.com/club229992858</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Правовая информация</h3>
+                    <ul class="legal-links">
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Пользовательское соглашение</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Контакты</h3>
+                    <ul class="contacts">
+                        <li><i class="fas fa-phone"></i> <a href="tel:+79991234567">+7(999)123-45-67</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@tableandgo.ru">info@tableandgo.ru</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">©2025 Table&Go. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/admin-panel.js"></script>
+</body>
+</html> 

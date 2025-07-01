@@ -117,6 +117,11 @@ function login(username, password) {
                         if (payload.email) userData.email = payload.email;
                         if (payload.username) userData.username = payload.username;
                         if (payload.phone) userData.phone = payload.phone;
+                        if (payload.is_staff) userData.is_staff = payload.is_staff;
+                        if (payload.is_superuser) userData.is_superuser = payload.is_superuser;
+                        if (payload.is_system_admin) userData.is_system_admin = payload.is_system_admin;
+                        if (payload.is_branch_admin) userData.is_branch_admin = payload.is_branch_admin;
+                        if (payload.administered_branch_ids) userData.administered_branch_ids = payload.administered_branch_ids;
                     }
                 }
             } catch (e) {
@@ -127,8 +132,8 @@ function login(username, password) {
         // Сохраняем данные пользователя
         localStorage.setItem('user_data', JSON.stringify(userData));
         
-        // Перенаправляем на главную страницу
-        window.location.href = 'index.html';
+        // Перенаправляем пользователя в зависимости от его роли
+        redirectBasedOnRole(userData);
     })
     .catch(error => {
         console.error('Ошибка:', error);
@@ -150,6 +155,23 @@ function login(username, password) {
         
         showError(errorMessage);
     });
+}
+
+// Функция для перенаправления пользователя в зависимости от его роли
+function redirectBasedOnRole(userData) {
+    // Получаем URL для перенаправления из параметров запроса (если есть)
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
+    
+    // Если пользователь является персоналом ресторана, но не является суперпользователем или системным администратором
+    if (userData.is_staff && !userData.is_superuser && !userData.is_system_admin) {
+        // Перенаправляем на страницу администратора ресторана
+        window.location.href = 'admin-panel.html';
+    } else {
+        // Для обычных пользователей, суперпользователей и системных администраторов
+        // Перенаправляем на указанную страницу или на главную страницу
+        window.location.href = redirectUrl || 'index.html';
+    }
 }
 
 // Функция для проверки авторизации
@@ -196,6 +218,14 @@ function checkAuth() {
                 if (response.ok) {
                     // Если токен валидный, обновляем UI
                     updateAuthUI(true);
+                    
+                    // Проверяем, нужно ли перенаправить пользователя на страницу администратора ресторана
+                    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+                    
+                    // Если это страница входа и пользователь уже авторизован, перенаправляем в зависимости от роли
+                    if (window.location.pathname.includes('login.html')) {
+                        redirectBasedOnRole(userData);
+                    }
                 } else {
                     // Если токен невалидный, удаляем его
                     localStorage.removeItem('authToken');
@@ -282,8 +312,9 @@ function updateAuthUI(isLoggedInOrUserData) {
             </div>
         `;
         
-        // Проверяем, является ли пользователь суперпользователем или системным администратором
+        // Проверяем, является ли пользователь суперпользователем, системным администратором или персоналом
         const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+        const isStaff = userData.is_staff === true;
         
         const userDropdown = document.createElement('div');
         userDropdown.className = 'user-dropdown';
@@ -300,6 +331,13 @@ function updateAuthUI(isLoggedInOrUserData) {
         if (isAdmin) {
             dropdownHtml += `
                 <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
+            `;
+        }
+        
+        // Добавляем ссылку на панель администратора ресторана для персонала
+        if (isStaff) {
+            dropdownHtml += `
+                <li><a href="admin-panel.html"><i class="fas fa-concierge-bell"></i> Панель ресторана</a></li>
             `;
         }
         
