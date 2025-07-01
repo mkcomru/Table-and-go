@@ -226,6 +226,41 @@ class BranchDetailSerializer(serializers.ModelSerializer):
         return obj.establishment.description
 
 
+class BranchUpdateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для обновления информации о филиале
+    """
+    description = serializers.CharField(required=False, write_only=True)
+    
+    class Meta:
+        model = Branch
+        fields = [
+            'name',
+            'address',
+            'phone',
+            'average_check',
+            'allow_to_book',
+            'description',
+        ]
+    
+    def update(self, instance, validated_data):
+        # Получаем описание из данных, если оно есть
+        description = validated_data.pop('description', None)
+        
+        # Обновляем поля филиала
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Если есть описание, обновляем его в заведении
+        if description is not None:
+            establishment = instance.establishment
+            establishment.description = description
+            establishment.save()
+            
+        instance.save()
+        return instance
+
+
 class AdminInvitationSerializer(serializers.ModelSerializer):
     establishment_name = serializers.ReadOnlyField(source='branch.establishment.name')
     branch_name = serializers.SerializerMethodField()

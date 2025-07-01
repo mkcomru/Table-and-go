@@ -355,17 +355,15 @@ function saveProfileChanges() {
     // Собираем данные формы
     const branchData = {
         name: document.getElementById('restaurant-name').value,
-        cuisine: document.getElementById('restaurant-cuisine').value,
         address: document.getElementById('restaurant-address').value,
         phone: document.getElementById('restaurant-phone').value,
-        working_hours: document.getElementById('restaurant-hours').value,
         average_check: document.getElementById('restaurant-avg-check').value,
         description: document.getElementById('restaurant-description').value
     };
     
     // Отправляем запрос на обновление данных филиала
-    fetch(`http://127.0.0.1:8000/api/branch/${window.currentBranchId}/`, {
-        method: 'PATCH',
+    fetch(`http://127.0.0.1:8000/api/branch/${window.currentBranchId}/update/`, {
+        method: 'PUT',
         headers: {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json'
@@ -380,6 +378,19 @@ function saveProfileChanges() {
     })
     .then(data => {
         showNotification('Данные успешно сохранены', 'success');
+        
+        // Обновляем данные на странице
+        fillProfileForm(data);
+        
+        // Если в ответе есть фотографии, отображаем их
+        if (data.gallery && Array.isArray(data.gallery) && data.gallery.length > 0) {
+            renderBranchPhotos(data.gallery);
+        }
+        
+        // Обновляем статус меню
+        if (data.menu_pdf) {
+            updateMenuStatus(data.menu_pdf);
+        }
     })
     .catch(error => {
         console.error('Ошибка при сохранении данных филиала:', error);

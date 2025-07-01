@@ -1,10 +1,13 @@
 from django.db.models import Avg
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
 from .models import Establishment, Branch, BranchAdmin
 from .serializers import (EstablishmentListSerializer, BranchListSerializer, 
-                        BranchDetailSerializer, BranchAdminSerializer)
+                        BranchDetailSerializer, BranchAdminSerializer,
+                        BranchUpdateSerializer)
 
 
 class EstablishmentListView(ListAPIView):
@@ -79,6 +82,35 @@ class BranchDetailView(RetrieveAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchDetailSerializer
     permission_classes = [AllowAny]
+
+
+class BranchUpdateView(UpdateAPIView):
+    """
+    Представление для обновления информации о филиале.
+    Доступно только для администраторов филиала.
+    """
+    queryset = Branch.objects.all()
+    serializer_class = BranchUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Получаем только те филиалы, где пользователь является администратором
+        user = self.request.user
+        if user.is_staff:
+            admin_branches = BranchAdmin.objects.filter(user=user, is_active=True).values_list('branch_id', flat=True)
+            return Branch.objects.filter(id__in=admin_branches)
+        return Branch.objects.none()
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # Возвращаем обновленные данные с использованием BranchDetailSerializer
+        detail_serializer = BranchDetailSerializer(instance, context={'request': request})
+        return Response(detail_serializer.data)
 
 
 class BranchAdminView(ListAPIView):
