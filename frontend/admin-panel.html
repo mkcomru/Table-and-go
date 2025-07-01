@@ -141,6 +141,27 @@
         </div>
     </footer>
 
+    <!-- Модальное окно для подтверждения бронирования -->
+    <div class="modal-overlay" id="confirm-booking-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>Подтверждение бронирования</h3>
+            </div>
+            <div class="modal-body">
+                <p>Вы действительно хотите подтвердить бронирование <span id="booking-number"></span>?</p>
+                <div class="form-group">
+                    <label for="table-number">Укажите стол</label>
+                    <input type="text" id="table-number" class="form-control" placeholder="Номер стола">
+                    <input type="hidden" id="booking-id">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-confirm">Закрыть</button>
+                <button class="btn-confirm" id="confirm-booking-btn">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/login.js"></script>
     <script src="js/admin-panel.js"></script>
 </body>

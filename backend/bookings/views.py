@@ -253,6 +253,7 @@ class BookingConfirmView(APIView):
     
     def post(self, request, booking_id):
         user = request.user
+        table_number = request.data.get('table')
         
         # Проверяем, является ли пользователь суперпользователем или системным администратором
         if user.is_superuser or getattr(user, 'is_system_admin', False):
@@ -266,6 +267,11 @@ class BookingConfirmView(APIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 booking.status = 'confirmed'
+                
+                # Если указан номер стола, сохраняем его
+                if table_number:
+                    booking.table = table_number
+                
                 booking.save()
                 
                 return Response({
@@ -304,6 +310,11 @@ class BookingConfirmView(APIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 booking.status = 'confirmed'
+                
+                # Если указан номер стола, сохраняем его
+                if table_number:
+                    booking.table = table_number
+                
                 booking.save()
                 
                 return Response({

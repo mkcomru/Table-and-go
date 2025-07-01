@@ -478,7 +478,8 @@ function initActionButtons() {
             const bookingId = bookingRow.getAttribute('data-id');
             
             if (button.classList.contains('confirm-btn')) {
-                confirmBooking(bookingId, bookingRow);
+                // Вместо прямого вызова confirmBooking, открываем модальное окно
+                openConfirmModal(bookingId, bookingRow);
             } else if (button.classList.contains('cancel-btn')) {
                 cancelBooking(bookingId, bookingRow);
             } else if (button.classList.contains('info-btn')) {
@@ -488,52 +489,126 @@ function initActionButtons() {
             }
         });
     }
+    
+    // Инициализация обработчиков для модального окна
+    initConfirmModal();
+}
+
+// Функция для открытия модального окна подтверждения
+function openConfirmModal(bookingId, bookingRow) {
+    const modal = document.getElementById('confirm-booking-modal');
+    const bookingNumberSpan = document.getElementById('booking-number');
+    const bookingIdInput = document.getElementById('booking-id');
+    const tableInput = document.getElementById('table-number');
+    
+    // Получаем номер бронирования из строки таблицы
+    const bookingNumberElement = bookingRow.querySelector('.booking-number');
+    const bookingNumber = bookingNumberElement ? bookingNumberElement.textContent : bookingId;
+    
+    // Заполняем данные в модальном окне
+    bookingNumberSpan.textContent = bookingNumber;
+    bookingIdInput.value = bookingId;
+    tableInput.value = ''; // Очищаем поле ввода стола
+    
+    // Отображаем модальное окно
+    modal.classList.add('active');
+}
+
+// Функция для инициализации обработчиков модального окна
+function initConfirmModal() {
+    const modal = document.getElementById('confirm-booking-modal');
+    const cancelBtn = document.getElementById('cancel-confirm');
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    
+    // Обработчик для кнопки "Закрыть"
+    cancelBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+    
+    // Обработчик для кнопки "Подтвердить"
+    confirmBtn.addEventListener('click', function() {
+        const bookingId = document.getElementById('booking-id').value;
+        const tableNumber = document.getElementById('table-number').value;
+        
+        if (!tableNumber.trim()) {
+            alert('Пожалуйста, укажите номер стола');
+            return;
+        }
+        
+        // Находим строку таблицы с этим бронированием
+        const bookingRow = document.querySelector(`.booking-row[data-id="${bookingId}"]`);
+        
+        // Вызываем функцию подтверждения бронирования
+        confirmBooking(bookingId, bookingRow, tableNumber);
+        
+        // Закрываем модальное окно
+        modal.classList.remove('active');
+    });
+    
+    // Закрытие модального окна при клике на оверлей
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Закрытие модального окна при нажатии Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
 }
 
 // Функция для подтверждения бронирования
-function confirmBooking(bookingId, bookingRow) {
-    if (confirm('Вы уверены, что хотите подтвердить бронирование ' + bookingId + '?')) {
-        // Получаем токен авторизации
-        const authToken = localStorage.getItem('authToken');
+function confirmBooking(bookingId, bookingRow, tableNumber) {
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
+    
+    // Отправляем запрос на подтверждение бронирования
+    fetch(`http://127.0.0.1:8000/api/bookings/confirm/${bookingId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ table: tableNumber })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при подтверждении бронирования');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Обновляем статус брони в UI
+        const statusBadge = bookingRow.querySelector('.status-badge');
+        statusBadge.className = 'status-badge status-confirmed';
+        statusBadge.textContent = 'Подтверждено';
         
-        // Отправляем запрос на подтверждение бронирования
-        fetch(`http://127.0.0.1:8000/api/bookings/confirm/${bookingId}/`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка при подтверждении бронирования');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Обновляем статус брони в UI
-            const statusBadge = bookingRow.querySelector('.status-badge');
-            statusBadge.className = 'status-badge status-confirmed';
-            statusBadge.textContent = 'Подтверждено';
-            
-            // Обновляем кнопки действий
-            const actionsColumn = bookingRow.querySelector('.booking-actions');
-            actionsColumn.innerHTML = `
-                <div class="action-buttons">
-                    <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
-                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                    <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
-                </div>
-            `;
-            
-            showNotification('Бронирование успешно подтверждено', 'success');
-        })
-        .catch(error => {
-            console.error('Ошибка при подтверждении бронирования:', error);
-            showNotification('Ошибка при подтверждении бронирования', 'error');
-        });
-    }
+        // Обновляем номер стола в UI
+        const tableColumn = bookingRow.querySelector('.booking-table');
+        if (tableColumn) {
+            tableColumn.textContent = tableNumber;
+        }
+        
+        // Обновляем кнопки действий
+        const actionsColumn = bookingRow.querySelector('.booking-actions');
+        actionsColumn.innerHTML = `
+            <div class="action-buttons">
+                <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
+            </div>
+        `;
+        
+        showNotification('Бронирование успешно подтверждено', 'success');
+    })
+    .catch(error => {
+        console.error('Ошибка при подтверждении бронирования:', error);
+        showNotification('Ошибка при подтверждении бронирования', 'error');
+    });
 }
 
 // Функция для отмены бронирования
