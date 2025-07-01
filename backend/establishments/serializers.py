@@ -270,6 +270,15 @@ class AdminInvitationSerializer(serializers.ModelSerializer):
         return email
 
 
+class BranchAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BranchAdmin
+        fields = ['id', 'user', 'branch', 'is_active', 'date_added']
+
+
+
+
+
 
 
 

@@ -46,54 +46,78 @@ function loadUserBranches(userData) {
     // Получаем токен авторизации
     const authToken = localStorage.getItem('authToken');
     
-    // Для пользователя с is_staff = true
-    if (userData.is_staff === true) {
-        // Запрашиваем список всех филиалов (API вернет только доступные пользователю)
-        fetch('http://127.0.0.1:8000/api/branch/', {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке филиалов');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Сохраняем список филиалов
-            const branches = data.results || [];
+    // Запрашиваем список филиалов, где пользователь является администратором
+    fetch('http://127.0.0.1:8000/api/branch-admin/', {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке филиалов');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Получаем данные о филиалах, где пользователь является администратором
+        const branchAdmins = data.results || data;
+        
+        if (branchAdmins && branchAdmins.length > 0) {
+            // Собираем ID филиалов
+            const branchIds = branchAdmins.map(admin => admin.branch);
             
-            // Если есть филиалы
-            if (branches.length > 0) {
-                // Находим филиал, которым управляет пользователь
-                // Примечание: бэкенд должен отфильтровать и вернуть только те филиалы, 
-                // к которым пользователь имеет доступ как администратор
-                const branch = branches[0]; // Берем первый филиал из списка
-                
-                // Обновляем заголовок панели администратора
-                const adminHeader = document.querySelector('.admin-header h1');
-                if (adminHeader) {
-                    adminHeader.textContent = `Панель администратора ресторана "${branch.name}"`;
-                }
-                
-                // Сохраняем ID текущего филиала
-                window.currentBranchId = branch.id;
-                
-                // Загружаем брони для филиала
-                loadBookings(branch.id);
+            // Если есть хотя бы один филиал, загружаем информацию о нем
+            if (branchIds.length > 0) {
+                // Загружаем информацию о первом филиале
+                fetch(`http://127.0.0.1:8000/api/branch/${branchIds[0]}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(branchData => {
+                    // Обновляем заголовок панели администратора
+                    const adminHeader = document.querySelector('.admin-header h1');
+                    if (adminHeader) {
+                        adminHeader.textContent = `Панель администратора ресторана "${branchData.name}"`;
+                    }
+                    
+                    // Сохраняем ID текущего филиала
+                    window.currentBranchId = branchData.id;
+                    
+                    // Если есть несколько филиалов, создаем селектор
+                    if (branchIds.length > 1) {
+                        // Загружаем информацию обо всех филиалах
+                        Promise.all(branchIds.map(branchId => 
+                            fetch(`http://127.0.0.1:8000/api/branch/${branchId}/`, {
+                                headers: {
+                                    'Authorization': `Bearer ${authToken}`
+                                }
+                            }).then(response => response.json())
+                        ))
+                        .then(branches => {
+                            createBranchSelector(branches);
+                        });
+                    }
+                    
+                    // Загружаем брони для филиала
+                    loadBookings(branchData.id);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке информации о филиале:', error);
+                    showNotification('Ошибка при загрузке информации о филиале', 'error');
+                });
             } else {
                 showNotification('У вас нет доступа к филиалам', 'error');
             }
-        })
-        .catch(error => {
-            console.error('Ошибка при загрузке филиалов:', error);
-            showNotification('Ошибка при загрузке филиалов', 'error');
-        });
-    } else {
-        // Если пользователь не является персоналом, перенаправляем на главную страницу
-        window.location.href = 'index.html';
-    }
+        } else {
+            showNotification('У вас нет доступа к филиалам', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка при загрузке филиалов:', error);
+        showNotification('Ошибка при загрузке филиалов', 'error');
+    });
 }
 
 // Функция для создания селектора филиалов
@@ -152,21 +176,19 @@ function loadBookings(branchId) {
     const statusFilter = document.getElementById('status-filter').value;
     
     // Формируем URL с параметрами
-    // Используем правильный эндпоинт API - /bookings/branch/ (или тот, который определен на бэкенде)
-    let url = `http://127.0.0.1:8000/api/bookings/branch/?branch_id=${branchId}`;
+    // Используем новый эндпоинт API для получения броней филиала, где пользователь является администратором
+    let url = `http://127.0.0.1:8000/api/branch/${branchId}/bookings/`;
     
     // Добавляем параметры фильтрации, если они указаны
-    if (dateFilter) {
-        // Преобразуем формат даты из YYYY-MM-DD в формат API (DD.MM.YYYY)
-        const dateParts = dateFilter.split('-');
-        if (dateParts.length === 3) {
-            const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
-            url += `&date=${formattedDate}`;
-        }
-    }
+    let params = [];
     
     if (statusFilter && statusFilter !== 'all') {
-        url += `&status=${statusFilter}`;
+        params.push(`status=${statusFilter}`);
+    }
+    
+    // Добавляем параметры к URL, если они есть
+    if (params.length > 0) {
+        url += '?' + params.join('&');
     }
     
     // Показываем индикатор загрузки
@@ -275,23 +297,22 @@ function renderBookings(bookings) {
             `;
         }
         
-        // Форматируем дату и время - учитываем разные форматы данных от бэкенда
-        const bookingDateTime = booking.datetime || booking.booking_datetime ? 
-            new Date(booking.datetime || booking.booking_datetime) : new Date();
+        // Форматируем дату и время
+        const bookingDateTime = new Date(booking.booking_datetime);
         const formattedDate = bookingDateTime.toLocaleDateString('ru-RU');
         const formattedTime = bookingDateTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         
-        // Получаем информацию о пользователе
-        const userName = booking.user_name || 
-            (booking.user && (booking.user.first_name || booking.user.username)) || 
+        // Получаем информацию о пользователе из объекта user
+        const userName = booking.user ? 
+            `${booking.user.first_name} ${booking.user.last_name}` : 
             'Не указано';
         
-        const userPhone = booking.user_phone || 
-            (booking.user && booking.user.phone) || 
+        const userPhone = booking.user && booking.user.phone ? 
+            booking.user.phone : 
             'Не указано';
         
         // Формируем номер бронирования
-        const bookingNumber = booking.booking_number || booking.book_number || `#${booking.id}`;
+        const bookingNumber = booking.book_number || `#${booking.id}`;
         
         // Формируем строку таблицы
         bookingRow.innerHTML = `
@@ -299,7 +320,7 @@ function renderBookings(bookings) {
             <div class="booking-column booking-name" data-label="Имя">${userName}</div>
             <div class="booking-column booking-phone" data-label="Телефон">${userPhone}</div>
             <div class="booking-column booking-datetime" data-label="Дата и время">${formattedDate}, ${formattedTime}</div>
-            <div class="booking-column booking-table" data-label="Стол">${booking.table_number ? 'Стол ' + booking.table_number : 'Ожидает назначения'}</div>
+            <div class="booking-column booking-table" data-label="Стол">${booking.table || 'Ожидает назначения'}</div>
             <div class="booking-column booking-guests" data-label="Гостей">${booking.guests_count || 0}</div>
             <div class="booking-column booking-status" data-label="Статус">
                 <span class="status-badge ${statusClass}">${statusText}</span>
@@ -351,24 +372,14 @@ function updateUserInfo(userData) {
 function initDateFilter() {
     const dateFilter = document.getElementById('booking-date-filter');
     if (dateFilter) {
-        // Устанавливаем текущую дату
-        const today = new Date();
-        const formattedDate = formatDateForInput(today);
-        dateFilter.value = formattedDate;
+        // Убираем установку текущей даты по умолчанию
+        dateFilter.value = '';
         
         // Добавляем обработчик события изменения даты
         dateFilter.addEventListener('change', function() {
             filterBookings();
         });
     }
-}
-
-// Форматирование даты для input[type="date"]
-function formatDateForInput(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
 }
 
 // Инициализация фильтра по статусу
@@ -433,16 +444,12 @@ function confirmBooking(bookingId, bookingRow) {
         const authToken = localStorage.getItem('authToken');
         
         // Отправляем запрос на подтверждение бронирования
-        fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/confirm/`, {
+        fetch(`http://127.0.0.1:8000/api/bookings/confirm/${bookingId}/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                // Здесь можно добавить дополнительные параметры, например, номер стола
-                table_number: Math.floor(Math.random() * 10 + 1) // Для демонстрации
-            })
+            }
         })
         .then(response => {
             if (!response.ok) {
@@ -463,14 +470,6 @@ function confirmBooking(bookingId, bookingRow) {
                 <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
             `;
             
-            // Обновляем информацию о столе
-            const tableColumn = bookingRow.querySelector('.booking-table');
-            if (data.table_number) {
-                tableColumn.textContent = 'Стол ' + data.table_number;
-            } else if (tableColumn.textContent.includes('Ожидает')) {
-                tableColumn.textContent = 'Стол ' + Math.floor(Math.random() * 10 + 1);
-            }
-            
             showNotification('Бронирование успешно подтверждено', 'success');
         })
         .catch(error => {
@@ -487,7 +486,7 @@ function cancelBooking(bookingId, bookingRow) {
         const authToken = localStorage.getItem('authToken');
         
         // Отправляем запрос на отмену бронирования
-        fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/cancel/`, {
+        fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -539,21 +538,57 @@ function showBookingInfo(bookingId) {
         return response.json();
     })
     .then(data => {
+        // Форматируем дату и время
+        const bookingDateTime = new Date(data.booking_datetime);
+        const formattedDate = bookingDateTime.toLocaleDateString('ru-RU');
+        const formattedTime = bookingDateTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        
+        // Получаем информацию о пользователе
+        const userName = data.user ? 
+            `${data.user.first_name} ${data.user.last_name}` : 
+            'Не указано';
+        
+        const userPhone = data.user && data.user.phone ? 
+            data.user.phone : 
+            'Не указано';
+        
+        const userEmail = data.user && data.user.email ? 
+            data.user.email : 
+            'Не указано';
+        
+        // Определяем статус брони
+        let statusText = '';
+        switch (data.status) {
+            case 'pending':
+                statusText = 'Ожидает подтверждения';
+                break;
+            case 'confirmed':
+                statusText = 'Подтверждено';
+                break;
+            case 'completed':
+                statusText = 'Завершено';
+                break;
+            case 'cancelled':
+                statusText = 'Отменено';
+                break;
+            default:
+                statusText = data.status;
+        }
+        
         // В реальном приложении здесь будет открытие модального окна с подробной информацией
         const bookingInfo = `
-            Информация о бронировании #${data.booking_number || data.id}
+            Информация о бронировании #${data.book_number || data.id}
             
-            Имя: ${data.user_name || data.user?.first_name || 'Не указано'}
-            Телефон: ${data.user_phone || data.user?.phone || 'Не указано'}
-            Email: ${data.user_email || data.user?.email || 'Не указано'}
+            Имя: ${userName}
+            Телефон: ${userPhone}
+            Email: ${userEmail}
             
-            Дата и время: ${new Date(data.datetime || data.booking_datetime).toLocaleString('ru-RU')}
+            Дата и время: ${formattedDate}, ${formattedTime}
             Количество гостей: ${data.guests_count || 0}
-            Стол: ${data.table_number ? 'Стол ' + data.table_number : 'Ожидает назначения'}
             
-            Статус: ${data.status}
+            Статус: ${statusText}
             
-            Комментарий: ${data.comment || data.special_requests || 'Нет комментария'}
+            Комментарий: ${data.special_requests || 'Нет комментария'}
         `;
         
         alert(bookingInfo);

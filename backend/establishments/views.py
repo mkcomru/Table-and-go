@@ -1,9 +1,10 @@
 from django.db.models import Avg
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from .models import Establishment, Branch
-from .serializers import EstablishmentListSerializer, BranchListSerializer, BranchDetailSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import Establishment, Branch, BranchAdmin
+from .serializers import (EstablishmentListSerializer, BranchListSerializer, 
+                        BranchDetailSerializer, BranchAdminSerializer)
 
 
 class EstablishmentListView(ListAPIView):
@@ -78,6 +79,22 @@ class BranchDetailView(RetrieveAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchDetailSerializer
     permission_classes = [AllowAny]
+
+
+class BranchAdminView(ListAPIView):
+    queryset = BranchAdmin.objects.all()
+    serializer_class = BranchAdminSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return BranchAdmin.objects.filter(user=self.request.user)
+
+
+
+
+
+
+
 
 
 

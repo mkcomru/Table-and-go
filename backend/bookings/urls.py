@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (BookingListUserView, BookingCreateView, 
                     BookingCancelView, BookingUpdateView, 
-                    BookingDetailsView, BookingListBranchView)
+                    BookingDetailsView, BookingListBranchView, BranchBookingsView)
 
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('bookings/cancel/<int:booking_id>/', BookingCancelView.as_view(), name='booking_cancel'),
     path('bookings/update/<int:booking_id>/', BookingUpdateView.as_view(), name='booking_update'),
     path('bookings/<int:booking_id>/', BookingDetailsView.as_view(), name='booking_detail'),
+    path('branch/<int:branch_id>/bookings/', BranchBookingsView.as_view(), name='branch_bookings'),
 ]
 
 

@@ -7,8 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .models import Booking
 from .serializers import (BookingListSerializer, BookingCreateSerializer, 
-                        BookingUpdateSerializer, BookingDetailsSerializer)
+                        BookingUpdateSerializer, BookingDetailsSerializer, AdminBookingSerializer)
 import datetime
+from rest_framework.exceptions import PermissionDenied
+from establishments.models import BranchAdmin, Branch
 
 
 class BookingListUserView(ListAPIView):
@@ -164,6 +166,35 @@ class BookingDetailsView(APIView):
                 "success": False,
                 "message": "Бронирование не найдено или у вас нет прав на его просмотр"
             }, status=status.HTTP_404_NOT_FOUND)
+
+
+class BranchBookingsView(ListAPIView):
+    serializer_class = AdminBookingSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        branch_id = self.kwargs.get('branch_id')
+        
+        # Проверяем, является ли пользователь администратором этого филиала
+        is_admin = BranchAdmin.objects.filter(
+            user=self.request.user,
+            branch_id=branch_id,
+            is_active=True
+        ).exists()
+        
+        if not is_admin:
+            raise PermissionDenied("Вы не являетесь администратором данного филиала")
+        
+        # Получаем базовый QuerySet для броней филиала
+        queryset = Booking.objects.filter(branch_id=branch_id)
+        
+        # Фильтрация по статусу
+        status_filter = self.request.query_params.get('status')
+        if status_filter and status_filter != 'all':
+            queryset = queryset.filter(status=status_filter)
+        
+        # Сортировка по дате бронирования (от новых к старым)
+        return queryset.order_by('-booking_datetime')
 
 
 

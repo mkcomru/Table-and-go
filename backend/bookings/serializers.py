@@ -3,6 +3,7 @@ from .models import Booking
 from establishments.models import Branch
 from django.utils import timezone
 import datetime
+from users.serializers import UserSerializer
 
 
 class BookingListSerializer(serializers.ModelSerializer):
@@ -130,6 +131,14 @@ class BookingDetailsSerializer(serializers.ModelSerializer):
     
     def get_booking_time(self, obj):
         return obj.booking_datetime.time().strftime("%H:%M")
+
+
+class AdminBookingSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = Booking
+        fields = ['id', 'user', 'booking_datetime', 'guests_count', 'status', 'special_requests', 'created_at', 'book_number']
 
 
 
