@@ -441,6 +441,9 @@ function updateReviews(reviews) {
             year: 'numeric'
         });
         
+        // Получаем имя пользователя (используем user_full_name, если доступно)
+        const userName = review.user_full_name || review.user_name || 'Анонимный пользователь';
+        
         // Создаем HTML для отзыва
         reviewCard.innerHTML = `
             <div class="reviewer-info">
@@ -448,7 +451,7 @@ function updateReviews(reviews) {
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="reviewer-details">
-                    <div class="reviewer-name">${review.user_name || 'Анонимный пользователь'}</div>
+                    <div class="reviewer-name">${userName}</div>
                     <div class="review-date">${formattedDate}</div>
                 </div>
             </div>
