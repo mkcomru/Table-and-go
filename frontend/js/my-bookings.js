@@ -188,17 +188,39 @@ function updateAuthUI(userData) {
             <span class="user-name">${displayName}</span>
             <i class="fas fa-chevron-down"></i>
         </div>
-        <div class="user-dropdown">
-            <ul>
-                <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
-                <li><a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
-                <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
-                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
-            </ul>
-        </div>
     `;
     
-    // Добавляем элемент в header
+    // Проверяем, является ли пользователь суперпользователем или системным администратором
+    const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+    
+    // Создаем выпадающее меню
+    const userDropdown = document.createElement('div');
+    userDropdown.className = 'user-dropdown';
+    
+    // Формируем HTML для выпадающего меню
+    let dropdownHtml = `
+        <ul>
+            <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+            <li><a href="my-bookings.html" class="active"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
+            <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
+    `;
+    
+    // Добавляем ссылку на админ-панель только для администраторов
+    if (isAdmin) {
+        dropdownHtml += `
+            <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
+        `;
+    }
+    
+    // Добавляем кнопку выхода
+    dropdownHtml += `
+            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+        </ul>
+    `;
+    
+    userDropdown.innerHTML = dropdownHtml;
+    
+    userProfileElement.appendChild(userDropdown);
     headerRight.appendChild(userProfileElement);
     
     // Добавляем обработчик для выпадающего меню
@@ -211,7 +233,6 @@ function updateAuthUI(userData) {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             logout();
         });
     }

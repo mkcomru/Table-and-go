@@ -10,7 +10,7 @@ from .serializers import (BookingListSerializer, BookingCreateSerializer,
                         BookingUpdateSerializer, BookingDetailsSerializer)
 
 
-class BookingListBranchView(ListAPIView):
+class BookingListUserView(ListAPIView):
     queryset = Booking.objects.all()
     serializer_class =  BookingListSerializer
     permission_classes = [IsAuthenticated]
@@ -61,7 +61,7 @@ class BookingCreateView(APIView):
         return Response(serializer.errors)
 
 
-class BookingListUserView(ListAPIView):
+class BookingListBranchView(ListAPIView):
     queryset = Booking.objects.all()
     serializer_class =  BookingListSerializer
     permission_classes = [IsAuthenticated]

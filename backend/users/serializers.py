@@ -14,15 +14,17 @@ class UserSerializer(serializers.ModelSerializer):
     sms_notifications = serializers.BooleanField(default=True, required=False)
     promo_notifications = serializers.BooleanField(default=False, required=False)
     last_password_change = serializers.DateTimeField(source='date_joined', read_only=True, format="%Y-%m-%dT%H:%M:%S")
+    is_staff = serializers.BooleanField(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'first_name', 'last_name', 'email', 'phone', 'photo',
             'date_joined', 'last_login', 'email_notifications', 'sms_notifications',
-            'promo_notifications', 'last_password_change'
+            'promo_notifications', 'last_password_change', 'is_staff', 'is_superuser', 'is_system_admin'
         ]
-        read_only_fields = ['id', 'date_joined', 'last_login', 'last_password_change']
+        read_only_fields = ['id', 'date_joined', 'last_login', 'last_password_change', 'is_staff', 'is_superuser', 'is_system_admin']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -48,6 +50,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['phone'] = user.phone
         token['is_system_admin'] = user.is_system_admin
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
         
         administered_branches = user.get_administered_branches()
         token['is_branch_admin'] = administered_branches.exists()

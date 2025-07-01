@@ -15,6 +15,166 @@ let totalPages = 1;
 let reviewsData = [];
 let filteredReviews = [];
 
+// Функция для проверки авторизации
+function checkAuth() {
+    const authToken = localStorage.getItem('authToken');
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    
+    // Если есть токен доступа, считаем пользователя авторизованным
+    if (authToken) {
+        console.log('Пользователь авторизован:', userData);
+        
+        // Обновляем интерфейс для авторизованного пользователя
+        updateAuthUI(userData);
+    } else {
+        // Если пользователь не авторизован, перенаправляем на страницу входа
+        window.location.href = 'login.html?redirect=my-reviews.html';
+    }
+}
+
+// Функция для обновления интерфейса авторизованного пользователя
+function updateAuthUI(userData) {
+    const headerRight = document.querySelector('.header-right');
+    if (!headerRight) return;
+    
+    // Очищаем текущие элементы
+    headerRight.innerHTML = '';
+    
+    // Получаем данные пользователя из localStorage, если они не были переданы
+    if (!userData || Object.keys(userData).length === 0) {
+        const userJson = localStorage.getItem('user_data');
+        if (userJson) {
+            try {
+                userData = JSON.parse(userJson);
+            } catch (e) {
+                console.error('Ошибка при парсинге данных пользователя:', e);
+                userData = {};
+            }
+        }
+    }
+    
+    // Определяем имя для отображения
+    let firstName = userData.first_name || '';
+    let lastName = userData.last_name || '';
+    
+    // Если нет имени и фамилии, пробуем получить их из токена JWT
+    if (!firstName && !lastName) {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    firstName = payload.first_name || '';
+                    lastName = payload.last_name || '';
+                }
+            } catch (e) {
+                console.error('Ошибка при декодировании токена:', e);
+            }
+        }
+    }
+    
+    // Если всё еще нет имени, используем имя пользователя или email
+    const displayName = (firstName || lastName) ? 
+        `${firstName} ${lastName}`.trim() : 
+        (userData.username || userData.email || 'Пользователь');
+    
+    // Создаем элемент с информацией о пользователе
+    const userProfileElement = document.createElement('div');
+    userProfileElement.className = 'user-profile';
+    
+    // Добавляем аватар и имя пользователя
+    userProfileElement.innerHTML = `
+        <div class="user-avatar">
+            <img src="${userData.photo || 'assets/default-avatar.png'}" alt="Аватар" onerror="this.src='assets/default-avatar.png'">
+        </div>
+        <div class="user-info">
+            <span class="user-name">${displayName}</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    `;
+    
+    // Проверяем, является ли пользователь суперпользователем или системным администратором
+    const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+    
+    // Создаем выпадающее меню
+    const userDropdown = document.createElement('div');
+    userDropdown.className = 'user-dropdown';
+    
+    // Формируем HTML для выпадающего меню
+    let dropdownHtml = `
+        <ul>
+            <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+            <li><a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
+            <li><a href="my-reviews.html" class="active"><i class="fas fa-star"></i> Мои отзывы</a></li>
+    `;
+    
+    // Добавляем ссылку на админ-панель только для администраторов
+    if (isAdmin) {
+        dropdownHtml += `
+            <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
+        `;
+    }
+    
+    // Добавляем кнопку выхода
+    dropdownHtml += `
+            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+        </ul>
+    `;
+    
+    userDropdown.innerHTML = dropdownHtml;
+    
+    userProfileElement.appendChild(userDropdown);
+    headerRight.appendChild(userProfileElement);
+    
+    // Добавляем обработчик для выпадающего меню
+    userProfileElement.addEventListener('click', function() {
+        this.classList.toggle('active');
+    });
+    
+    // Добавляем обработчик для кнопки выхода
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+}
+
+// Функция для выхода из аккаунта
+function logout() {
+    // Удаляем данные авторизации
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user_data');
+    
+    // Перенаправляем на главную страницу
+    window.location.href = 'index.html';
+}
+
+// Функция для обновления данных пользователя
+async function refreshUserData() {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) return;
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/auth/me/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const userData = await response.json();
+            localStorage.setItem('user_data', JSON.stringify(userData));
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении данных пользователя:', error);
+    }
+}
+
 // Инициализация страницы отзывов
 function initReviewsPage() {
     // Проверяем авторизацию

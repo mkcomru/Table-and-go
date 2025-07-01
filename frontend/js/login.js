@@ -282,16 +282,34 @@ function updateAuthUI(isLoggedInOrUserData) {
             </div>
         `;
         
+        // Проверяем, является ли пользователь суперпользователем или системным администратором
+        const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+        
         const userDropdown = document.createElement('div');
         userDropdown.className = 'user-dropdown';
-        userDropdown.innerHTML = `
+        
+        // Формируем HTML для выпадающего меню, добавляем ссылку на админ-панель для администраторов
+        let dropdownHtml = `
             <ul>
                 <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-check"></i> Мои брони</a></li>
                 <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
+        `;
+        
+        // Добавляем ссылку на админ-панель только для администраторов
+        if (isAdmin) {
+            dropdownHtml += `
+                <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
+            `;
+        }
+        
+        // Добавляем кнопку выхода
+        dropdownHtml += `
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>
         `;
+        
+        userDropdown.innerHTML = dropdownHtml;
         
         userProfile.appendChild(userDropdown);
         headerRight.appendChild(userProfile);
