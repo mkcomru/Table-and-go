@@ -218,34 +218,75 @@ body {
 }
 
 /* Кнопки действий */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
 .action-btn {
     width: 30px;
     height: 30px;
     border-radius: 50%;
     border: none;
-    background-color: transparent;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin: 0 2px;
-    transition: background-color 0.2s;
-}
-
-.action-btn:hover {
-    background-color: #f0f0f0;
+    transition: all 0.2s;
+    position: relative;
 }
 
 .confirm-btn {
+    background-color: #D4EDDA;
     color: #28a745;
 }
 
+.confirm-btn:hover {
+    background-color: #28a745;
+    color: white;
+}
+
 .cancel-btn {
+    background-color: #F8D7DA;
     color: #dc3545;
 }
 
+.cancel-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
 .info-btn {
+    background-color: #D1ECF1;
     color: #17a2b8;
+}
+
+.info-btn:hover {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.complete-btn {
+    background-color: #E2E3E5;
+    color: #555;
+}
+
+.complete-btn:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+.disabled-btn {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.disabled-btn:hover {
+    background-color: #e9ecef;
+    color: #adb5bd;
 }
 
 /* Пагинация */

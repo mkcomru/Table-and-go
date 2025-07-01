@@ -312,18 +312,39 @@ function renderBookings(bookings) {
         
         if (booking.status === 'pending') {
             actionsHtml = `
-                <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
-                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <div class="action-buttons">
+                    <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
+                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
+                </div>
             `;
         } else if (booking.status === 'confirmed') {
             actionsHtml = `
-                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
+                </div>
+            `;
+        } else if (booking.status === 'cancelled') {
+            actionsHtml = `
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn disabled-btn" title="Отменено" disabled><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check-double"></i></button>
+                </div>
             `;
         } else {
             actionsHtml = `
-                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
+                </div>
             `;
         }
         
@@ -462,6 +483,8 @@ function initActionButtons() {
                 cancelBooking(bookingId, bookingRow);
             } else if (button.classList.contains('info-btn')) {
                 showBookingInfo(bookingId);
+            } else if (button.classList.contains('complete-btn')) {
+                completeBooking(bookingId, bookingRow);
             }
         });
     }
@@ -496,8 +519,12 @@ function confirmBooking(bookingId, bookingRow) {
             // Обновляем кнопки действий
             const actionsColumn = bookingRow.querySelector('.booking-actions');
             actionsColumn.innerHTML = `
-                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
+                </div>
             `;
             
             showNotification('Бронирование успешно подтверждено', 'success');
@@ -538,7 +565,12 @@ function cancelBooking(bookingId, bookingRow) {
             // Обновляем кнопки действий
             const actionsColumn = bookingRow.querySelector('.booking-actions');
             actionsColumn.innerHTML = `
-                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn disabled-btn" title="Отменено" disabled><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check-double"></i></button>
+                </div>
             `;
             
             showNotification('Бронирование отменено', 'success');
@@ -627,6 +659,53 @@ function showBookingInfo(bookingId) {
         console.error('Ошибка при получении информации о бронировании:', error);
         showNotification('Ошибка при получении информации о бронировании', 'error');
     });
+}
+
+// Функция для завершения бронирования
+function completeBooking(bookingId, bookingRow) {
+    if (confirm('Вы уверены, что хотите завершить бронирование ' + bookingId + '?')) {
+        // Получаем токен авторизации
+        const authToken = localStorage.getItem('authToken');
+        
+        // Отправляем запрос на завершение бронирования
+        // Примечание: для этого нужен соответствующий эндпоинт на бэкенде
+        fetch(`http://127.0.0.1:8000/api/bookings/complete/${bookingId}/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при завершении бронирования');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем статус брони в UI
+            const statusBadge = bookingRow.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-completed';
+            statusBadge.textContent = 'Завершено';
+            
+            // Обновляем кнопки действий
+            const actionsColumn = bookingRow.querySelector('.booking-actions');
+            actionsColumn.innerHTML = `
+                <div class="action-buttons">
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-times"></i></button>
+                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                    <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
+                </div>
+            `;
+            
+            showNotification('Бронирование завершено', 'success');
+        })
+        .catch(error => {
+            console.error('Ошибка при завершении бронирования:', error);
+            showNotification('Ошибка при завершении бронирования', 'error');
+        });
+    }
 }
 
 // Инициализация пагинации
