@@ -1,82 +1,56 @@
 /* Стили для страницы профиля ресторана */
 
-/* Стили для заголовка администратора */
-.admin-header {
-    background-color: #8B0000;
-    padding: 20px 0;
-    color: white;
-    margin-bottom: 30px;
+body {
+    background-color: #f8f9fa;
 }
 
-.admin-header-content {
-    text-align: center;
+.main {
+    padding: 30px 0;
 }
 
-.admin-header h1 {
+.page-title {
     font-size: 24px;
     font-weight: 600;
-    margin: 0;
-}
-
-/* Стили для основного контента */
-.restaurant-profile-section {
-    padding: 30px 0;
-    background-color: #f9f9f9;
-    min-height: calc(100vh - 80px - 100px - 70px); /* Высота экрана минус высота шапки, подвала и заголовка */
-}
-
-.restaurant-profile-card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 30px;
-    margin-bottom: 30px;
-}
-
-.restaurant-profile-header {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #eee;
-}
-
-.restaurant-profile-header h2 {
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     color: #333;
 }
 
-.restaurant-profile-header p {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-}
-
-/* Стили для формы */
-.restaurant-profile-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+/* Стили для секций */
+.restaurant-profile-section {
     margin-bottom: 30px;
 }
 
-.restaurant-profile-form {
-    grid-column: 1;
+.section-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 20px;
 }
 
-.restaurant-profile-photos {
-    grid-column: 2;
-}
-
-.form-row {
-    display: flex;
-    gap: 20px;
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
     margin-bottom: 20px;
+    color: #333;
+}
+
+.section-content {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+/* Стили для формы */
+.form-column {
+    flex: 1;
+}
+
+.form-column.full-width {
+    width: 100%;
 }
 
 .form-group {
-    flex: 1;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .form-group label {
@@ -93,6 +67,7 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
+    background-color: #fff;
 }
 
 .form-control:focus {
@@ -106,54 +81,49 @@ textarea.form-control {
     min-height: 100px;
 }
 
-/* Стили для фотографий */
-.photos-section {
-    margin-bottom: 30px;
+/* Стили для главного фото */
+.photo-column {
+    width: 300px;
 }
 
-.photos-section h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #333;
+.photo-column h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #555;
 }
 
 .main-photo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.main-photo {
     width: 100%;
     height: 200px;
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
-    background-color: #f0f0f0;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
 }
 
-.main-photo img {
+.main-photo-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* Стили для фотографий */
 .photos-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .photo-item {
     position: relative;
     width: 100%;
-    padding-bottom: 100%; /* Соотношение сторон 1:1 */
-    border-radius: 8px;
+    padding-bottom: 75%; /* Соотношение сторон 4:3 */
+    border-radius: 6px;
     overflow: hidden;
-    background-color: #f0f0f0;
+    background-color: #f8f9fa;
 }
 
 .photo-item img {
@@ -192,7 +162,6 @@ textarea.form-control {
 }
 
 .add-photo {
-    background-color: #f0f0f0;
     border: 2px dashed #ddd;
     display: flex;
     align-items: center;
@@ -229,25 +198,54 @@ textarea.form-control {
     color: #888;
 }
 
-/* Стили для секции меню */
-.menu-section {
-    margin-bottom: 30px;
+.photo-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 20px;
 }
 
-.menu-upload {
+/* Стили для секции меню */
+.menu-upload-container {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.menu-upload-icon {
+    font-size: 40px;
+    color: #8B0000;
+    margin-right: 20px;
+}
+
+.menu-upload-content {
+    flex: 1;
+}
+
+.menu-upload-content h3 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.menu-upload-content p {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 15px;
 }
 
 .menu-status {
     font-size: 14px;
     color: #666;
+    margin-top: 10px;
 }
 
 /* Стили для кнопок */
 .btn {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
@@ -278,8 +276,6 @@ textarea.form-control {
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
 }
 
 /* Стили для выпадающего меню пользователя */
@@ -417,32 +413,22 @@ textarea.form-control {
 
 /* Адаптивные стили */
 @media (max-width: 992px) {
-    .restaurant-profile-content {
-        grid-template-columns: 1fr;
+    .section-content {
+        flex-direction: column;
     }
     
-    .restaurant-profile-form,
-    .restaurant-profile-photos {
-        grid-column: 1;
+    .photo-column {
+        width: 100%;
     }
 }
 
 @media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
     .photos-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
     .form-actions {
         justify-content: center;
-    }
-    
-    .admin-header h1 {
-        font-size: 20px;
     }
 }
 
@@ -451,7 +437,7 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
     
-    .restaurant-profile-card {
-        padding: 20px;
+    .section-card {
+        padding: 15px;
     }
 } 
