@@ -16,6 +16,18 @@ class BranchAdminAdmin(admin.ModelAdmin):
     def establishment_name(self, obj):
         return obj.branch.establishment.name
     establishment_name.short_description = "Заведение"
+    
+    def save_model(self, request, obj, form, change):
+        """
+        При сохранении модели BranchAdmin показываем сообщение о том,
+        что приглашение будет отправлено автоматически.
+        """
+        super().save_model(request, obj, form, change)
+        if not change:  # Только при создании новой записи
+            self.message_user(
+                request, 
+                f"Приглашение администратора будет автоматически отправлено на email: {obj.user.email}"
+            )
 
 @admin.register(AdminInvitation)
 class AdminInvitationAdmin(admin.ModelAdmin):

@@ -122,6 +122,59 @@ def send_admin_invitation_email(invitation_id):
         raise
         
 
+@shared_task
+def send_admin_welcome_email(email, user_id, branch_id, uidb64, token):
+    """
+    Отправляет письмо новому администратору ресторана со ссылкой для установки пароля.
+    """
+    from django.contrib.auth import get_user_model
+    from establishments.models import Branch
+
+    User = get_user_model()
+
+    logger.info(f"Starting admin welcome email task for {email}, user_id={user_id}, branch_id={branch_id}")
+    try:
+        user = User.objects.get(pk=user_id)
+        branch = Branch.objects.get(pk=branch_id)
+        
+        reset_url = f"{settings.PASSWORD_RESET_URL}?uid={uidb64}&token={token}"
+        
+        branch_name = branch.name or branch.address
+        establishment_name = branch.establishment.name
+        
+        subject = f"Вы назначены администратором ресторана {establishment_name}"
+        message = f"""
+        Здравствуйте, {user.first_name} {user.last_name}!
+
+        Вы были назначены администратором филиала "{branch_name}" 
+        заведения "{establishment_name}" на платформе Table and Go.
+        
+        Для установки пароля и входа в систему перейдите по ссылке:
+        {reset_url}
+        
+        После установки пароля вы сможете войти в систему, используя:
+        Email: {email}
+        
+        С уважением,
+        Команда Table and Go
+        """
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        logger.info(f"Admin welcome email sent to {email}")
+        return True
+    
+    except (User.DoesNotExist, Branch.DoesNotExist) as e:
+        logger.error(f"Error in send_admin_welcome_email: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"Error sending admin welcome email: {str(e)}")
+        raise
+
 
 
 
