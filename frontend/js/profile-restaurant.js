@@ -136,86 +136,77 @@ function loadBranchInfo() {
     // Проверяем, является ли пользователь суперпользователем или системным администратором
     const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
     
-    // Выбираем эндпоинт в зависимости от роли пользователя
-    const endpoint = isAdmin ? 'http://127.0.0.1:8000/api/branch/' : 'http://127.0.0.1:8000/api/branch-admin/';
-    
-    // Запрашиваем список филиалов
-    fetch(endpoint, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке филиалов');
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (isAdmin) {
-            // Для суперпользователей и системных администраторов получаем все филиалы
+    // Если пользователь является администратором системы, получаем список всех филиалов
+    if (isAdmin) {
+        fetch('http://127.0.0.1:8000/api/branch/', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке филиалов');
+            }
+            return response.json();
+        })
+        .then(data => {
             const branches = data.results || data;
             
             if (branches && branches.length > 0) {
-                // Сохраняем ID и имя текущего филиала
-                window.currentBranchId = branches[0].id;
-                window.currentBranchName = branches[0].name;
+                // Сохраняем ID первого филиала
+                const branchId = branches[0].id;
                 
-                // Загружаем данные филиала
-                loadBranchDetails(branches[0].id);
+                // Загружаем детальную информацию о филиале
+                loadBranchDetails(branchId);
             } else {
                 showNotification('Нет доступных филиалов', 'error');
             }
-        } else {
-            // Для обычных администраторов филиалов получаем только их филиалы
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке филиалов:', error);
+            showNotification('Ошибка при загрузке филиалов', 'error');
+        });
+    } else {
+        // Для обычных администраторов филиалов получаем только их филиалы
+        fetch('http://127.0.0.1:8000/api/branch-admin/', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке филиалов');
+            }
+            return response.json();
+        })
+        .then(data => {
             const branchAdmins = data.results || data;
             
             if (branchAdmins && branchAdmins.length > 0) {
-                // Собираем ID филиалов
-                const branchIds = branchAdmins.map(admin => admin.branch);
+                // Получаем ID филиала, которым управляет администратор
+                const branchId = branchAdmins[0].branch;
                 
-                // Если есть хотя бы один филиал, загружаем информацию о нем
-                if (branchIds.length > 0) {
-                    // Загружаем информацию о первом филиале
-                    fetch(`http://127.0.0.1:8000/api/branch/${branchIds[0]}/`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(branchData => {
-                        // Сохраняем ID и имя текущего филиала
-                        window.currentBranchId = branchData.id;
-                        window.currentBranchName = branchData.name;
-                        
-                        // Обновляем имя пользователя в шапке
-                        updateUserInfo(userData);
-                        
-                        // Загружаем данные филиала
-                        loadBranchDetails(branchData.id);
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при загрузке информации о филиале:', error);
-                        showNotification('Ошибка при загрузке информации о филиале', 'error');
-                    });
-                } else {
-                    showNotification('У вас нет доступа к филиалам', 'error');
-                }
+                // Загружаем детальную информацию о филиале
+                loadBranchDetails(branchId);
             } else {
                 showNotification('У вас нет доступа к филиалам', 'error');
             }
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка при загрузке филиалов:', error);
-        showNotification('Ошибка при загрузке филиалов', 'error');
-    });
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке филиалов:', error);
+            showNotification('Ошибка при загрузке филиалов', 'error');
+        });
+    }
 }
 
 // Загрузка данных филиала
 function loadBranchDetails(branchId) {
     const authToken = localStorage.getItem('authToken');
     
+    // Сохраняем ID филиала в глобальной переменной для дальнейшего использования
+    window.currentBranchId = branchId;
+    
+    // Загружаем детальную информацию о филиале
     fetch(`http://127.0.0.1:8000/api/branch/${branchId}/`, {
         headers: {
             'Authorization': `Bearer ${authToken}`
@@ -228,11 +219,25 @@ function loadBranchDetails(branchId) {
         return response.json();
     })
     .then(data => {
-        // Заполняем форму данными
+        // Сохраняем название филиала
+        window.currentBranchName = data.name;
+        
+        // Обновляем имя пользователя в шапке с названием ресторана
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        updateUserInfo(userData);
+        
+        // Заполняем форму данными филиала
         fillProfileForm(data);
         
-        // Загружаем фотографии филиала
-        loadBranchPhotos(branchId);
+        // Если в ответе есть фотографии, отображаем их
+        if (data.gallery && Array.isArray(data.gallery) && data.gallery.length > 0) {
+            renderBranchPhotos(data.gallery);
+        }
+        
+        // Обновляем статус меню
+        if (data.menu_pdf) {
+            updateMenuStatus(data.menu_pdf);
+        }
     })
     .catch(error => {
         console.error('Ошибка при загрузке данных филиала:', error);
@@ -240,45 +245,59 @@ function loadBranchDetails(branchId) {
     });
 }
 
+// Обновление статуса меню
+function updateMenuStatus(menuUrl) {
+    const menuStatusText = document.getElementById('menu-status-text');
+    if (menuStatusText) {
+        if (menuUrl) {
+            const menuFileName = menuUrl.split('/').pop();
+            menuStatusText.innerHTML = `
+                Меню загружено: <a href="${menuUrl}" target="_blank">${menuFileName}</a>
+            `;
+        } else {
+            menuStatusText.textContent = 'Меню не загружено';
+        }
+    }
+}
+
 // Заполнение формы профиля данными
 function fillProfileForm(branchData) {
     document.getElementById('restaurant-name').value = branchData.name || '';
-    document.getElementById('restaurant-cuisine').value = branchData.cuisine || '';
+    
+    // Обработка данных о кухне
+    if (branchData.cuisine_types && Array.isArray(branchData.cuisine_types)) {
+        document.getElementById('restaurant-cuisine').value = branchData.cuisine_types.join(', ');
+    } else {
+        document.getElementById('restaurant-cuisine').value = branchData.cuisine || '';
+    }
+    
     document.getElementById('restaurant-address').value = branchData.address || '';
     document.getElementById('restaurant-phone').value = branchData.phone || '';
-    document.getElementById('restaurant-hours').value = branchData.working_hours || '';
+    
+    // Обработка часов работы
+    if (branchData.working_hours && Array.isArray(branchData.working_hours)) {
+        const workingHoursText = branchData.working_hours
+            .map(day => {
+                return `${day.day_name}: ${day.status || (day.is_closed ? 'Выходной' : `${day.opening_time} - ${day.closing_time}`)}`;
+            })
+            .join('; ');
+        document.getElementById('restaurant-hours').value = workingHoursText;
+    } else {
+        document.getElementById('restaurant-hours').value = branchData.working_hours || '';
+    }
+    
     document.getElementById('restaurant-avg-check').value = branchData.average_check || '';
     document.getElementById('restaurant-description').value = branchData.description || '';
     
     // Если есть главное фото, устанавливаем его
-    if (branchData.main_photo) {
+    if (branchData.gallery && Array.isArray(branchData.gallery) && branchData.gallery.length > 0) {
+        const mainPhoto = branchData.gallery.find(photo => photo.is_main);
+        if (mainPhoto) {
+            document.getElementById('main-photo-preview').src = mainPhoto.url;
+        }
+    } else if (branchData.main_photo) {
         document.getElementById('main-photo-preview').src = branchData.main_photo;
     }
-}
-
-// Загрузка фотографий филиала
-function loadBranchPhotos(branchId) {
-    const authToken = localStorage.getItem('authToken');
-    
-    fetch(`http://127.0.0.1:8000/api/branch/${branchId}/photos/`, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке фотографий филиала');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // Отображаем фотографии
-        renderBranchPhotos(data);
-    })
-    .catch(error => {
-        console.error('Ошибка при загрузке фотографий филиала:', error);
-        // Не показываем уведомление об ошибке, так как это не критично
-    });
 }
 
 // Отображение фотографий филиала
@@ -296,7 +315,7 @@ function renderBranchPhotos(photos) {
         photoItem.setAttribute('data-id', photo.id);
         
         photoItem.innerHTML = `
-            <img src="${photo.image}" alt="Фото ресторана">
+            <img src="${photo.url || photo.image}" alt="Фото ресторана">
             <div class="photo-actions">
                 <button class="photo-action-btn delete-photo" title="Удалить фото"><i class="fas fa-trash"></i></button>
             </div>
@@ -479,8 +498,8 @@ function uploadPhoto(file) {
         return response.json();
     })
     .then(data => {
-        // Обновляем список фотографий
-        loadBranchPhotos(window.currentBranchId);
+        // После успешной загрузки обновляем данные филиала
+        loadBranchDetails(window.currentBranchId);
         showNotification('Фото успешно загружено', 'success');
     })
     .catch(error => {
@@ -570,6 +589,8 @@ function uploadMenu(file) {
         return response.json();
     })
     .then(data => {
+        // После успешной загрузки обновляем данные филиала
+        loadBranchDetails(window.currentBranchId);
         showNotification('Меню успешно загружено', 'success');
     })
     .catch(error => {
