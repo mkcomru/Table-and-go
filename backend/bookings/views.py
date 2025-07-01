@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from .models import Booking
 from .serializers import (BookingListSerializer, BookingCreateSerializer, 
@@ -195,8 +195,8 @@ class BookingDetailsView(APIView):
     def get(self, request, booking_id):
         user = request.user
         
-        # Проверяем, является ли пользователь суперпользователем или системным администратором
-        if user.is_superuser or getattr(user, 'is_system_admin', False):
+        # Проверяем, является ли пользователь суперпользователем, системным администратором или персоналом
+        if user.is_superuser or getattr(user, 'is_system_admin', False) or user.is_staff:
             try:
                 booking = Booking.objects.get(id=booking_id)
                 serializer = BookingDetailsSerializer(booking)
