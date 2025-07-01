@@ -48,7 +48,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return obj.branch.address if obj.branch else ''
     
     def get_branch_image(self, obj):
-        return obj.branch.main_image if obj.branch else None
+        return obj.branch.get_main_image()
     
     def get_user_name(self, obj):
         if obj.user:
