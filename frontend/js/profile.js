@@ -268,7 +268,7 @@ function updateProfile(formData) {
     if (!authToken) return;
     
     // Отправляем запрос на обновление профиля
-    fetch('http://127.0.0.1:8000/auth/update-profile/', {
+    fetch('http://127.0.0.1:8000/auth/update/', {
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${authToken}`,
