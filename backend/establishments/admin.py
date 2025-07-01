@@ -4,7 +4,13 @@ from django.utils import timezone
 import string
 import random
 from datetime import timedelta
-from .models import Cuisine, Establishment, BranchAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage, Branch
+from .models import Cuisine, Establishment, BranchAdmin, AdminInvitation, Table, WorkingHours, Menu, BranchImage, Branch, District
+
+
+@admin.register(District)
+class DistrictAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
 
 @admin.register(BranchAdmin)
