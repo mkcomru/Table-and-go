@@ -1,28 +1,31 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('login-form');
+document.addEventListener('DOMContentLoaded', async function() {
+    // Сначала получаем свежие данные с сервера
+    await refreshUserData();
     
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Получаем данные формы
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            // Проверяем заполнение полей
-            if (!username || !password) {
-                showError('Пожалуйста, заполните все поля');
-                return;
-            }
-            
-            // Отправляем запрос на авторизацию
-            login(username, password);
-        });
-    }
-    
-    // Проверяем, авторизован ли пользователь
+    // Затем проверяем авторизацию и обновляем UI
     checkAuth();
 });
+
+const loginForm = document.getElementById('login-form');
+
+if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Получаем данные формы
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        // Проверяем заполнение полей
+        if (!username || !password) {
+            showError('Пожалуйста, заполните все поля');
+            return;
+        }
+        
+        // Отправляем запрос на авторизацию
+        login(username, password);
+    });
+}
 
 // Функция для авторизации
 function login(username, password) {
@@ -122,7 +125,7 @@ function login(username, password) {
         }
         
         // Сохраняем данные пользователя
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('user_data', JSON.stringify(userData));
         
         // Перенаправляем на главную страницу
         window.location.href = 'index.html';
@@ -161,7 +164,7 @@ function checkAuth() {
             if (tokenParts.length !== 3) {
                 // Если токен не в формате JWT, удаляем его
                 localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
+                localStorage.removeItem('user_data');
                 updateAuthUI(false);
                 return;
             }
@@ -176,7 +179,7 @@ function checkAuth() {
                 // Если токен истек, удаляем его
                 console.log('Токен истек');
                 localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
+                localStorage.removeItem('user_data');
                 updateAuthUI(false);
                 return;
             }
@@ -196,7 +199,7 @@ function checkAuth() {
                 } else {
                     // Если токен невалидный, удаляем его
                     localStorage.removeItem('authToken');
-                    localStorage.removeItem('user');
+                    localStorage.removeItem('user_data');
                     updateAuthUI(false);
                 }
             })
@@ -208,7 +211,7 @@ function checkAuth() {
         } catch (error) {
             console.error('Ошибка при проверке токена:', error);
             localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+            localStorage.removeItem('user_data');
             updateAuthUI(false);
         }
     } else {
@@ -217,32 +220,43 @@ function checkAuth() {
 }
 
 // Функция для обновления UI в зависимости от статуса авторизации
-function updateAuthUI(isLoggedIn) {
+function updateAuthUI(isLoggedInOrUserData) {
     const loginBtn = document.querySelector('.header-right .btn-outline');
     const registerBtn = document.querySelector('.header-right .btn-primary');
     const headerRight = document.querySelector('.header-right');
     
+    // Определяем, авторизован ли пользователь
+    const isLoggedIn = typeof isLoggedInOrUserData === 'boolean' ? isLoggedInOrUserData : true;
+    
     if (isLoggedIn && headerRight) {
         // Получаем информацию о пользователе
-        const userJson = localStorage.getItem('user');
-        let displayName = 'Пользователь';
+        let userData = {};
         
-        if (userJson) {
-            try {
-                const user = JSON.parse(userJson);
-                // Проверяем наличие имени и фамилии
-                if (user.first_name && user.last_name) {
-                    displayName = `${user.first_name} ${user.last_name}`;
-                } else if (user.first_name) {
-                    displayName = user.first_name;
-                } else if (user.username) {
-                    displayName = user.username;
-                } else if (user.email) {
-                    displayName = user.email;
+        // Если передан объект с данными пользователя, используем его
+        if (typeof isLoggedInOrUserData === 'object' && isLoggedInOrUserData !== null) {
+            userData = isLoggedInOrUserData;
+        } else {
+            // Иначе берем данные из localStorage
+            const userJson = localStorage.getItem('user_data');
+            if (userJson) {
+                try {
+                    userData = JSON.parse(userJson);
+                } catch (e) {
+                    console.error('Ошибка при парсинге данных пользователя:', e);
                 }
-            } catch (e) {
-                console.error('Ошибка при парсинге данных пользователя:', e);
             }
+        }
+        
+        // Определяем имя для отображения
+        let displayName = 'Пользователь';
+        if (userData.first_name && userData.last_name) {
+            displayName = `${userData.first_name} ${userData.last_name}`;
+        } else if (userData.first_name) {
+            displayName = userData.first_name;
+        } else if (userData.username) {
+            displayName = userData.username;
+        } else if (userData.email) {
+            displayName = userData.email;
         }
         
         // Если пользователь авторизован, показываем профиль и кнопку выхода
@@ -315,7 +329,7 @@ function updateAuthUI(isLoggedIn) {
 function logout() {
     // Удаляем токен и информацию о пользователе
     localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    localStorage.removeItem('user_data');
     
     // Перезагружаем страницу
     window.location.reload();
@@ -350,5 +364,32 @@ function showLoading(isLoading) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Войти';
         }
+    }
+}
+
+// Функция для обновления данных пользователя при загрузке страницы
+async function refreshUserData() {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) return;
+    
+    try {
+        const response = await fetch('http://127.0.0.1:8000/auth/me/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const userData = await response.json();
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            // Обновляем UI, если нужно
+            if (typeof updateAuthUI === 'function') {
+                updateAuthUI(userData);
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении данных пользователя:', error);
     }
 } 
