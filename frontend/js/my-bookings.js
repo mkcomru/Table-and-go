@@ -187,7 +187,7 @@ function updateAuthUI(userData) {
         </div>
         <div class="user-dropdown">
             <ul>
-                <li><a href="#"><i class="fas fa-user"></i> Профиль</a></li>
+                <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>

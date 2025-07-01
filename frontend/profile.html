@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль | Table&Go</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-text">
+                        <span class="logo-table">Table</span>
+                        <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
+                    </div>
+                </a>
+                <div class="logo-divider"></div>
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Владивосток</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="cooperation.html">Сотрудничество</a></li>
+                        <li><a href="#contacts" class="scroll-to-contacts">Контакты</a></li>
+                        <li><a href="my-bookings.html">Мои брони</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="header-right">
+                <!-- Здесь будет динамически отображаться профиль пользователя или кнопки входа/регистрации -->
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="profile-section">
+            <div class="container profile-container">
+                <h1 class="page-title">Мой профиль</h1>
+                <p class="profile-subtitle">Управляйте своими личными данными и настройками</p>
+                
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img src="assets/default-avatar.png" alt="Аватар" id="user-avatar">
+                        </div>
+                        <div class="profile-info">
+                            <h2 id="profile-name">Иван Иванов</h2>
+                            <p id="profile-email">ivan.ivanov@mail.ru</p>
+                            <p class="profile-date">На сайте с июня 2025</p>
+                        </div>
+                    </div>
+                    
+                    <form id="profile-form" class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">Имя</label>
+                                <input type="text" id="first-name" name="first_name" class="form-control" placeholder="Иван">
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Фамилия</label>
+                                <input type="text" id="last-name" name="last_name" class="form-control" placeholder="Иванов">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="ivan.ivanov@mail.ru">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Номер телефона</label>
+                                <input type="tel" id="phone" name="phone" class="form-control" placeholder="+7 (999) 123-45-67">
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">Уведомления</h3>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="email-notifications" name="email_notifications" checked>
+                                    <label for="email-notifications">Получать уведомления по email</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="sms-notifications" name="sms_notifications" checked>
+                                    <label for="sms-notifications">Получать SMS уведомления</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="promo-notifications" name="promo_notifications">
+                                    <label for="promo-notifications">Получать новости и специальные предложения</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3 class="section-title">Безопасность</h3>
+                            <div class="password-section">
+                                <div class="password-header">
+                                    <span>Изменить пароль</span>
+                                    <span class="password-date">Последнее изменение: 15 июня 2025</span>
+                                </div>
+                                <button type="button" id="change-password-btn" class="btn-link">Изменить</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="cancel-btn" class="btn btn-outline">Отменить</button>
+                            <button type="submit" id="save-btn" class="btn btn-primary">Сохранить изменения</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" id="contacts">
+        <div class="container">
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3 class="footer-title">Социальные сети</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.instagram.com/table_and_go" target="_blank"><i class="fab fa-instagram"></i> https://www.instagram.com/table_and_go</a></li>
+                        <li><a href="https://vk.com/club229925858" target="_blank"><i class="fab fa-vk"></i> https://vk.com/club229992858</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Правовая информация</h3>
+                    <ul class="legal-links">
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Пользовательское соглашение</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Контакты</h3>
+                    <ul class="contacts">
+                        <li><i class="fas fa-phone"></i> <a href="tel:+79991234567">+7(999)123-45-67</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@tableandgo.ru">info@tableandgo.ru</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">©2025 Table&Go. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Изменение пароля</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="password-form">
+                    <div class="form-group">
+                        <label for="current-password">Текущий пароль</label>
+                        <input type="password" id="current-password" name="current_password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Новый пароль</label>
+                        <input type="password" id="new-password" name="new_password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Подтверждение пароля</label>
+                        <input type="password" id="confirm-password" name="confirm_password" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-cancel">Отменить</button>
+                <button type="button" id="save-password-btn" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html> 
