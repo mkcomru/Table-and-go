@@ -207,7 +207,11 @@ class BranchDetailSerializer(serializers.ModelSerializer):
         menu = obj.menu.first()
         if menu and menu.pdf_menu:
             request = self.context.get('request')
-            return request.build_absolute_uri(menu.pdf_menu.url) if request else menu.pdf_menu.url
+            if request:
+                return request.build_absolute_uri(menu.pdf_menu.url)
+            # Если request отсутствует, добавляем базовый URL
+            from django.conf import settings
+            return f"{settings.SITE_URL}{menu.pdf_menu.url}"
         return None
 
     def get_gallery(self, obj):

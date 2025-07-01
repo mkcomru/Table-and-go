@@ -214,6 +214,14 @@ function updateBranchDetails(data) {
             menuLinkElement.href = data.menu_pdf;
             menuLinkElement.style.display = 'inline-block';
             menuContent.textContent = `Меню заведения "${data.name}" доступно для скачивания.`;
+            
+            // Добавляем обработчик клика для отслеживания и отладки
+            menuLinkElement.addEventListener('click', function(e) {
+                console.log('Клик по ссылке на меню:', data.menu_pdf);
+                // Открываем в новой вкладке для предотвращения проблем с CORS
+                e.preventDefault();
+                window.open(data.menu_pdf, '_blank');
+            });
         } else {
             menuLinkElement.style.display = 'none';
             menuContent.textContent = 'Меню в формате PDF недоступно';
