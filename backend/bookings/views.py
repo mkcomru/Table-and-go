@@ -68,7 +68,13 @@ class BookingListBranchView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = queryset.filter(branch=self.request.user)
+        branch_id = self.request.query_params.get('branch_id')
+
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+        else:
+            queryset = queryset.none()
+        
         status = self.request.query_params.get('status')
 
         if status == 'pending' or status == 'confirmed':
