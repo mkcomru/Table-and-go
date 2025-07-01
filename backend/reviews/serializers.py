@@ -39,6 +39,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'branch_address',
             'branch_image',
             'user_name',
+            'is_approved',
         ]
     
     def get_branch_name(self, obj):

@@ -66,6 +66,10 @@ async function loadUserReviews() {
         
         const data = await response.json();
         reviewsData = data.results || data;
+        
+        // Отладочная информация
+        console.log('Загруженные отзывы:', reviewsData);
+        
         totalPages = Math.ceil(reviewsData.length / 5); // 5 отзывов на страницу
         
         // Применяем текущие фильтры
@@ -177,10 +181,20 @@ function renderReviews() {
             year: 'numeric'
         });
         
-        // Определяем статус публикации
-        const isPublished = review.is_published === true;
-        const statusClass = isPublished ? 'published' : 'pending';
-        const statusText = isPublished ? 'Опубликован' : 'Ожидает публикации';
+        // Отладочная информация для проверки значения is_approved
+        console.log(`Отзыв ${review.id} для ${review.branch_name}:`, {
+            is_approved: review.is_approved,
+            type: typeof review.is_approved
+        });
+        
+        // Определяем статус публикации (проверяем все возможные варианты поля)
+        let isApproved = false;
+        if (review.is_approved === true || review.is_approved === 'true' || review.is_approved === 1) {
+            isApproved = true;
+        }
+        
+        const statusClass = isApproved ? 'published' : 'pending';
+        const statusText = isApproved ? 'Опубликован' : 'Ожидает публикации';
         
         // Создаем HTML для карточки отзыва в новом дизайне
         reviewCard.innerHTML = `
