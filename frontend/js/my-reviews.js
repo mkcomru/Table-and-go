@@ -173,54 +173,53 @@ function renderReviews() {
         const reviewDate = new Date(review.created_at);
         const formattedDate = reviewDate.toLocaleDateString('ru-RU', {
             day: '2-digit',
-            month: '2-digit',
+            month: 'long',
             year: 'numeric'
         });
         
-        // Создаем HTML для карточки отзыва
+        // Определяем статус публикации
+        const isPublished = review.is_published === true;
+        const statusClass = isPublished ? 'published' : 'pending';
+        const statusText = isPublished ? 'Опубликован' : 'Ожидает публикации';
+        
+        // Создаем HTML для карточки отзыва в новом дизайне
         reviewCard.innerHTML = `
-            <div class="review-header">
-                <div class="review-restaurant">
-                    <img src="${review.branch_image || 'assets/default-restaurant.jpg'}" alt="${review.branch_name}" class="restaurant-image">
-                    <div class="restaurant-info">
-                        <h3>${review.branch_name}</h3>
-                        <p>${review.branch_address || 'Адрес не указан'}</p>
+            <img src="${review.branch_image || 'assets/default-restaurant.jpg'}" alt="${review.branch_name}" class="review-image">
+            <div class="review-content">
+                <div class="review-header">
+                    <div class="review-title-container">
+                        <h3 class="review-restaurant-name">${review.branch_name}</h3>
+                        <span class="review-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="review-edit" data-id="${review.id}">
+                        <i class="fas fa-pen"></i> Редактировать отзыв
                     </div>
                 </div>
-                <div class="review-actions">
-                    <button class="review-action-btn edit-review" data-id="${review.id}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="review-action-btn delete-review" data-id="${review.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                
+                <div class="review-date">${formattedDate}</div>
+                
+                <div class="review-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${review.branch_address || 'Адрес не указан'}</span>
                 </div>
-            </div>
-            <div class="review-rating">
-                ${starsHTML}
-            </div>
-            <div class="review-text">
-                ${review.text}
-            </div>
-            <div class="review-date">
-                <i class="far fa-calendar-alt"></i> ${formattedDate}
+                
+                <div class="review-rating">
+                    ${starsHTML}
+                </div>
+                
+                <div class="review-text">
+                    ${review.text}
+                </div>
             </div>
         `;
         
         container.appendChild(reviewCard);
         
-        // Добавляем обработчики событий для кнопок
-        const editBtn = reviewCard.querySelector('.edit-review');
-        const deleteBtn = reviewCard.querySelector('.delete-review');
+        // Добавляем обработчик события для кнопки редактирования
+        const editBtn = reviewCard.querySelector('.review-edit');
         
         editBtn.addEventListener('click', function() {
             openEditReviewModal(review);
-        });
-        
-        deleteBtn.addEventListener('click', function() {
-            if (confirm('Вы действительно хотите удалить этот отзыв?')) {
-                deleteReview(review.id);
-            }
         });
     });
     

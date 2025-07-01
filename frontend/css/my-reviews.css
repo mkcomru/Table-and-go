@@ -83,9 +83,11 @@
     background-color: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 20px;
+    overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
+    display: flex;
+    border: 1px solid #f0f0f0;
 }
 
 .review-card:hover {
@@ -93,36 +95,114 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
+.review-image {
+    width: 240px;
+    min-width: 240px;
+    height: auto;
+    object-fit: cover;
+}
+
+.review-content {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .review-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.review-title-container {
+    flex: 1;
+}
+
+.review-restaurant-name {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 5px;
+    color: #333;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.review-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.review-status.published {
+    background-color: #e6f7e6;
+    color: #2e7d32;
+}
+
+.review-status.pending {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.review-edit {
+    display: flex;
+    align-items: center;
+    color: #8B0000;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.review-edit i {
+    margin-right: 5px;
+}
+
+.review-date {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.review-location {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+    font-size: 14px;
     margin-bottom: 15px;
 }
 
-.review-restaurant {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.review-location i {
+    color: #888;
 }
 
-.restaurant-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    object-fit: cover;
+.review-rating {
+    margin-bottom: 15px;
 }
 
-.restaurant-info h3 {
+.review-rating .star {
+    color: #f0a500;
     font-size: 18px;
-    font-weight: 600;
-    margin: 0 0 5px;
+    margin-right: 2px;
 }
 
-.restaurant-info p {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
+.review-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 15px;
+    flex-grow: 1;
+}
+
+.review-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: auto;
 }
 
 .review-actions {
@@ -144,26 +224,12 @@
     color: #f0a500;
 }
 
-.review-rating {
-    margin-bottom: 10px;
+.edit-review {
+    color: #4a6fa1;
 }
 
-.review-rating .star {
-    color: #f0a500;
-    font-size: 18px;
-    margin-right: 2px;
-}
-
-.review-text {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-.review-date {
-    font-size: 14px;
-    color: #888;
+.delete-review {
+    color: #e74c3c;
 }
 
 .empty-message {
@@ -245,9 +311,13 @@
         width: 100%;
     }
     
-    .review-header {
+    .review-card {
         flex-direction: column;
-        gap: 15px;
+    }
+    
+    .review-image {
+        width: 100%;
+        height: 200px;
     }
     
     .review-actions {
