@@ -485,7 +485,8 @@ function initActionButtons() {
             } else if (button.classList.contains('info-btn')) {
                 showBookingInfo(bookingId);
             } else if (button.classList.contains('complete-btn')) {
-                completeBooking(bookingId, bookingRow);
+                // Вместо прямого вызова completeBooking, открываем модальное окно
+                openCompleteModal(bookingId, bookingRow);
             }
         });
     }
@@ -494,6 +495,7 @@ function initActionButtons() {
     initConfirmModal();
     initCancelModal();
     initBookingDetailsModal();
+    initCompleteModal();
 }
 
 // Функция для открытия модального окна подтверждения
@@ -847,51 +849,108 @@ function initBookingDetailsModal() {
     });
 }
 
+// Функция для открытия модального окна завершения бронирования
+function openCompleteModal(bookingId, bookingRow) {
+    const modal = document.getElementById('complete-booking-modal');
+    const bookingNumberSpan = document.getElementById('complete-booking-number');
+    const bookingIdInput = document.getElementById('complete-booking-id');
+    
+    // Получаем номер бронирования из строки таблицы
+    const bookingNumberElement = bookingRow.querySelector('.booking-number');
+    const bookingNumber = bookingNumberElement ? bookingNumberElement.textContent : bookingId;
+    
+    // Заполняем данные в модальном окне
+    bookingNumberSpan.textContent = bookingNumber;
+    bookingIdInput.value = bookingId;
+    
+    // Отображаем модальное окно
+    modal.classList.add('active');
+}
+
+// Функция для инициализации обработчиков модального окна завершения бронирования
+function initCompleteModal() {
+    const modal = document.getElementById('complete-booking-modal');
+    const closeBtn = document.getElementById('close-complete-modal');
+    const completeBtn = document.getElementById('confirm-complete-btn');
+    
+    if (!modal) return; // Если модального окна нет, выходим
+    
+    // Обработчик для кнопки "Закрыть"
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+    
+    // Обработчик для кнопки "Завершить"
+    completeBtn.addEventListener('click', function() {
+        const bookingId = document.getElementById('complete-booking-id').value;
+        
+        // Находим строку таблицы с этим бронированием
+        const bookingRow = document.querySelector(`.booking-row[data-id="${bookingId}"]`);
+        
+        // Вызываем функцию завершения бронирования
+        completeBooking(bookingId, bookingRow);
+        
+        // Закрываем модальное окно
+        modal.classList.remove('active');
+    });
+    
+    // Закрытие модального окна при клике на оверлей
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Закрытие модального окна при нажатии Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
+}
+
 // Функция для завершения бронирования
 function completeBooking(bookingId, bookingRow) {
-    if (confirm('Вы уверены, что хотите завершить бронирование ' + bookingId + '?')) {
-        // Получаем токен авторизации
-        const authToken = localStorage.getItem('authToken');
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
+    
+    // Отправляем запрос на завершение бронирования
+    fetch(`http://127.0.0.1:8000/api/bookings/complete/${bookingId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при завершении бронирования');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Обновляем статус брони в UI
+        const statusBadge = bookingRow.querySelector('.status-badge');
+        statusBadge.className = 'status-badge status-completed';
+        statusBadge.textContent = 'Завершено';
         
-        // Отправляем запрос на завершение бронирования
-        // Примечание: для этого нужен соответствующий эндпоинт на бэкенде
-        fetch(`http://127.0.0.1:8000/api/bookings/complete/${bookingId}/`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка при завершении бронирования');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Обновляем статус брони в UI
-            const statusBadge = bookingRow.querySelector('.status-badge');
-            statusBadge.className = 'status-badge status-completed';
-            statusBadge.textContent = 'Завершено';
-            
-            // Обновляем кнопки действий
-            const actionsColumn = bookingRow.querySelector('.booking-actions');
-            actionsColumn.innerHTML = `
-                <div class="action-buttons">
-                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
-                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                    <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
-                </div>
-            `;
-            
-            showNotification('Бронирование завершено', 'success');
-        })
-        .catch(error => {
-            console.error('Ошибка при завершении бронирования:', error);
-            showNotification('Ошибка при завершении бронирования', 'error');
-        });
-    }
+        // Обновляем кнопки действий
+        const actionsColumn = bookingRow.querySelector('.booking-actions');
+        actionsColumn.innerHTML = `
+            <div class="action-buttons">
+                <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
+            </div>
+        `;
+        
+        showNotification('Бронирование завершено', 'success');
+    })
+    .catch(error => {
+        console.error('Ошибка при завершении бронирования:', error);
+        showNotification('Ошибка при завершении бронирования', 'error');
+    });
 }
 
 // Инициализация пагинации

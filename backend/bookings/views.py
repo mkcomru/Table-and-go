@@ -356,6 +356,78 @@ class BookingConfirmView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
 
 
+class BookingCompleteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, booking_id):
+        user = request.user
+        
+        # Проверяем, является ли пользователь суперпользователем или системным администратором
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                
+                if booking.status not in ['confirmed']:
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно завершить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'completed'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно завершено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Проверяем, является ли пользователь администратором филиала
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                
+                # Проверяем, является ли пользователь администратором филиала
+                is_admin = BranchAdmin.objects.filter(
+                    user=user,
+                    branch_id=booking.branch_id,
+                    is_active=True
+                ).exists()
+                
+                if not is_admin:
+                    return Response({
+                        "success": False,
+                        "message": "У вас нет прав на завершение этого бронирования"
+                    }, status=status.HTTP_403_FORBIDDEN)
+                
+                if booking.status not in ['confirmed']:
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно завершить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'completed'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно завершено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+                
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 
