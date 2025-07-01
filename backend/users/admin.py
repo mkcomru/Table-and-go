@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('phone', 'email', 'password')}),
         ('Персональная информация', {'fields': ('first_name', 'last_name', 'photo')}),
-        ('Права', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_system_admin', 'administrated_branches')}),
+        ('Права', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_system_admin')}),
         ('Важные даты', {'fields': ('last_login', 'date_joined')}),
         ('Настройки уведомлений', {'fields': ('email_notifications', 'sms_notifications', 'promo_notifications')}),
     )

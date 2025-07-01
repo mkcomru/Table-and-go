@@ -27,8 +27,6 @@ class User(AbstractUser):
     photo = models.ImageField(upload_to='users/photos/', blank=True, null=True, verbose_name="Фото профиля")
 
     is_system_admin = models.BooleanField(default=False, verbose_name="Администратор системы")
-    administrated_branches = models.ForeignKey(Branch, on_delete=models.CASCADE,
-                                                blank=True, null=True, verbose_name="Филиал")
     
     email_notifications = models.BooleanField(default=True, verbose_name="Уведомления по email")
     sms_notifications = models.BooleanField(default=True, verbose_name="SMS уведомления")

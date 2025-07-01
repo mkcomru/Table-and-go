@@ -13,8 +13,7 @@ class Booking(models.Model):
                                 related_name="bookings", verbose_name="Пользователь")
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE,
                                     related_name='bookings', verbose_name="Филиал", null=True, blank=True)
-    table = models.ForeignKey(Table, on_delete=models.CASCADE, blank=True, null=True,
-                                related_name='bookings', verbose_name='Столик')
+    table = models.IntegerField(blank=True, null=True, verbose_name="Номер столика")
     booking_datetime = models.DateTimeField(verbose_name="Дата и время бронирования")
     duration = models.IntegerField(default=2, verbose_name="Продолжительность (часы)")
     guests_count = models.IntegerField(verbose_name="Количество гостей")
@@ -58,15 +57,6 @@ class Booking(models.Model):
     
         return not conflicting_bookings
 
-    # def clean(self):
-    #     from django.core.exceptions import ValidationError
-        
-    #     if not self.branch.is_open_at(self.booking_datetime):
-    #         raise ValidationError("Ресторан закрыт в указанное время")
-            
-    #     if self.table.branch != self.branch:
-    #         raise ValidationError("Столик не принадлежит указанному ресторану")
-    
     def save(self, *args, **kwargs):
         if not self.book_number:
             self.book_number = generate_book_number()
