@@ -179,6 +179,61 @@
         </div>
     </div>
 
+    <!-- Модальное окно с детальной информацией о бронировании -->
+    <div class="modal-overlay" id="booking-details-modal">
+        <div class="modal-window booking-details-window">
+            <div class="modal-header">
+                <h3>Детали бронирования <span id="details-booking-number"></span></h3>
+            </div>
+            <div class="modal-body">
+                <div class="booking-details-grid">
+                    <div class="booking-details-column">
+                        <h4>Информация о госте</h4>
+                        <div class="details-group">
+                            <label>Имя:</label>
+                            <div id="details-guest-name"></div>
+                        </div>
+                        <div class="details-group">
+                            <label>Телефон:</label>
+                            <div id="details-guest-phone"></div>
+                        </div>
+                        <div class="details-group">
+                            <label>Email:</label>
+                            <div id="details-guest-email"></div>
+                        </div>
+                    </div>
+                    <div class="booking-details-column">
+                        <h4>Детали бронирования</h4>
+                        <div class="details-group">
+                            <label>Дата и время:</label>
+                            <div id="details-datetime"></div>
+                        </div>
+                        <div class="details-group">
+                            <label>Количество гостей:</label>
+                            <div id="details-guests-count"></div>
+                        </div>
+                        <div class="details-group">
+                            <label>Стол:</label>
+                            <div id="details-table"></div>
+                        </div>
+                        <div class="details-group">
+                            <label>Статус:</label>
+                            <div id="details-status"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="details-special-requests">
+                    <h4>Особые пожелания</h4>
+                    <div id="details-special-requests" class="details-text-block"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="close-details-modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/login.js"></script>
     <script src="js/admin-panel.js"></script>
 </body>

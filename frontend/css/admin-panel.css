@@ -683,4 +683,78 @@ body {
 .form-control.textarea {
     resize: vertical;
     min-height: 80px;
+}
+
+/* Стили для модального окна с детальной информацией о бронировании */
+.booking-details-window {
+    max-width: 700px;
+}
+
+.booking-details-grid {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.booking-details-column {
+    flex: 1;
+}
+
+.booking-details-column h4,
+.details-special-requests h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.details-group {
+    margin-bottom: 12px;
+}
+
+.details-group label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.details-group div {
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+}
+
+.details-text-block {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 12px;
+    min-height: 80px;
+    font-size: 14px;
+    color: #555;
+    white-space: pre-wrap;
+}
+
+/* Стили для статуса в деталях бронирования */
+.details-status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Адаптивность для окна деталей бронирования */
+@media (max-width: 768px) {
+    .booking-details-grid {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .booking-details-window {
+        width: 90%;
+    }
 } 

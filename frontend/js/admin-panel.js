@@ -490,9 +490,10 @@ function initActionButtons() {
         });
     }
     
-    // Инициализация обработчиков для модального окна
+    // Инициализация обработчиков для модальных окон
     initConfirmModal();
     initCancelModal();
+    initBookingDetailsModal();
 }
 
 // Функция для открытия модального окна подтверждения
@@ -732,64 +733,113 @@ function showBookingInfo(bookingId) {
         return response.json();
     })
     .then(data => {
-        // Форматируем дату и время
-        const bookingDateTime = new Date(data.booking_datetime);
-        const formattedDate = bookingDateTime.toLocaleDateString('ru-RU');
-        const formattedTime = bookingDateTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        
-        // Получаем информацию о пользователе
-        const userName = data.user ? 
-            `${data.user.first_name} ${data.user.last_name}` : 
-            'Не указано';
-        
-        const userPhone = data.user && data.user.phone ? 
-            data.user.phone : 
-            'Не указано';
-        
-        const userEmail = data.user && data.user.email ? 
-            data.user.email : 
-            'Не указано';
-        
-        // Определяем статус брони
-        let statusText = '';
-        switch (data.status) {
-            case 'pending':
-                statusText = 'Ожидает подтверждения';
-                break;
-            case 'confirmed':
-                statusText = 'Подтверждено';
-                break;
-            case 'completed':
-                statusText = 'Завершено';
-                break;
-            case 'cancelled':
-                statusText = 'Отменено';
-                break;
-            default:
-                statusText = data.status;
-        }
-        
-        // В реальном приложении здесь будет открытие модального окна с подробной информацией
-        const bookingInfo = `
-            Информация о бронировании #${data.book_number || data.id}
-            
-            Имя: ${userName}
-            Телефон: ${userPhone}
-            Email: ${userEmail}
-            
-            Дата и время: ${formattedDate}, ${formattedTime}
-            Количество гостей: ${data.guests_count || 0}
-            
-            Статус: ${statusText}
-            
-            Комментарий: ${data.special_requests || 'Нет комментария'}
-        `;
-        
-        alert(bookingInfo);
+        // Открываем модальное окно с деталями бронирования
+        openBookingDetailsModal(data);
     })
     .catch(error => {
         console.error('Ошибка при получении информации о бронировании:', error);
         showNotification('Ошибка при получении информации о бронировании', 'error');
+    });
+}
+
+// Функция для открытия модального окна с деталями бронирования
+function openBookingDetailsModal(bookingData) {
+    const modal = document.getElementById('booking-details-modal');
+    
+    // Заполняем данные в модальном окне
+    document.getElementById('details-booking-number').textContent = bookingData.book_number || `#${bookingData.id}`;
+    
+    // Информация о госте
+    if (bookingData.user) {
+        document.getElementById('details-guest-name').textContent = 
+            `${bookingData.user.first_name || ''} ${bookingData.user.last_name || ''}`.trim() || 'Не указано';
+        document.getElementById('details-guest-phone').textContent = bookingData.user.phone || 'Не указано';
+        document.getElementById('details-guest-email').textContent = bookingData.user.email || 'Не указано';
+    } else {
+        document.getElementById('details-guest-name').textContent = 'Не указано';
+        document.getElementById('details-guest-phone').textContent = 'Не указано';
+        document.getElementById('details-guest-email').textContent = 'Не указано';
+    }
+    
+    // Детали бронирования
+    if (bookingData.booking_date && bookingData.booking_time) {
+        document.getElementById('details-datetime').textContent = `${formatDate(bookingData.booking_date)}, ${bookingData.booking_time}`;
+    } else if (bookingData.booking_datetime) {
+        const bookingDateTime = new Date(bookingData.booking_datetime);
+        document.getElementById('details-datetime').textContent = 
+            `${bookingDateTime.toLocaleDateString('ru-RU')}, ${bookingDateTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+        document.getElementById('details-datetime').textContent = 'Не указано';
+    }
+    
+    document.getElementById('details-guests-count').textContent = bookingData.guests_count || 'Не указано';
+    document.getElementById('details-table').textContent = bookingData.table || 'Ожидает назначения';
+    
+    // Статус бронирования
+    const detailsStatus = document.getElementById('details-status');
+    let statusText = '';
+    let statusClass = '';
+    
+    switch (bookingData.status) {
+        case 'pending':
+            statusText = 'Новое';
+            statusClass = 'status-pending';
+            break;
+        case 'confirmed':
+            statusText = 'Подтверждено';
+            statusClass = 'status-confirmed';
+            break;
+        case 'completed':
+            statusText = 'Завершено';
+            statusClass = 'status-completed';
+            break;
+        case 'cancelled':
+            statusText = 'Отменено';
+            statusClass = 'status-cancelled';
+            break;
+        default:
+            statusText = bookingData.status || 'Не указано';
+            statusClass = 'status-pending';
+    }
+    
+    detailsStatus.innerHTML = `<span class="details-status-badge ${statusClass}">${statusText}</span>`;
+    
+    // Особые пожелания
+    document.getElementById('details-special-requests').textContent = 
+        bookingData.special_requests || 'Особых пожеланий нет';
+    
+    // Отображаем модальное окно
+    modal.classList.add('active');
+}
+
+// Функция для форматирования даты
+function formatDate(dateString) {
+    const [year, month, day] = dateString.split('-');
+    return `${day}.${month}.${year}`;
+}
+
+// Функция для инициализации обработчиков модального окна с деталями бронирования
+function initBookingDetailsModal() {
+    const modal = document.getElementById('booking-details-modal');
+    const closeBtn = document.getElementById('close-details-modal');
+    
+    // Обработчик для кнопки "Закрыть"
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+    
+    // Закрытие модального окна при клике на оверлей
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Закрытие модального окна при нажатии Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
     });
 }
 
