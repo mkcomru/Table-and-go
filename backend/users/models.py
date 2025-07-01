@@ -27,6 +27,12 @@ class User(AbstractUser):
 
     is_system_admin = models.BooleanField(default=False, verbose_name="Администратор системы")
     
+    # Настройки уведомлений
+    email_notifications = models.BooleanField(default=True, verbose_name="Уведомления по email")
+    sms_notifications = models.BooleanField(default=True, verbose_name="SMS уведомления")
+    promo_notifications = models.BooleanField(default=False, verbose_name="Рекламные уведомления")
+    last_password_change = models.DateTimeField(blank=True, null=True, verbose_name="Дата последнего изменения пароля")
+    
     USERNAME_FIELD = 'email'  
     REQUIRED_FIELDS = ['phone', 'first_name', 'last_name']  
 

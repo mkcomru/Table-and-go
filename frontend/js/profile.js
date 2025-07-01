@@ -140,7 +140,7 @@ async function loadUserProfile() {
         }
         
         // Запрос к API для получения данных пользователя
-        const response = await fetch('http://127.0.0.1:8000/api/users/me/', {
+        const response = await fetch('http://127.0.0.1:8000/auth/me/', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -243,7 +243,7 @@ async function updateProfile() {
         };
         
         // Отправляем запрос на обновление профиля
-        const response = await fetch('http://127.0.0.1:8000/api/users/update/', {
+        const response = await fetch('http://127.0.0.1:8000/auth/update/', {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -349,7 +349,7 @@ async function changePassword() {
         }
         
         // Отправляем запрос на смену пароля
-        const response = await fetch('http://127.0.0.1:8000/api/users/change-password/', {
+        const response = await fetch('http://127.0.0.1:8000/auth/change-password/', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -383,6 +383,9 @@ async function changePassword() {
         
         // Показываем уведомление об успехе
         showNotification('Пароль успешно изменен', 'success');
+        
+        // Обновляем данные пользователя
+        loadUserProfile();
         
     } catch (error) {
         console.error('Ошибка при смене пароля:', error);

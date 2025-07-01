@@ -43,6 +43,43 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+    
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        
+        if not current_password or not new_password:
+            return Response(
+                {"detail": "Необходимо указать текущий и новый пароль."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not user.check_password(current_password):
+            return Response(
+                {"detail": "Неверный текущий пароль."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.set_password(new_password)
+        user.last_password_change = timezone.now()
+        user.save()
+        
+        return Response(
+            {"detail": "Пароль успешно изменен."},
+            status=status.HTTP_200_OK
+        )
 
 
 class CheckInvitationView(views.APIView):

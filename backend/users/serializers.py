@@ -8,10 +8,21 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    date_joined = serializers.DateTimeField(read_only=True, format="%Y-%m-%dT%H:%M:%S")
+    last_login = serializers.DateTimeField(read_only=True, format="%Y-%m-%dT%H:%M:%S")
+    email_notifications = serializers.BooleanField(default=True, required=False)
+    sms_notifications = serializers.BooleanField(default=True, required=False)
+    promo_notifications = serializers.BooleanField(default=False, required=False)
+    last_password_change = serializers.DateTimeField(source='date_joined', read_only=True, format="%Y-%m-%dT%H:%M:%S")
+
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'photo']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'first_name', 'last_name', 'email', 'phone', 'photo',
+            'date_joined', 'last_login', 'email_notifications', 'sms_notifications',
+            'promo_notifications', 'last_password_change'
+        ]
+        read_only_fields = ['id', 'date_joined', 'last_login', 'last_password_change']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
