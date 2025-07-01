@@ -46,8 +46,14 @@ function loadUserBranches(userData) {
     // Получаем токен авторизации
     const authToken = localStorage.getItem('authToken');
     
-    // Запрашиваем список филиалов, где пользователь является администратором
-    fetch('http://127.0.0.1:8000/api/branch-admin/', {
+    // Проверяем, является ли пользователь суперпользователем или системным администратором
+    const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+    
+    // Выбираем эндпоинт в зависимости от роли пользователя
+    const endpoint = isAdmin ? 'http://127.0.0.1:8000/api/branch/' : 'http://127.0.0.1:8000/api/branch-admin/';
+    
+    // Запрашиваем список филиалов
+    fetch(endpoint, {
         headers: {
             'Authorization': `Bearer ${authToken}`
         }
@@ -59,59 +65,83 @@ function loadUserBranches(userData) {
         return response.json();
     })
     .then(data => {
-        // Получаем данные о филиалах, где пользователь является администратором
-        const branchAdmins = data.results || data;
-        
-        if (branchAdmins && branchAdmins.length > 0) {
-            // Собираем ID филиалов
-            const branchIds = branchAdmins.map(admin => admin.branch);
+        if (isAdmin) {
+            // Для суперпользователей и системных администраторов получаем все филиалы
+            const branches = data.results || data;
             
-            // Если есть хотя бы один филиал, загружаем информацию о нем
-            if (branchIds.length > 0) {
-                // Загружаем информацию о первом филиале
-                fetch(`http://127.0.0.1:8000/api/branch/${branchIds[0]}/`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                })
-                .then(response => response.json())
-                .then(branchData => {
-                    // Обновляем заголовок панели администратора
-                    const adminHeader = document.querySelector('.admin-header h1');
-                    if (adminHeader) {
-                        adminHeader.textContent = `Панель администратора ресторана "${branchData.name}"`;
-                    }
-                    
-                    // Сохраняем ID текущего филиала
-                    window.currentBranchId = branchData.id;
-                    
-                    // Если есть несколько филиалов, создаем селектор
-                    if (branchIds.length > 1) {
-                        // Загружаем информацию обо всех филиалах
-                        Promise.all(branchIds.map(branchId => 
-                            fetch(`http://127.0.0.1:8000/api/branch/${branchId}/`, {
-                                headers: {
-                                    'Authorization': `Bearer ${authToken}`
-                                }
-                            }).then(response => response.json())
-                        ))
-                        .then(branches => {
-                            createBranchSelector(branches);
-                        });
-                    }
-                    
-                    // Загружаем брони для филиала
-                    loadBookings(branchData.id);
-                })
-                .catch(error => {
-                    console.error('Ошибка при загрузке информации о филиале:', error);
-                    showNotification('Ошибка при загрузке информации о филиале', 'error');
-                });
+            if (branches && branches.length > 0) {
+                // Обновляем заголовок панели администратора
+                const adminHeader = document.querySelector('.admin-header h1');
+                if (adminHeader) {
+                    adminHeader.textContent = `Панель администратора системы`;
+                }
+                
+                // Сохраняем ID текущего филиала
+                window.currentBranchId = branches[0].id;
+                
+                // Создаем селектор филиалов
+                createBranchSelector(branches);
+                
+                // Загружаем брони для первого филиала
+                loadBookings(branches[0].id);
+            } else {
+                showNotification('Нет доступных филиалов', 'error');
+            }
+        } else {
+            // Для обычных администраторов филиалов получаем только их филиалы
+            const branchAdmins = data.results || data;
+            
+            if (branchAdmins && branchAdmins.length > 0) {
+                // Собираем ID филиалов
+                const branchIds = branchAdmins.map(admin => admin.branch);
+                
+                // Если есть хотя бы один филиал, загружаем информацию о нем
+                if (branchIds.length > 0) {
+                    // Загружаем информацию о первом филиале
+                    fetch(`http://127.0.0.1:8000/api/branch/${branchIds[0]}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(branchData => {
+                        // Обновляем заголовок панели администратора
+                        const adminHeader = document.querySelector('.admin-header h1');
+                        if (adminHeader) {
+                            adminHeader.textContent = `Панель администратора ресторана "${branchData.name}"`;
+                        }
+                        
+                        // Сохраняем ID текущего филиала
+                        window.currentBranchId = branchData.id;
+                        
+                        // Если есть несколько филиалов, создаем селектор
+                        if (branchIds.length > 1) {
+                            // Загружаем информацию обо всех филиалах
+                            Promise.all(branchIds.map(branchId => 
+                                fetch(`http://127.0.0.1:8000/api/branch/${branchId}/`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${authToken}`
+                                    }
+                                }).then(response => response.json())
+                            ))
+                            .then(branches => {
+                                createBranchSelector(branches);
+                            });
+                        }
+                        
+                        // Загружаем брони для филиала
+                        loadBookings(branchData.id);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при загрузке информации о филиале:', error);
+                        showNotification('Ошибка при загрузке информации о филиале', 'error');
+                    });
+                } else {
+                    showNotification('У вас нет доступа к филиалам', 'error');
+                }
             } else {
                 showNotification('У вас нет доступа к филиалам', 'error');
             }
-        } else {
-            showNotification('У вас нет доступа к филиалам', 'error');
         }
     })
     .catch(error => {

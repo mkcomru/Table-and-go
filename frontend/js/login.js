@@ -163,8 +163,11 @@ function redirectBasedOnRole(userData) {
     const urlParams = new URLSearchParams(window.location.search);
     const redirectUrl = urlParams.get('redirect');
     
-    // Если пользователь является персоналом ресторана (is_staff=True)
-    if (userData.is_staff === true) {
+    // Проверяем, является ли пользователь суперпользователем или системным администратором
+    const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+    
+    // Если пользователь является персоналом ресторана (is_staff=True) и не является админом
+    if (userData.is_staff === true && !isAdmin) {
         // Для персонала разрешаем только admin-panel.html и profile.html
         if (redirectUrl && 
             (redirectUrl.includes('admin-panel.html') || redirectUrl.includes('profile.html'))) {
@@ -225,15 +228,15 @@ function checkAuth() {
                 hideNavElementsForStaff();
             }
             
-            // Проверка перенаправления для персонала
-            if (isStaff && 
+            // Проверка перенаправления для персонала (не администраторов)
+            if (isStaff && !isAdmin && 
                 !window.location.pathname.includes('admin-panel.html') && 
                 !window.location.pathname.includes('profile.html')) {
                 window.location.href = 'admin-panel.html';
                 return;
             }
             
-            // Если пользователь не является персоналом, но пытается зайти на admin-panel.html,
+            // Если пользователь не является персоналом и не является админом, но пытается зайти на admin-panel.html,
             // перенаправляем его на главную страницу
             if (!isStaff && !isAdmin && window.location.pathname.includes('admin-panel.html')) {
                 window.location.href = 'index.html';

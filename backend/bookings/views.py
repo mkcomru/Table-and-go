@@ -117,30 +117,59 @@ class BookingCancelView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, booking_id):
-        try:
-            booking = Booking.objects.get(id=booking_id, user=request.user)
-            
-            if booking.status in ['cancelled', 'completed']:
+        user = request.user
+        
+        # Проверяем, является ли пользователь суперпользователем или системным администратором
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                
+                if booking.status in ['cancelled', 'completed']:
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно отменить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'cancelled'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно отменено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+            except Booking.DoesNotExist:
                 return Response({
                     "success": False,
-                    "message": f"Невозможно отменить бронь в статусе '{booking.status}'"
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            booking.status = 'cancelled'
-            booking.save()
-            
-            return Response({
-                "success": True,
-                "message": "Бронирование успешно отменено",
-                "booking_id": booking.id,
-                "booking_number": booking.book_number
-            }, status=status.HTTP_200_OK)
-            
-        except Booking.DoesNotExist:
-            return Response({
-                "success": False,
-                "message": "Бронирование не найдено или у вас нет прав на его отмену"
-            }, status=status.HTTP_404_NOT_FOUND)
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Для обычных пользователей проверяем, что это их бронирование
+            try:
+                booking = Booking.objects.get(id=booking_id, user=user)
+                
+                if booking.status in ['cancelled', 'completed']:
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно отменить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'cancelled'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно отменено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+                
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено или у вас нет прав на его отмену"
+                }, status=status.HTTP_404_NOT_FOUND)
 
 
 class BookingUpdateView(UpdateAPIView):
@@ -150,22 +179,44 @@ class BookingUpdateView(UpdateAPIView):
     lookup_url_kwarg = 'booking_id'
 
     def get_queryset(self):
-        return Booking.objects.filter(user=self.request.user)
+        user = self.request.user
+        
+        # Разрешаем доступ суперпользователям и системным администраторам
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            return Booking.objects.all()
+        else:
+            # Для обычных пользователей проверяем, что это их бронирование
+            return Booking.objects.filter(user=user)
 
 
 class BookingDetailsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, booking_id):
-        try:
-            booking = Booking.objects.get(id=booking_id, user=request.user)
-            serializer = BookingDetailsSerializer(booking)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Booking.DoesNotExist:
-            return Response({
-                "success": False,
-                "message": "Бронирование не найдено или у вас нет прав на его просмотр"
-            }, status=status.HTTP_404_NOT_FOUND)
+        user = request.user
+        
+        # Проверяем, является ли пользователь суперпользователем или системным администратором
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                serializer = BookingDetailsSerializer(booking)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Для обычных пользователей проверяем, что это их бронирование
+            try:
+                booking = Booking.objects.get(id=booking_id, user=user)
+                serializer = BookingDetailsSerializer(booking)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено или у вас нет прав на его просмотр"
+                }, status=status.HTTP_404_NOT_FOUND)
 
 
 class BranchBookingsView(ListAPIView):
@@ -174,27 +225,99 @@ class BranchBookingsView(ListAPIView):
     
     def get_queryset(self):
         branch_id = self.kwargs.get('branch_id')
+        user = self.request.user
         
-        # Проверяем, является ли пользователь администратором этого филиала
-        is_admin = BranchAdmin.objects.filter(
-            user=self.request.user,
-            branch_id=branch_id,
-            is_active=True
-        ).exists()
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            queryset = Booking.objects.filter(branch_id=branch_id)
+        else:
+            is_admin = BranchAdmin.objects.filter(
+                user=user,
+                branch_id=branch_id,
+                is_active=True
+            ).exists()
+            
+            if not is_admin:
+                raise PermissionDenied("Вы не являетесь администратором данного филиала")
+            
+            queryset = Booking.objects.filter(branch_id=branch_id)
         
-        if not is_admin:
-            raise PermissionDenied("Вы не являетесь администратором данного филиала")
-        
-        # Получаем базовый QuerySet для броней филиала
-        queryset = Booking.objects.filter(branch_id=branch_id)
-        
-        # Фильтрация по статусу
         status_filter = self.request.query_params.get('status')
         if status_filter and status_filter != 'all':
             queryset = queryset.filter(status=status_filter)
         
-        # Сортировка по дате бронирования (от новых к старым)
         return queryset.order_by('-booking_datetime')
+
+
+class BookingConfirmView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, booking_id):
+        user = request.user
+        
+        # Проверяем, является ли пользователь суперпользователем или системным администратором
+        if user.is_superuser or getattr(user, 'is_system_admin', False):
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                
+                if booking.status != 'pending':
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно подтвердить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'confirmed'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно подтверждено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Проверяем, является ли пользователь администратором филиала
+            try:
+                booking = Booking.objects.get(id=booking_id)
+                
+                # Проверяем, является ли пользователь администратором филиала
+                is_admin = BranchAdmin.objects.filter(
+                    user=user,
+                    branch_id=booking.branch_id,
+                    is_active=True
+                ).exists()
+                
+                if not is_admin:
+                    return Response({
+                        "success": False,
+                        "message": "У вас нет прав на подтверждение этого бронирования"
+                    }, status=status.HTTP_403_FORBIDDEN)
+                
+                if booking.status != 'pending':
+                    return Response({
+                        "success": False,
+                        "message": f"Невозможно подтвердить бронь в статусе '{booking.status}'"
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                booking.status = 'confirmed'
+                booking.save()
+                
+                return Response({
+                    "success": True,
+                    "message": "Бронирование успешно подтверждено",
+                    "booking_id": booking.id,
+                    "booking_number": booking.book_number
+                }, status=status.HTTP_200_OK)
+                
+            except Booking.DoesNotExist:
+                return Response({
+                    "success": False,
+                    "message": "Бронирование не найдено"
+                }, status=status.HTTP_404_NOT_FOUND)
 
 
 
