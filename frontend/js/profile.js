@@ -26,81 +26,12 @@ function checkUserRole() {
         
         // Если пользователь является персоналом, но не администратором
         if (isStaff && !isAdmin) {
-            // Добавляем класс staff-only к body для стилизации
-            document.body.classList.add('staff-only');
-            
-            // Скрываем ненужные элементы
-            hideElementsForStaff();
-            
-            // Добавляем кнопку возврата
-            addBackButton();
-            
-            // Изменяем заголовок
-            updateTitleForStaff();
+            // Перенаправляем на страницу администратора ресторана
+            window.location.href = 'profile-restaurant.html';
+            return;
         }
     } catch (error) {
         console.error('Ошибка при проверке роли пользователя:', error);
-    }
-}
-
-// Функция для скрытия элементов для персонала
-function hideElementsForStaff() {
-    // Скрываем навигацию
-    const mainNav = document.querySelector('.main-nav');
-    if (mainNav) {
-        mainNav.style.display = 'none';
-    }
-    
-    // Скрываем разделы формы, которые не нужны персоналу
-    // Оставляем только основную информацию
-    const sectionsToHide = document.querySelectorAll('.form-section.notification-section, .form-section.security-section');
-    sectionsToHide.forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Скрываем выбор города
-    const citySelector = document.querySelector('.city-selector');
-    if (citySelector) {
-        citySelector.style.display = 'none';
-    }
-    
-    // Скрываем футер (или оставляем только копирайт)
-    const footerColumns = document.querySelector('.footer-columns');
-    if (footerColumns) {
-        footerColumns.style.display = 'none';
-    }
-}
-
-// Функция для добавления кнопки возврата
-function addBackButton() {
-    const headerRight = document.querySelector('.header-right');
-    
-    if (headerRight) {
-        // Создаем кнопку возврата на панель администратора
-        const backButton = document.createElement('a');
-        backButton.href = 'admin-panel.html';
-        backButton.className = 'btn btn-primary back-to-admin';
-        backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Вернуться к панели';
-        
-        // Добавляем кнопку в начало блока
-        if (headerRight.firstChild) {
-            headerRight.insertBefore(backButton, headerRight.firstChild);
-        } else {
-            headerRight.appendChild(backButton);
-        }
-    }
-}
-
-// Функция для изменения заголовка
-function updateTitleForStaff() {
-    const title = document.querySelector('.profile-title');
-    if (title) {
-        title.textContent = 'Профиль сотрудника ресторана';
-    }
-    
-    const subtitle = document.querySelector('.profile-subtitle');
-    if (subtitle) {
-        subtitle.textContent = 'Ваши личные данные';
     }
 }
 
@@ -151,9 +82,94 @@ function loadProfileData() {
         if (profileEmail && userData.email) {
             profileEmail.textContent = userData.email;
         }
+        
+        // Обновляем информацию о пользователе в шапке сайта
+        updateHeaderUserInfo(userData);
     } catch (error) {
         console.error('Ошибка при загрузке данных профиля:', error);
     }
+}
+
+// Обновление информации о пользователе в шапке сайта
+function updateHeaderUserInfo(userData) {
+    const headerRight = document.querySelector('.header-right');
+    if (!headerRight) return;
+    
+    // Очищаем текущее содержимое
+    headerRight.innerHTML = '';
+    
+    // Создаем элемент профиля пользователя
+    const userProfile = document.createElement('div');
+    userProfile.className = 'user-profile';
+    
+    let displayName = '';
+    if (userData.first_name && userData.last_name) {
+        displayName = `${userData.first_name} ${userData.last_name}`;
+    } else if (userData.first_name) {
+        displayName = userData.first_name;
+    } else if (userData.username) {
+        displayName = userData.username;
+    } else {
+        displayName = 'Пользователь';
+    }
+    
+    userProfile.innerHTML = `
+        <div class="user-avatar">
+            <img src="assets/default-avatar.png" alt="Аватар" class="avatar-image">
+        </div>
+        <div class="user-info">
+            <span class="user-name">${displayName}</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="user-dropdown">
+            <ul>
+                <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+            </ul>
+        </div>
+    `;
+    
+    headerRight.appendChild(userProfile);
+    
+    // Инициализируем выпадающее меню пользователя
+    initUserDropdown();
+}
+
+// Инициализация выпадающего меню пользователя
+function initUserDropdown() {
+    const userProfile = document.querySelector('.user-profile');
+    const logoutBtn = document.getElementById('logout-btn');
+    
+    if (userProfile) {
+        userProfile.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.classList.toggle('active');
+        });
+        
+        // Закрываем выпадающее меню при клике вне его
+        document.addEventListener('click', function(e) {
+            if (!userProfile.contains(e.target)) {
+                userProfile.classList.remove('active');
+            }
+        });
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+}
+
+// Функция для выхода из системы
+function logout() {
+    // Удаляем токен и данные пользователя
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user_data');
+    
+    // Перенаправляем на страницу входа
+    window.location.href = 'login.html';
 }
 
 // Функция для инициализации модального окна смены пароля
@@ -273,14 +289,14 @@ function updateProfile(formData) {
         localStorage.setItem('user_data', JSON.stringify(userData));
         
         // Показываем уведомление об успешном обновлении
-        alert('Профиль успешно обновлен');
+        showNotification('Профиль успешно обновлен', 'success');
         
         // Обновляем данные на странице
         loadProfileData();
     })
     .catch(error => {
         console.error('Ошибка при обновлении профиля:', error);
-        alert('Ошибка при обновлении профиля: ' + error.message);
+        showNotification('Ошибка при обновлении профиля', 'error');
     });
 }
 
@@ -321,10 +337,34 @@ function changePassword(currentPassword, newPassword) {
         document.getElementById('confirm-password').value = '';
         
         // Показываем уведомление об успешной смене пароля
-        alert('Пароль успешно изменен');
+        showNotification('Пароль успешно изменен', 'success');
     })
     .catch(error => {
         console.error('Ошибка при смене пароля:', error);
-        alert('Ошибка при смене пароля: ' + error.message);
+        showNotification('Ошибка при смене пароля', 'error');
     });
+}
+
+// Функция для отображения уведомлений
+function showNotification(message, type = 'success') {
+    // Создаем элемент уведомления
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    // Добавляем уведомление на страницу
+    document.body.appendChild(notification);
+    
+    // Показываем уведомление
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Скрываем и удаляем уведомление через 3 секунды
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 } 

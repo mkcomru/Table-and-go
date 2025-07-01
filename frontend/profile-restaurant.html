@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора ресторана | Table&Go</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile-restaurant.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-text">
+                        <span class="logo-table">Table</span>
+                        <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
+                    </div>
+                </a>
+                <div class="logo-divider"></div>
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Владивосток</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <!-- Для администратора ресторана центральная часть шапки пустая -->
+            </div>
+            <div class="header-right">
+                <!-- Здесь будет динамически отображаться профиль пользователя -->
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <img src="assets/default-avatar.png" alt="Аватар" class="avatar-image">
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">Администратор Tokyo (Kawaii)</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-dropdown">
+                        <ul>
+                            <li><a href="profile-restaurant.html"><i class="fas fa-user"></i> Профиль</a></li>
+                            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Заголовок администратора ресторана -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="admin-header-content">
+                <h1>Панель администратора ресторана</h1>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section class="restaurant-profile-section">
+            <div class="container">
+                <div class="restaurant-profile-card">
+                    <div class="restaurant-profile-header">
+                        <h2>Информация о ресторане</h2>
+                        <p>Управляйте данными вашего ресторана, загружайте фотографии и меню</p>
+                    </div>
+
+                    <div class="restaurant-profile-content">
+                        <div class="restaurant-profile-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="restaurant-name">Название ресторана</label>
+                                    <input type="text" id="restaurant-name" class="form-control" placeholder="Название ресторана">
+                                </div>
+                                <div class="form-group">
+                                    <label for="restaurant-cuisine">Кухня</label>
+                                    <input type="text" id="restaurant-cuisine" class="form-control" placeholder="Например: Итальянская, Японская">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="restaurant-address">Адрес</label>
+                                    <input type="text" id="restaurant-address" class="form-control" placeholder="Полный адрес ресторана">
+                                </div>
+                                <div class="form-group">
+                                    <label for="restaurant-phone">Телефон</label>
+                                    <input type="tel" id="restaurant-phone" class="form-control" placeholder="+7 (999) 123-45-67">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="restaurant-hours">Часы работы</label>
+                                    <input type="text" id="restaurant-hours" class="form-control" placeholder="Например: Пн-Пт 10:00-22:00, Сб-Вс 12:00-00:00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="restaurant-avg-check">Средний чек (₽)</label>
+                                    <input type="number" id="restaurant-avg-check" class="form-control" placeholder="Например: 1500">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="restaurant-description">Описание ресторана</label>
+                                <textarea id="restaurant-description" class="form-control" rows="4" placeholder="Расскажите о вашем ресторане..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="restaurant-profile-photos">
+                            <div class="photos-section">
+                                <h3>Главное фото</h3>
+                                <div class="main-photo-container">
+                                    <div class="main-photo">
+                                        <img id="main-photo-preview" src="assets/default-avatar.png" alt="Главное фото ресторана">
+                                    </div>
+                                    <button id="upload-main-photo" class="btn btn-outline">
+                                        <i class="fas fa-upload"></i> Загрузить фото
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="photos-section">
+                                <h3>Галерея фотографий</h3>
+                                <div class="photos-grid">
+                                    <!-- Здесь будут динамически добавляться фотографии -->
+                                    <div class="photo-item add-photo">
+                                        <div class="add-photo-content">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Добавить фото</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="menu-section">
+                                <h3>Меню ресторана</h3>
+                                <div class="menu-upload">
+                                    <button id="upload-menu" class="btn btn-outline">
+                                        <i class="fas fa-file-pdf"></i> Загрузить меню (PDF)
+                                    </button>
+                                    <div class="menu-status">
+                                        <span id="menu-status-text">Меню не загружено</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="save-profile" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" id="contacts">
+        <div class="container">
+            <div class="footer-bottom">
+                <p class="copyright">©2025 Table&Go. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/profile-restaurant.js"></script>
+</body>
+</html> 

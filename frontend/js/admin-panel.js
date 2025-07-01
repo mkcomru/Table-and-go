@@ -54,17 +54,17 @@ function loadUserBranches(userData) {
     
     // Запрашиваем список филиалов
     fetch(endpoint, {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке филиалов');
-        }
-        return response.json();
-    })
-    .then(data => {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке филиалов');
+            }
+            return response.json();
+        })
+        .then(data => {
         if (isAdmin) {
             // Для суперпользователей и системных администраторов получаем все филиалы
             const branches = data.results || data;
@@ -105,13 +105,13 @@ function loadUserBranches(userData) {
                     })
                     .then(response => response.json())
                     .then(branchData => {
-                        // Обновляем заголовок панели администратора
-                        const adminHeader = document.querySelector('.admin-header h1');
-                        if (adminHeader) {
+                // Обновляем заголовок панели администратора
+                const adminHeader = document.querySelector('.admin-header h1');
+                if (adminHeader) {
                             adminHeader.textContent = `Панель администратора ресторана "${branchData.name}"`;
-                        }
-                        
-                        // Сохраняем ID текущего филиала
+                }
+                
+                // Сохраняем ID текущего филиала
                         window.currentBranchId = branchData.id;
                         
                         // Если есть несколько филиалов, создаем селектор
@@ -128,26 +128,26 @@ function loadUserBranches(userData) {
                                 createBranchSelector(branches);
                             });
                         }
-                        
-                        // Загружаем брони для филиала
+                
+                // Загружаем брони для филиала
                         loadBookings(branchData.id);
                     })
                     .catch(error => {
                         console.error('Ошибка при загрузке информации о филиале:', error);
                         showNotification('Ошибка при загрузке информации о филиале', 'error');
                     });
-                } else {
-                    showNotification('У вас нет доступа к филиалам', 'error');
+            } else {
+                showNotification('У вас нет доступа к филиалам', 'error');
                 }
             } else {
                 showNotification('У вас нет доступа к филиалам', 'error');
             }
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка при загрузке филиалов:', error);
-        showNotification('Ошибка при загрузке филиалов', 'error');
-    });
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке филиалов:', error);
+            showNotification('Ошибка при загрузке филиалов', 'error');
+        });
 }
 
 // Функция для создания селектора филиалов
@@ -313,9 +313,9 @@ function renderBookings(bookings) {
         if (booking.status === 'pending') {
             actionsHtml = `
                 <div class="action-buttons">
-                    <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
-                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
                     <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
                 </div>
             `;
@@ -323,8 +323,8 @@ function renderBookings(bookings) {
             actionsHtml = `
                 <div class="action-buttons">
                     <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
-                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
                     <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
                 </div>
             `;
@@ -342,7 +342,7 @@ function renderBookings(bookings) {
                 <div class="action-buttons">
                     <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
                     <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
                     <button class="action-btn disabled-btn" title="Завершено" disabled><i class="fas fa-check-double"></i></button>
                 </div>
             `;
@@ -566,39 +566,39 @@ function initConfirmModal() {
 
 // Функция для подтверждения бронирования
 function confirmBooking(bookingId, bookingRow, tableNumber) {
-    // Получаем токен авторизации
-    const authToken = localStorage.getItem('authToken');
-    
-    // Отправляем запрос на подтверждение бронирования
+        // Получаем токен авторизации
+        const authToken = localStorage.getItem('authToken');
+        
+        // Отправляем запрос на подтверждение бронирования
     fetch(`http://127.0.0.1:8000/api/bookings/confirm/${bookingId}/`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        },
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
         body: JSON.stringify({ table: tableNumber })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при подтверждении бронирования');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // Обновляем статус брони в UI
-        const statusBadge = bookingRow.querySelector('.status-badge');
-        statusBadge.className = 'status-badge status-confirmed';
-        statusBadge.textContent = 'Подтверждено';
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при подтверждении бронирования');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем статус брони в UI
+            const statusBadge = bookingRow.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-confirmed';
+            statusBadge.textContent = 'Подтверждено';
         
         // Обновляем номер стола в UI
         const tableColumn = bookingRow.querySelector('.booking-table');
         if (tableColumn) {
             tableColumn.textContent = tableNumber;
         }
-        
-        // Обновляем кнопки действий
-        const actionsColumn = bookingRow.querySelector('.booking-actions');
-        actionsColumn.innerHTML = `
+            
+            // Обновляем кнопки действий
+            const actionsColumn = bookingRow.querySelector('.booking-actions');
+            actionsColumn.innerHTML = `
             <div class="action-buttons">
                 <button class="action-btn disabled-btn" title="Подтверждено" disabled><i class="fas fa-check"></i></button>
                 <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
@@ -606,14 +606,14 @@ function confirmBooking(bookingId, bookingRow, tableNumber) {
                 <button class="action-btn complete-btn" title="Завершить"><i class="fas fa-check-double"></i></button>
             </div>
         `;
-        
-        showNotification('Бронирование успешно подтверждено', 'success');
-    })
-    .catch(error => {
-        console.error('Ошибка при подтверждении бронирования:', error);
-        showNotification('Ошибка при подтверждении бронирования', 'error');
-    });
-}
+            
+            showNotification('Бронирование успешно подтверждено', 'success');
+        })
+        .catch(error => {
+            console.error('Ошибка при подтверждении бронирования:', error);
+            showNotification('Ошибка при подтверждении бронирования', 'error');
+        });
+    }
 
 // Функция для открытия модального окна отмены
 function openCancelModal(bookingId, bookingRow) {
@@ -675,46 +675,46 @@ function initCancelModal() {
 
 // Функция для отмены бронирования
 function cancelBooking(bookingId, bookingRow) {
-    // Получаем токен авторизации
-    const authToken = localStorage.getItem('authToken');
-    
-    // Отправляем запрос на отмену бронирования
-    fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Ошибка при отмене бронирования');
-        }
-        return response.json();
-    })
-    .then(data => {
-        // Обновляем статус брони в UI
-        const statusBadge = bookingRow.querySelector('.status-badge');
-        statusBadge.className = 'status-badge status-cancelled';
-        statusBadge.textContent = 'Отменено';
+        // Получаем токен авторизации
+        const authToken = localStorage.getItem('authToken');
         
-        // Обновляем кнопки действий
-        const actionsColumn = bookingRow.querySelector('.booking-actions');
-        actionsColumn.innerHTML = `
+        // Отправляем запрос на отмену бронирования
+    fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при отмене бронирования');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем статус брони в UI
+            const statusBadge = bookingRow.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-cancelled';
+            statusBadge.textContent = 'Отменено';
+            
+            // Обновляем кнопки действий
+            const actionsColumn = bookingRow.querySelector('.booking-actions');
+            actionsColumn.innerHTML = `
             <div class="action-buttons">
                 <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
                 <button class="action-btn disabled-btn" title="Отменено" disabled><i class="fas fa-times"></i></button>
                 <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
                 <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check-double"></i></button>
             </div>
-        `;
-        
-        showNotification('Бронирование отменено', 'success');
-    })
-    .catch(error => {
-        console.error('Ошибка при отмене бронирования:', error);
-        showNotification('Ошибка при отмене бронирования', 'error');
-    });
+            `;
+            
+            showNotification('Бронирование отменено', 'success');
+        })
+        .catch(error => {
+            console.error('Ошибка при отмене бронирования:', error);
+            showNotification('Ошибка при отмене бронирования', 'error');
+        });
 }
 
 // Функция для отображения информации о бронировании
