@@ -1,13 +1,15 @@
 from django.db.models import Avg
-from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView, CreateAPIView, DestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
-from .models import Establishment, Branch, BranchAdmin
+from .models import Establishment, Branch, BranchAdmin, BranchImage, Menu
 from .serializers import (EstablishmentListSerializer, BranchListSerializer, 
                         BranchDetailSerializer, BranchAdminSerializer,
-                        BranchUpdateSerializer)
+                        BranchUpdateSerializer, BranchImageSerializer,
+                        BranchMainPhotoSerializer, MenuUploadSerializer)
 
 
 class EstablishmentListView(ListAPIView):
@@ -111,6 +113,144 @@ class BranchUpdateView(UpdateAPIView):
         # Возвращаем обновленные данные с использованием BranchDetailSerializer
         detail_serializer = BranchDetailSerializer(instance, context={'request': request})
         return Response(detail_serializer.data)
+
+
+class BranchMainPhotoUploadView(UpdateAPIView):
+    """
+    Представление для загрузки главного фото филиала.
+    Доступно только для администраторов филиала.
+    """
+    queryset = Branch.objects.all()
+    serializer_class = BranchMainPhotoSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def get_queryset(self):
+        # Получаем только те филиалы, где пользователь является администратором
+        user = self.request.user
+        if user.is_staff:
+            admin_branches = BranchAdmin.objects.filter(user=user, is_active=True).values_list('branch_id', flat=True)
+            return Branch.objects.filter(id__in=admin_branches)
+        return Branch.objects.none()
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # Возвращаем URL главного фото
+        main_image = BranchImage.objects.filter(branch=instance, is_main=True).first()
+        if main_image:
+            return Response({
+                'main_photo': request.build_absolute_uri(main_image.image.url)
+            })
+        return Response({'error': 'Ошибка при загрузке фото'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BranchPhotoListCreateView(APIView):
+    """
+    Представление для получения списка и создания фотографий филиала.
+    Доступно только для администраторов филиала.
+    """
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def get_branch(self, pk):
+        # Получаем филиал и проверяем права доступа
+        user = self.request.user
+        if user.is_staff:
+            admin_branches = BranchAdmin.objects.filter(user=user, is_active=True).values_list('branch_id', flat=True)
+            try:
+                return Branch.objects.get(id=pk, id__in=admin_branches)
+            except Branch.DoesNotExist:
+                return None
+        return None
+    
+    def get(self, request, pk):
+        branch = self.get_branch(pk)
+        if not branch:
+            return Response({'error': 'Филиал не найден или у вас нет прав доступа'}, 
+                            status=status.HTTP_404_NOT_FOUND)
+        
+        photos = BranchImage.objects.filter(branch=branch)
+        serializer = BranchImageSerializer(photos, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    def post(self, request, pk):
+        branch = self.get_branch(pk)
+        if not branch:
+            return Response({'error': 'Филиал не найден или у вас нет прав доступа'}, 
+                            status=status.HTTP_404_NOT_FOUND)
+        
+        # Добавляем branch_id в данные запроса
+        data = request.data.copy()
+        data['branch'] = branch.id
+        
+        serializer = BranchImageSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BranchPhotoDetailView(DestroyAPIView):
+    """
+    Представление для удаления фотографии филиала.
+    Доступно только для администраторов филиала.
+    """
+    queryset = BranchImage.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Получаем только те фотографии, которые принадлежат филиалам, 
+        # где пользователь является администратором
+        user = self.request.user
+        branch_pk = self.kwargs.get('branch_pk')
+        
+        if user.is_staff:
+            admin_branches = BranchAdmin.objects.filter(user=user, is_active=True).values_list('branch_id', flat=True)
+            queryset = BranchImage.objects.filter(branch_id__in=admin_branches)
+            
+            # Дополнительно фильтруем по branch_pk, если он указан
+            if branch_pk:
+                queryset = queryset.filter(branch_id=branch_pk)
+                
+            return queryset
+        return BranchImage.objects.none()
+
+
+class MenuUploadView(UpdateAPIView):
+    """
+    Представление для загрузки меню ресторана.
+    Доступно только для администраторов филиала.
+    """
+    queryset = Branch.objects.all()
+    serializer_class = MenuUploadSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def get_queryset(self):
+        # Получаем только те филиалы, где пользователь является администратором
+        user = self.request.user
+        if user.is_staff:
+            admin_branches = BranchAdmin.objects.filter(user=user, is_active=True).values_list('branch_id', flat=True)
+            return Branch.objects.filter(id__in=admin_branches)
+        return Branch.objects.none()
+    
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # Возвращаем URL меню
+        menu = Menu.objects.filter(branch=instance).first()
+        if menu:
+            return Response({
+                'menu_pdf': request.build_absolute_uri(menu.pdf_menu.url)
+            })
+        return Response({'error': 'Ошибка при загрузке меню'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BranchAdminView(ListAPIView):

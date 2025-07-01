@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Establishment, Branch, AdminInvitation, BranchAdmin
+from .models import Establishment, Branch, AdminInvitation, BranchAdmin, BranchImage, Menu
 
 
 class EstablishmentListSerializer(serializers.ModelSerializer):
@@ -258,6 +258,82 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
             establishment.save()
             
         instance.save()
+        return instance
+
+
+class BranchImageSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для работы с фотографиями филиала
+    """
+    url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BranchImage
+        fields = ['id', 'branch', 'image', 'caption', 'is_main', 'order', 'url']
+        read_only_fields = ['id', 'url']
+    
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request and obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+
+class BranchMainPhotoSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для загрузки главного фото филиала
+    """
+    main_photo = serializers.ImageField(write_only=True)
+    
+    class Meta:
+        model = Branch
+        fields = ['main_photo']
+    
+    def update(self, instance, validated_data):
+        main_photo = validated_data.pop('main_photo', None)
+        
+        if main_photo:
+            # Создаем или обновляем главное фото
+            main_image, created = BranchImage.objects.get_or_create(
+                branch=instance,
+                is_main=True,
+                defaults={'image': main_photo, 'caption': f'Главное фото {instance.name}'}
+            )
+            
+            if not created:
+                main_image.image = main_photo
+                main_image.save()
+        
+        return instance
+
+
+class MenuUploadSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для загрузки меню ресторана
+    """
+    menu_pdf = serializers.FileField(write_only=True)
+    
+    class Meta:
+        model = Branch
+        fields = ['menu_pdf']
+    
+    def update(self, instance, validated_data):
+        menu_pdf = validated_data.pop('menu_pdf', None)
+        
+        if menu_pdf:
+            # Создаем или обновляем меню
+            menu, created = Menu.objects.get_or_create(
+                branch=instance,
+                defaults={
+                    'title': f'Меню {instance.name}',
+                    'pdf_menu': menu_pdf
+                }
+            )
+            
+            if not created:
+                menu.pdf_menu = menu_pdf
+                menu.save()
+        
         return instance
 
 
