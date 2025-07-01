@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои отзывы | Table&Go</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/my-reviews.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-text">
+                        <span class="logo-table">Table</span>
+                        <span class="logo-and-go"><span class="logo-and">&</span>Go</span>
+                    </div>
+                </a>
+                <div class="logo-divider"></div>
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Владивосток</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="cooperation.html">Сотрудничество</a></li>
+                        <li><a href="#contacts" class="scroll-to-contacts">Контакты</a></li>
+                        <li><a href="my-bookings.html">Мои брони</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="header-right">
+                <a href="login.html" class="btn btn-outline">Войти</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="reviews-section">
+            <div class="container">
+                <h1 class="page-title">Мои отзывы</h1>
+                
+                <div class="search-filter">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-reviews" class="search-input" placeholder="Поиск по названию ресторана...">
+                    </div>
+                    <div class="filter-wrapper">
+                        <select id="filter-reviews" class="filter-select">
+                            <option value="all">Все даты</option>
+                            <option value="month">За последний месяц</option>
+                            <option value="3months">За последние 3 месяца</option>
+                            <option value="year">За последний год</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="reviews-container" class="reviews-container">
+                    <!-- Здесь будут отзывы пользователя -->
+                    <div class="loader">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Загрузка отзывов...</span>
+                    </div>
+                </div>
+                
+                <div id="empty-reviews" class="empty-message" style="display: none;">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>У вас пока нет отзывов</p>
+                    <a href="index.html" class="btn btn-primary">Найти рестораны</a>
+                </div>
+                
+                <div class="pagination" id="pagination">
+                    <!-- Пагинация будет добавлена через JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer" id="contacts">
+        <div class="container">
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3 class="footer-title">Социальные сети</h3>
+                    <ul class="social-links">
+                        <li><a href="https://www.instagram.com/table_and_go" target="_blank"><i class="fab fa-instagram"></i> https://www.instagram.com/table_and_go</a></li>
+                        <li><a href="https://vk.com/club229925858" target="_blank"><i class="fab fa-vk"></i> https://vk.com/club229992858</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Правовая информация</h3>
+                    <ul class="legal-links">
+                        <li><a href="#">Политика конфиденциальности</a></li>
+                        <li><a href="#">Пользовательское соглашение</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3 class="footer-title">Контакты</h3>
+                    <ul class="contacts">
+                        <li><i class="fas fa-phone"></i> <a href="tel:+79991234567">+7(999)123-45-67</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@tableandgo.ru">info@tableandgo.ru</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">©2025 Table&Go. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/login.js"></script>
+    <script src="js/my-reviews.js"></script>
+</body>
+</html> 

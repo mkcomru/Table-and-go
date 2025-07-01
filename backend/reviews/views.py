@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Review
-from .serializers import ReviewCreateSerializer
+from .serializers import ReviewCreateSerializer, ReviewSerializer
 from django.db import IntegrityError
 
 
@@ -52,6 +52,59 @@ class ReviewCreateView(APIView):
                 }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserReviewsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Получение всех отзывов текущего пользователя"""
+        reviews = Review.objects.filter(user=request.user)
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data)
+
+
+class ReviewDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, review_id):
+        """Получение конкретного отзыва"""
+        try:
+            review = Review.objects.get(id=review_id, user=request.user)
+            serializer = ReviewSerializer(review)
+            return Response(serializer.data)
+        except Review.DoesNotExist:
+            return Response({"error": "Отзыв не найден"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def patch(self, request, review_id):
+        """Обновление отзыва"""
+        try:
+            review = Review.objects.get(id=review_id, user=request.user)
+            
+            # Обновляем только разрешенные поля
+            if 'rating' in request.data:
+                review.rating = request.data['rating']
+            
+            if 'text' in request.data:
+                review.comment = request.data['text']
+            
+            # Отмечаем отзыв как неодобренный для повторной модерации
+            review.is_approved = False
+            review.save()
+            
+            serializer = ReviewSerializer(review)
+            return Response(serializer.data)
+        except Review.DoesNotExist:
+            return Response({"error": "Отзыв не найден"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def delete(self, request, review_id):
+        """Удаление отзыва"""
+        try:
+            review = Review.objects.get(id=review_id, user=request.user)
+            review.delete()
+            return Response({"success": True, "message": "Отзыв успешно удален"}, status=status.HTTP_204_NO_CONTENT)
+        except Review.DoesNotExist:
+            return Response({"error": "Отзыв не найден"}, status=status.HTTP_404_NOT_FOUND)
 
 
 

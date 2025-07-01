@@ -21,6 +21,46 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         return value
 
 
+class ReviewSerializer(serializers.ModelSerializer):
+    branch_name = serializers.SerializerMethodField()
+    branch_address = serializers.SerializerMethodField()
+    branch_image = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    text = serializers.CharField(source='comment')
+    
+    class Meta:
+        model = Review
+        fields = [
+            'id',
+            'rating',
+            'text',
+            'created_at',
+            'branch_name',
+            'branch_address',
+            'branch_image',
+            'user_name',
+        ]
+    
+    def get_branch_name(self, obj):
+        return obj.branch.name if obj.branch else 'Неизвестное заведение'
+    
+    def get_branch_address(self, obj):
+        return obj.branch.address if obj.branch else ''
+    
+    def get_branch_image(self, obj):
+        return obj.branch.main_image if obj.branch else None
+    
+    def get_user_name(self, obj):
+        if obj.user:
+            if obj.user.first_name and obj.user.last_name:
+                return f"{obj.user.first_name} {obj.user.last_name}"
+            elif obj.user.first_name:
+                return obj.user.first_name
+            else:
+                return obj.user.username
+        return 'Анонимный пользователь'
+
+
 
 
 

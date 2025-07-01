@@ -96,6 +96,7 @@ function updateAuthUI(userData) {
             <ul>
                 <li><a href="profile.html" class="active"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
+                <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>
         </div>
@@ -253,40 +254,25 @@ async function updateProfile() {
         });
         
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Ошибка при обновлении профиля');
+            throw new Error('Ошибка при обновлении профиля');
         }
         
+        // Получаем обновленные данные пользователя
         const updatedUserData = await response.json();
         
         // Обновляем данные в localStorage
         localStorage.setItem('user_data', JSON.stringify(updatedUserData));
         
-        // Также обновляем имя и фамилию в JWT токене, если это возможно
-        const token = localStorage.getItem('authToken');
-        if (token) {
-            try {
-                const tokenParts = token.split('.');
-                if (tokenParts.length === 3) {
-                    const payload = JSON.parse(atob(tokenParts[1]));
-                    // Обновляем данные в токене (хотя это не изменит сам токен)
-                    payload.first_name = updatedUserData.first_name;
-                    payload.last_name = updatedUserData.last_name;
-                }
-            } catch (e) {
-                console.error('Ошибка при обновлении данных в токене:', e);
-            }
-        }
-        
         // Обновляем интерфейс
         updateAuthUI(updatedUserData);
+        fillProfileForm(updatedUserData);
         
-        // Показываем уведомление об успехе
+        // Показываем уведомление об успешном обновлении
         showNotification('Профиль успешно обновлен', 'success');
         
     } catch (error) {
         console.error('Ошибка при обновлении профиля:', error);
-        showError(error.message || 'Не удалось обновить профиль. Пожалуйста, попробуйте позже.');
+        showError('Не удалось обновить профиль. Пожалуйста, проверьте введенные данные и попробуйте снова.');
     }
 }
 

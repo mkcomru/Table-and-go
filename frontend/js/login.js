@@ -288,6 +288,7 @@ function updateAuthUI(isLoggedInOrUserData) {
             <ul>
                 <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-check"></i> Мои брони</a></li>
+                <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>
         `;

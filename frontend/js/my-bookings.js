@@ -133,18 +133,21 @@ function updateAuthUI(userData) {
     // Очищаем текущие элементы
     headerRight.innerHTML = '';
     
-    // Получаем данные пользователя из localStorage, если они не были переданы
-    if (!userData || Object.keys(userData).length === 0) {
-        const userJson = localStorage.getItem('user');
-        if (userJson) {
-            try {
-                userData = JSON.parse(userJson);
-            } catch (e) {
-                console.error('Ошибка при парсинге данных пользователя:', e);
-                userData = {};
-            }
+    // Всегда получаем свежие данные пользователя из localStorage
+    const userDataJson = localStorage.getItem('user_data');
+    let userDataFromStorage = {};
+    
+    if (userDataJson) {
+        try {
+            userDataFromStorage = JSON.parse(userDataJson);
+        } catch (e) {
+            console.error('Ошибка при парсинге данных пользователя:', e);
         }
     }
+    
+    // Используем данные из localStorage, если они есть
+    userData = userDataFromStorage && Object.keys(userDataFromStorage).length > 0 ? 
+        userDataFromStorage : (userData || {});
     
     // Определяем имя для отображения
     let firstName = userData.first_name || '';
@@ -189,6 +192,7 @@ function updateAuthUI(userData) {
             <ul>
                 <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
+                <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
             </ul>
         </div>
