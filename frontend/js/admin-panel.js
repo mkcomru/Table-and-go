@@ -746,6 +746,10 @@ function showBookingInfo(bookingId) {
 function openBookingDetailsModal(bookingData) {
     const modal = document.getElementById('booking-details-modal');
     
+    // Логируем данные для отладки
+    console.log("Данные бронирования:", bookingData);
+    console.log("Данные пользователя:", bookingData.user);
+    
     // Заполняем данные в модальном окне
     document.getElementById('details-booking-number').textContent = bookingData.book_number || `#${bookingData.id}`;
     

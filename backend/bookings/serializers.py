@@ -102,11 +102,13 @@ class BookingDetailsSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     booking_date = serializers.SerializerMethodField()
     booking_time = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
     
     class Meta:
         model = Booking
         fields = [
             'id',
+            'user',
             'branch',
             'branch_name',
             'branch_address',
@@ -118,6 +120,7 @@ class BookingDetailsSerializer(serializers.ModelSerializer):
             'special_requests',
             'status',
             'book_number',
+            'table',
             'created_at'
         ]
     
