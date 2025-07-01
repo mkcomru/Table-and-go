@@ -481,7 +481,7 @@ function initActionButtons() {
                 // Вместо прямого вызова confirmBooking, открываем модальное окно
                 openConfirmModal(bookingId, bookingRow);
             } else if (button.classList.contains('cancel-btn')) {
-                cancelBooking(bookingId, bookingRow);
+                openCancelModal(bookingId, bookingRow);
             } else if (button.classList.contains('info-btn')) {
                 showBookingInfo(bookingId);
             } else if (button.classList.contains('complete-btn')) {
@@ -492,6 +492,7 @@ function initActionButtons() {
     
     // Инициализация обработчиков для модального окна
     initConfirmModal();
+    initCancelModal();
 }
 
 // Функция для открытия модального окна подтверждения
@@ -611,50 +612,106 @@ function confirmBooking(bookingId, bookingRow, tableNumber) {
     });
 }
 
+// Функция для открытия модального окна отмены
+function openCancelModal(bookingId, bookingRow) {
+    const modal = document.getElementById('cancel-booking-modal');
+    const bookingNumberSpan = document.getElementById('cancel-booking-number');
+    const bookingIdInput = document.getElementById('cancel-booking-id');
+    
+    // Получаем номер бронирования из строки таблицы
+    const bookingNumberElement = bookingRow.querySelector('.booking-number');
+    const bookingNumber = bookingNumberElement ? bookingNumberElement.textContent : bookingId;
+    
+    // Заполняем данные в модальном окне
+    bookingNumberSpan.textContent = bookingNumber;
+    bookingIdInput.value = bookingId;
+    
+    // Отображаем модальное окно
+    modal.classList.add('active');
+}
+
+// Функция для инициализации обработчиков модального окна отмены
+function initCancelModal() {
+    const modal = document.getElementById('cancel-booking-modal');
+    const closeBtn = document.getElementById('close-cancel-modal');
+    const cancelBtn = document.getElementById('cancel-booking-btn');
+    
+    // Обработчик для кнопки "Закрыть"
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+    
+    // Обработчик для кнопки "Отменить бронь"
+    cancelBtn.addEventListener('click', function() {
+        const bookingId = document.getElementById('cancel-booking-id').value;
+        
+        // Находим строку таблицы с этим бронированием
+        const bookingRow = document.querySelector(`.booking-row[data-id="${bookingId}"]`);
+        
+        // Вызываем функцию отмены бронирования
+        cancelBooking(bookingId, bookingRow);
+        
+        // Закрываем модальное окно
+        modal.classList.remove('active');
+    });
+    
+    // Закрытие модального окна при клике на оверлей
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Закрытие модального окна при нажатии Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
+}
+
 // Функция для отмены бронирования
 function cancelBooking(bookingId, bookingRow) {
-    if (confirm('Вы уверены, что хотите отменить бронирование ' + bookingId + '?')) {
-        // Получаем токен авторизации
-        const authToken = localStorage.getItem('authToken');
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
+    
+    // Отправляем запрос на отмену бронирования
+    fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при отмене бронирования');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Обновляем статус брони в UI
+        const statusBadge = bookingRow.querySelector('.status-badge');
+        statusBadge.className = 'status-badge status-cancelled';
+        statusBadge.textContent = 'Отменено';
         
-        // Отправляем запрос на отмену бронирования
-        fetch(`http://127.0.0.1:8000/api/bookings/cancel/${bookingId}/`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка при отмене бронирования');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Обновляем статус брони в UI
-            const statusBadge = bookingRow.querySelector('.status-badge');
-            statusBadge.className = 'status-badge status-cancelled';
-            statusBadge.textContent = 'Отменено';
-            
-            // Обновляем кнопки действий
-            const actionsColumn = bookingRow.querySelector('.booking-actions');
-            actionsColumn.innerHTML = `
-                <div class="action-buttons">
-                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
-                    <button class="action-btn disabled-btn" title="Отменено" disabled><i class="fas fa-times"></i></button>
-                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                    <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check-double"></i></button>
-                </div>
-            `;
-            
-            showNotification('Бронирование отменено', 'success');
-        })
-        .catch(error => {
-            console.error('Ошибка при отмене бронирования:', error);
-            showNotification('Ошибка при отмене бронирования', 'error');
-        });
-    }
+        // Обновляем кнопки действий
+        const actionsColumn = bookingRow.querySelector('.booking-actions');
+        actionsColumn.innerHTML = `
+            <div class="action-buttons">
+                <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check"></i></button>
+                <button class="action-btn disabled-btn" title="Отменено" disabled><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+                <button class="action-btn disabled-btn" title="Действие недоступно" disabled><i class="fas fa-check-double"></i></button>
+            </div>
+        `;
+        
+        showNotification('Бронирование отменено', 'success');
+    })
+    .catch(error => {
+        console.error('Ошибка при отмене бронирования:', error);
+        showNotification('Ошибка при отмене бронирования', 'error');
+    });
 }
 
 // Функция для отображения информации о бронировании

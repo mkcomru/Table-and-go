@@ -118,6 +118,7 @@ class BookingCancelView(APIView):
     
     def post(self, request, booking_id):
         user = request.user
+        cancel_reason = request.data.get('cancel_reason')
         
         # Проверяем, является ли пользователь суперпользователем или системным администратором
         if user.is_superuser or getattr(user, 'is_system_admin', False):
@@ -131,6 +132,11 @@ class BookingCancelView(APIView):
                     }, status=status.HTTP_400_BAD_REQUEST)
                 
                 booking.status = 'cancelled'
+                
+                # Если указана причина отмены, сохраняем её
+                if cancel_reason:
+                    booking.cancel_reason = cancel_reason
+                
                 booking.save()
                 
                 return Response({
@@ -145,25 +151,44 @@ class BookingCancelView(APIView):
                     "message": "Бронирование не найдено"
                 }, status=status.HTTP_404_NOT_FOUND)
         else:
-            # Для обычных пользователей проверяем, что это их бронирование
+            # Проверяем, является ли пользователь администратором филиала
             try:
-                booking = Booking.objects.get(id=booking_id, user=user)
+                booking = Booking.objects.get(id=booking_id)
                 
-                if booking.status in ['cancelled', 'completed']:
+                # Проверяем, является ли пользователь администратором филиала
+                is_admin = BranchAdmin.objects.filter(
+                    user=user,
+                    branch_id=booking.branch_id,
+                    is_active=True
+                ).exists()
+                
+                # Если пользователь является администратором филиала или это его собственное бронирование
+                if is_admin or booking.user == user:
+                    if booking.status in ['cancelled', 'completed']:
+                        return Response({
+                            "success": False,
+                            "message": f"Невозможно отменить бронь в статусе '{booking.status}'"
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    booking.status = 'cancelled'
+                    
+                    # Если указана причина отмены, сохраняем её
+                    if cancel_reason:
+                        booking.cancel_reason = cancel_reason
+                    
+                    booking.save()
+                    
+                    return Response({
+                        "success": True,
+                        "message": "Бронирование успешно отменено",
+                        "booking_id": booking.id,
+                        "booking_number": booking.book_number
+                    }, status=status.HTTP_200_OK)
+                else:
                     return Response({
                         "success": False,
-                        "message": f"Невозможно отменить бронь в статусе '{booking.status}'"
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                
-                booking.status = 'cancelled'
-                booking.save()
-                
-                return Response({
-                    "success": True,
-                    "message": "Бронирование успешно отменено",
-                    "booking_id": booking.id,
-                    "booking_number": booking.book_number
-                }, status=status.HTTP_200_OK)
+                        "message": "У вас нет прав на отмену этого бронирования"
+                    }, status=status.HTTP_403_FORBIDDEN)
                 
             except Booking.DoesNotExist:
                 return Response({

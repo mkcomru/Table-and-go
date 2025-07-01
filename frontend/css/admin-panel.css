@@ -663,4 +663,24 @@ body {
 
 .btn-confirm:hover {
     background-color: #218838;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.form-control.textarea {
+    resize: vertical;
+    min-height: 80px;
 } 
