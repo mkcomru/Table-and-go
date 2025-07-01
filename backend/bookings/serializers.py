@@ -138,7 +138,7 @@ class AdminBookingSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Booking
-        fields = ['id', 'user', 'booking_datetime', 'guests_count', 'status', 'special_requests', 'created_at', 'book_number']
+        fields = ['id', 'user', 'booking_datetime', 'guests_count', 'status', 'special_requests', 'created_at', 'book_number', 'table']
 
 
 
