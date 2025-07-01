@@ -163,10 +163,16 @@ function redirectBasedOnRole(userData) {
     const urlParams = new URLSearchParams(window.location.search);
     const redirectUrl = urlParams.get('redirect');
     
-    // Если пользователь является персоналом ресторана, но не является суперпользователем или системным администратором
-    if (userData.is_staff && !userData.is_superuser && !userData.is_system_admin) {
-        // Перенаправляем на страницу администратора ресторана
-        window.location.href = 'admin-panel.html';
+    // Если пользователь является персоналом ресторана (is_staff=True)
+    if (userData.is_staff === true) {
+        // Для персонала разрешаем только admin-panel.html и profile.html
+        if (redirectUrl && 
+            (redirectUrl.includes('admin-panel.html') || redirectUrl.includes('profile.html'))) {
+            window.location.href = redirectUrl;
+        } else {
+            // В противном случае всегда перенаправляем на панель администратора ресторана
+            window.location.href = 'admin-panel.html';
+        }
     } else {
         // Для обычных пользователей, суперпользователей и системных администраторов
         // Перенаправляем на указанную страницу или на главную страницу
@@ -206,6 +212,34 @@ function checkAuth() {
                 return;
             }
             
+            // Получаем информацию о пользователе из localStorage
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            
+            // Если пользователь является персоналом ресторана (is_staff=True)
+            const isStaff = userData.is_staff === true;
+            const isAdmin = userData.is_superuser === true || userData.is_system_admin === true;
+            
+            // Если это персонал на странице профиля - скрываем ненужные элементы навигации
+            if (isStaff && !isAdmin && window.location.pathname.includes('profile.html')) {
+                // Скрываем ненужные элементы в хедере
+                hideNavElementsForStaff();
+            }
+            
+            // Проверка перенаправления для персонала
+            if (isStaff && 
+                !window.location.pathname.includes('admin-panel.html') && 
+                !window.location.pathname.includes('profile.html')) {
+                window.location.href = 'admin-panel.html';
+                return;
+            }
+            
+            // Если пользователь не является персоналом, но пытается зайти на admin-panel.html,
+            // перенаправляем его на главную страницу
+            if (!isStaff && !isAdmin && window.location.pathname.includes('admin-panel.html')) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
             // Если локальная проверка прошла успешно, проверяем на сервере
             fetch('http://127.0.0.1:8000/auth/verify/', {
                 method: 'POST',
@@ -218,9 +252,6 @@ function checkAuth() {
                 if (response.ok) {
                     // Если токен валидный, обновляем UI
                     updateAuthUI(true);
-                    
-                    // Проверяем, нужно ли перенаправить пользователя на страницу администратора ресторана
-                    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
                     
                     // Если это страница входа и пользователь уже авторизован, перенаправляем в зависимости от роли
                     if (window.location.pathname.includes('login.html')) {
@@ -246,6 +277,58 @@ function checkAuth() {
         }
     } else {
         updateAuthUI(false);
+    }
+}
+
+// Функция для скрытия ненужных элементов навигации для персонала
+function hideNavElementsForStaff() {
+    // Скрываем все элементы навигации в хедере
+    const headerNav = document.querySelector('.header-nav');
+    if (headerNav) {
+        headerNav.style.display = 'none';
+    }
+    
+    // Скрываем блок "Сотрудничество", если он есть
+    const cooperationBlock = document.querySelector('.cooperation');
+    if (cooperationBlock) {
+        cooperationBlock.style.display = 'none';
+    }
+    
+    // Скрываем блок "Мои брони", если он есть
+    const myBookingsBlock = document.querySelector('.my-bookings-section');
+    if (myBookingsBlock) {
+        myBookingsBlock.style.display = 'none';
+    }
+    
+    // Скрываем блок "Контакты", если он есть
+    const contactsBlock = document.querySelector('.contacts-section');
+    if (contactsBlock) {
+        contactsBlock.style.display = 'none';
+    }
+    
+    // Скрываем блок "Отзывы", если он есть
+    const reviewsBlock = document.querySelector('.reviews-section');
+    if (reviewsBlock) {
+        reviewsBlock.style.display = 'none';
+    }
+    
+    // Скрываем все ссылки из основной навигации
+    const navLinks = document.querySelectorAll('.nav-item');
+    navLinks.forEach(link => {
+        link.style.display = 'none';
+    });
+    
+    // Добавляем кнопку возврата на панель администратора
+    const headerRight = document.querySelector('.header-right');
+    if (headerRight) {
+        // Проверяем, нет ли уже такой кнопки
+        if (!document.querySelector('.back-to-admin')) {
+            const backButton = document.createElement('a');
+            backButton.href = 'admin-panel.html';
+            backButton.className = 'btn btn-primary back-to-admin';
+            backButton.innerHTML = '<i class="fas fa-arrow-left"></i> Вернуться к панели';
+            headerRight.insertBefore(backButton, headerRight.firstChild);
+        }
     }
 }
 
@@ -319,33 +402,44 @@ function updateAuthUI(isLoggedInOrUserData) {
         const userDropdown = document.createElement('div');
         userDropdown.className = 'user-dropdown';
         
-        // Формируем HTML для выпадающего меню, добавляем ссылку на админ-панель для администраторов
-        let dropdownHtml = `
-            <ul>
+        // Формируем HTML для выпадающего меню в зависимости от роли пользователя
+        let dropdownHtml = '<ul>';
+        
+        // Для персонала показываем только профиль и кнопку выхода
+        if (isStaff && !isAdmin) {
+            dropdownHtml += `
+                <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+            `;
+        } else {
+            // Для обычных пользователей и администраторов показываем все пункты меню
+            dropdownHtml += `
                 <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                 <li><a href="my-bookings.html"><i class="fas fa-calendar-check"></i> Мои брони</a></li>
                 <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
-        `;
-        
-        // Добавляем ссылку на админ-панель только для администраторов
-        if (isAdmin) {
-            dropdownHtml += `
-                <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
             `;
-        }
-        
-        // Добавляем ссылку на панель администратора ресторана для персонала
-        if (isStaff) {
+            
+            // Добавляем ссылку на админ-панель только для администраторов
+            if (isAdmin) {
+                dropdownHtml += `
+                    <li><a href="http://127.0.0.1:8000/admin" target="_blank"><i class="fas fa-tools"></i> Админ-панель</a></li>
+                `;
+            }
+            
+            // Добавляем ссылку на панель администратора ресторана для персонала
+            if (isStaff) {
+                dropdownHtml += `
+                    <li><a href="admin-panel.html"><i class="fas fa-concierge-bell"></i> Панель ресторана</a></li>
+                `;
+            }
+            
+            // Добавляем кнопку выхода
             dropdownHtml += `
-                <li><a href="admin-panel.html"><i class="fas fa-concierge-bell"></i> Панель ресторана</a></li>
-            `;
-        }
-        
-        // Добавляем кнопку выхода
-        dropdownHtml += `
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
-            </ul>
-        `;
+            `;
+        }
+        
+        dropdownHtml += '</ul>';
         
         userDropdown.innerHTML = dropdownHtml;
         

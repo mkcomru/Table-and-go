@@ -34,8 +34,292 @@ function checkAuthAndRole() {
     initPagination();
     initUserDropdown();
     
+    // Загружаем информацию о филиалах пользователя
+    loadUserBranches(userData);
+    
     // Обновляем имя пользователя в шапке
     updateUserInfo(userData);
+}
+
+// Функция для загрузки информации о филиалах пользователя
+function loadUserBranches(userData) {
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
+    
+    // Для пользователя с is_staff = true
+    if (userData.is_staff === true) {
+        // Запрашиваем список всех филиалов (API вернет только доступные пользователю)
+        fetch('http://127.0.0.1:8000/api/branch/', {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке филиалов');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Сохраняем список филиалов
+            const branches = data.results || [];
+            
+            // Если есть филиалы
+            if (branches.length > 0) {
+                // Находим филиал, которым управляет пользователь
+                // Примечание: бэкенд должен отфильтровать и вернуть только те филиалы, 
+                // к которым пользователь имеет доступ как администратор
+                const branch = branches[0]; // Берем первый филиал из списка
+                
+                // Обновляем заголовок панели администратора
+                const adminHeader = document.querySelector('.admin-header h1');
+                if (adminHeader) {
+                    adminHeader.textContent = `Панель администратора ресторана "${branch.name}"`;
+                }
+                
+                // Сохраняем ID текущего филиала
+                window.currentBranchId = branch.id;
+                
+                // Загружаем брони для филиала
+                loadBookings(branch.id);
+            } else {
+                showNotification('У вас нет доступа к филиалам', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке филиалов:', error);
+            showNotification('Ошибка при загрузке филиалов', 'error');
+        });
+    } else {
+        // Если пользователь не является персоналом, перенаправляем на главную страницу
+        window.location.href = 'index.html';
+    }
+}
+
+// Функция для создания селектора филиалов
+function createBranchSelector(branches) {
+    // Если только один филиал, просто показываем его название
+    if (branches.length === 1) {
+        const adminHeader = document.querySelector('.admin-header h1');
+        if (adminHeader) {
+            adminHeader.textContent = `Панель администратора ресторана "${branches[0].name}"`;
+        }
+        
+        // Сохраняем ID текущего филиала
+        window.currentBranchId = branches[0].id;
+        return;
+    }
+    
+    // Если несколько филиалов, создаем селектор
+    const adminHeader = document.querySelector('.admin-header .container');
+    if (adminHeader) {
+        const headerContent = `
+            <div class="admin-header-content">
+                <h1>Панель администратора ресторана</h1>
+                <div class="branch-selector">
+                    <label for="branch-select">Филиал:</label>
+                    <select id="branch-select">
+                        ${branches.map(branch => `<option value="${branch.id}">${branch.name}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+        `;
+        
+        adminHeader.innerHTML = headerContent;
+        
+        // Добавляем обработчик события изменения филиала
+        const branchSelect = document.getElementById('branch-select');
+        if (branchSelect) {
+            branchSelect.addEventListener('change', function() {
+                const branchId = this.value;
+                window.currentBranchId = branchId;
+                loadBookings(branchId);
+            });
+            
+            // Сохраняем ID текущего филиала
+            window.currentBranchId = branchSelect.value;
+        }
+    }
+}
+
+// Функция для загрузки броней филиала
+function loadBookings(branchId) {
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
+    
+    // Получаем значения фильтров
+    const dateFilter = document.getElementById('booking-date-filter').value;
+    const statusFilter = document.getElementById('status-filter').value;
+    
+    // Формируем URL с параметрами
+    // Используем правильный эндпоинт API - /bookings/branch/ (или тот, который определен на бэкенде)
+    let url = `http://127.0.0.1:8000/api/bookings/branch/?branch_id=${branchId}`;
+    
+    // Добавляем параметры фильтрации, если они указаны
+    if (dateFilter) {
+        // Преобразуем формат даты из YYYY-MM-DD в формат API (DD.MM.YYYY)
+        const dateParts = dateFilter.split('-');
+        if (dateParts.length === 3) {
+            const formattedDate = `${dateParts[2]}.${dateParts[1]}.${dateParts[0]}`;
+            url += `&date=${formattedDate}`;
+        }
+    }
+    
+    if (statusFilter && statusFilter !== 'all') {
+        url += `&status=${statusFilter}`;
+    }
+    
+    // Показываем индикатор загрузки
+    showLoading(true);
+    
+    // Отправляем запрос на получение броней
+    fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке броней');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Скрываем индикатор загрузки
+        showLoading(false);
+        
+        // Отображаем брони
+        // Проверяем структуру ответа - либо массив результатов, либо данные уже являются массивом
+        const bookings = data.results || data;
+        renderBookings(bookings);
+        
+        // Обновляем информацию о пагинации
+        const totalCount = data.count || bookings.length;
+        updatePagination(totalCount, bookings.length);
+    })
+    .catch(error => {
+        console.error('Ошибка при загрузке броней:', error);
+        showLoading(false);
+        showNotification('Ошибка при загрузке броней', 'error');
+    });
+}
+
+// Функция для отрисовки броней
+function renderBookings(bookings) {
+    const bookingsTable = document.querySelector('.bookings-table-body');
+    
+    if (!bookingsTable) return;
+    
+    // Очищаем таблицу
+    bookingsTable.innerHTML = '';
+    
+    // Если нет броней, показываем сообщение
+    if (!bookings || bookings.length === 0) {
+        bookingsTable.innerHTML = `
+            <div class="empty-bookings">
+                <p>Нет броней, соответствующих выбранным критериям</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Отображаем брони
+    bookings.forEach(booking => {
+        const bookingRow = document.createElement('div');
+        bookingRow.className = 'booking-row';
+        bookingRow.setAttribute('data-id', booking.id);
+        
+        // Определяем статус брони
+        let statusClass = '';
+        let statusText = '';
+        
+        switch (booking.status) {
+            case 'pending':
+                statusClass = 'status-pending';
+                statusText = 'Новое';
+                break;
+            case 'confirmed':
+                statusClass = 'status-confirmed';
+                statusText = 'Подтверждено';
+                break;
+            case 'completed':
+                statusClass = 'status-completed';
+                statusText = 'Завершено';
+                break;
+            case 'cancelled':
+                statusClass = 'status-cancelled';
+                statusText = 'Отменено';
+                break;
+            default:
+                statusClass = 'status-pending';
+                statusText = 'Новое';
+        }
+        
+        // Формируем кнопки действий в зависимости от статуса
+        let actionsHtml = '';
+        
+        if (booking.status === 'pending') {
+            actionsHtml = `
+                <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+            `;
+        } else if (booking.status === 'confirmed') {
+            actionsHtml = `
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+            `;
+        } else {
+            actionsHtml = `
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+            `;
+        }
+        
+        // Форматируем дату и время - учитываем разные форматы данных от бэкенда
+        const bookingDateTime = booking.datetime || booking.booking_datetime ? 
+            new Date(booking.datetime || booking.booking_datetime) : new Date();
+        const formattedDate = bookingDateTime.toLocaleDateString('ru-RU');
+        const formattedTime = bookingDateTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        
+        // Получаем информацию о пользователе
+        const userName = booking.user_name || 
+            (booking.user && (booking.user.first_name || booking.user.username)) || 
+            'Не указано';
+        
+        const userPhone = booking.user_phone || 
+            (booking.user && booking.user.phone) || 
+            'Не указано';
+        
+        // Формируем номер бронирования
+        const bookingNumber = booking.booking_number || booking.book_number || `#${booking.id}`;
+        
+        // Формируем строку таблицы
+        bookingRow.innerHTML = `
+            <div class="booking-column booking-number" data-label="Номер брони">${bookingNumber}</div>
+            <div class="booking-column booking-name" data-label="Имя">${userName}</div>
+            <div class="booking-column booking-phone" data-label="Телефон">${userPhone}</div>
+            <div class="booking-column booking-datetime" data-label="Дата и время">${formattedDate}, ${formattedTime}</div>
+            <div class="booking-column booking-table" data-label="Стол">${booking.table_number ? 'Стол ' + booking.table_number : 'Ожидает назначения'}</div>
+            <div class="booking-column booking-guests" data-label="Гостей">${booking.guests_count || 0}</div>
+            <div class="booking-column booking-status" data-label="Статус">
+                <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="booking-column booking-actions" data-label="Действия">
+                ${actionsHtml}
+            </div>
+        `;
+        
+        bookingsTable.appendChild(bookingRow);
+    });
+}
+
+// Функция для обновления информации о пагинации
+function updatePagination(totalCount, currentCount) {
+    const paginationSummary = document.querySelector('.bookings-summary p');
+    
+    if (paginationSummary) {
+        paginationSummary.textContent = `Показано ${currentCount} из ${totalCount} бронирований`;
+    }
 }
 
 // Функция для обновления информации о пользователе
@@ -99,19 +383,10 @@ function initStatusFilter() {
 
 // Функция для фильтрации бронирований
 function filterBookings() {
-    const dateFilter = document.getElementById('booking-date-filter').value;
-    const statusFilter = document.getElementById('status-filter').value;
-    
-    // Здесь будет логика фильтрации бронирований
-    console.log('Фильтрация бронирований:', { date: dateFilter, status: statusFilter });
-    
-    // В реальном приложении здесь будет запрос к API для получения отфильтрованных данных
-    // Пока просто имитируем загрузку
-    showLoading(true);
-    
-    setTimeout(() => {
-        showLoading(false);
-    }, 500);
+    // Если есть текущий филиал, загружаем его брони с новыми фильтрами
+    if (window.currentBranchId) {
+        loadBookings(window.currentBranchId);
+    }
 }
 
 // Функция для отображения/скрытия индикатора загрузки
@@ -125,9 +400,6 @@ function showLoading(isLoading) {
                 <span>Загрузка бронирований...</span>
             </div>
         `;
-    } else {
-        // В реальном приложении здесь будет отрисовка полученных данных
-        // Пока просто восстанавливаем исходное состояние для демонстрации
     }
 }
 
@@ -141,8 +413,7 @@ function initActionButtons() {
             if (!button) return;
             
             const bookingRow = button.closest('.booking-row');
-            const bookingId = bookingRow.getAttribute('data-id') || 
-                              bookingRow.querySelector('.booking-number').textContent.trim();
+            const bookingId = bookingRow.getAttribute('data-id');
             
             if (button.classList.contains('confirm-btn')) {
                 confirmBooking(bookingId, bookingRow);
@@ -158,59 +429,139 @@ function initActionButtons() {
 // Функция для подтверждения бронирования
 function confirmBooking(bookingId, bookingRow) {
     if (confirm('Вы уверены, что хотите подтвердить бронирование ' + bookingId + '?')) {
-        // Здесь будет запрос к API для подтверждения бронирования
-        console.log('Подтверждение бронирования:', bookingId);
+        // Получаем токен авторизации
+        const authToken = localStorage.getItem('authToken');
         
-        // Имитация успешного ответа
-        const statusBadge = bookingRow.querySelector('.status-badge');
-        statusBadge.className = 'status-badge status-confirmed';
-        statusBadge.textContent = 'Подтверждено';
-        
-        // Обновляем кнопки действий
-        const actionsColumn = bookingRow.querySelector('.booking-actions');
-        actionsColumn.innerHTML = `
-            <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-            <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-        `;
-        
-        // Назначаем стол (в реальном приложении это будет делаться через диалоговое окно)
-        const tableColumn = bookingRow.querySelector('.booking-table');
-        if (tableColumn.textContent.includes('Ожидает')) {
-            tableColumn.textContent = 'Стол ' + Math.floor(Math.random() * 10 + 1);
-        }
-        
-        showNotification('Бронирование успешно подтверждено', 'success');
+        // Отправляем запрос на подтверждение бронирования
+        fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                // Здесь можно добавить дополнительные параметры, например, номер стола
+                table_number: Math.floor(Math.random() * 10 + 1) // Для демонстрации
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при подтверждении бронирования');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем статус брони в UI
+            const statusBadge = bookingRow.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-confirmed';
+            statusBadge.textContent = 'Подтверждено';
+            
+            // Обновляем кнопки действий
+            const actionsColumn = bookingRow.querySelector('.booking-actions');
+            actionsColumn.innerHTML = `
+                <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+            `;
+            
+            // Обновляем информацию о столе
+            const tableColumn = bookingRow.querySelector('.booking-table');
+            if (data.table_number) {
+                tableColumn.textContent = 'Стол ' + data.table_number;
+            } else if (tableColumn.textContent.includes('Ожидает')) {
+                tableColumn.textContent = 'Стол ' + Math.floor(Math.random() * 10 + 1);
+            }
+            
+            showNotification('Бронирование успешно подтверждено', 'success');
+        })
+        .catch(error => {
+            console.error('Ошибка при подтверждении бронирования:', error);
+            showNotification('Ошибка при подтверждении бронирования', 'error');
+        });
     }
 }
 
 // Функция для отмены бронирования
 function cancelBooking(bookingId, bookingRow) {
     if (confirm('Вы уверены, что хотите отменить бронирование ' + bookingId + '?')) {
-        // Здесь будет запрос к API для отмены бронирования
-        console.log('Отмена бронирования:', bookingId);
+        // Получаем токен авторизации
+        const authToken = localStorage.getItem('authToken');
         
-        // Имитация успешного ответа
-        const statusBadge = bookingRow.querySelector('.status-badge');
-        statusBadge.className = 'status-badge status-cancelled';
-        statusBadge.textContent = 'Отменено';
-        
-        // Обновляем кнопки действий
-        const actionsColumn = bookingRow.querySelector('.booking-actions');
-        actionsColumn.innerHTML = `
-            <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-        `;
-        
-        showNotification('Бронирование отменено', 'success');
+        // Отправляем запрос на отмену бронирования
+        fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при отмене бронирования');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Обновляем статус брони в UI
+            const statusBadge = bookingRow.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-cancelled';
+            statusBadge.textContent = 'Отменено';
+            
+            // Обновляем кнопки действий
+            const actionsColumn = bookingRow.querySelector('.booking-actions');
+            actionsColumn.innerHTML = `
+                <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
+            `;
+            
+            showNotification('Бронирование отменено', 'success');
+        })
+        .catch(error => {
+            console.error('Ошибка при отмене бронирования:', error);
+            showNotification('Ошибка при отмене бронирования', 'error');
+        });
     }
 }
 
 // Функция для отображения информации о бронировании
 function showBookingInfo(bookingId) {
-    // Здесь будет запрос к API для получения подробной информации о бронировании
-    console.log('Просмотр информации о бронировании:', bookingId);
+    // Получаем токен авторизации
+    const authToken = localStorage.getItem('authToken');
     
-    // В реальном приложении здесь будет открытие модального окна с подробной информацией
-    alert('Информация о бронировании ' + bookingId + '\n\nВ реальном приложении здесь будет модальное окно с подробной информацией о бронировании.');
+    // Отправляем запрос на получение информации о бронировании
+    fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/`, {
+        headers: {
+            'Authorization': `Bearer ${authToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка при получении информации о бронировании');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // В реальном приложении здесь будет открытие модального окна с подробной информацией
+        const bookingInfo = `
+            Информация о бронировании #${data.booking_number || data.id}
+            
+            Имя: ${data.user_name || data.user?.first_name || 'Не указано'}
+            Телефон: ${data.user_phone || data.user?.phone || 'Не указано'}
+            Email: ${data.user_email || data.user?.email || 'Не указано'}
+            
+            Дата и время: ${new Date(data.datetime || data.booking_datetime).toLocaleString('ru-RU')}
+            Количество гостей: ${data.guests_count || 0}
+            Стол: ${data.table_number ? 'Стол ' + data.table_number : 'Ожидает назначения'}
+            
+            Статус: ${data.status}
+            
+            Комментарий: ${data.comment || data.special_requests || 'Нет комментария'}
+        `;
+        
+        alert(bookingInfo);
+    })
+    .catch(error => {
+        console.error('Ошибка при получении информации о бронировании:', error);
+        showNotification('Ошибка при получении информации о бронировании', 'error');
+    });
 }
 
 // Инициализация пагинации
@@ -233,10 +584,13 @@ function initPagination() {
             const page = button.textContent;
             console.log('Переход на страницу:', page);
             
-            // Имитируем загрузку
+            // В реальном приложении здесь будет запрос к API для получения данных для выбранной страницы
+            // Пока просто имитируем загрузку
             showLoading(true);
             setTimeout(() => {
-                showLoading(false);
+                if (window.currentBranchId) {
+                    loadBookings(window.currentBranchId);
+                }
             }, 500);
         });
     }
@@ -246,6 +600,32 @@ function initPagination() {
 function initUserDropdown() {
     const userProfile = document.querySelector('.user-profile');
     const logoutBtn = document.getElementById('logout-btn');
+    
+    // Получаем информацию о пользователе
+    const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+    const isStaff = userData.is_staff === true;
+    
+    // Обновляем содержимое выпадающего меню для персонала
+    if (isStaff && userProfile) {
+        const userDropdown = userProfile.querySelector('.user-dropdown');
+        if (userDropdown) {
+            userDropdown.innerHTML = `
+                <ul>
+                    <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
+                    <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+                </ul>
+            `;
+            
+            // Получаем обновленную ссылку на кнопку выхода
+            const newLogoutBtn = document.getElementById('logout-btn');
+            if (newLogoutBtn) {
+                newLogoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+        }
+    }
     
     if (userProfile) {
         userProfile.addEventListener('click', function() {

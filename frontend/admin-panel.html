@@ -30,11 +30,12 @@
                         <img src="assets/default-avatar.png" alt="Аватар" class="avatar-image">
                     </div>
                     <div class="user-info">
-                        <span class="user-name">Администратор Tokyo (Kawaii)</span>
+                        <span class="user-name">Администратор</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="user-dropdown">
                         <ul>
+                            <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
                             <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
                         </ul>
                     </div>
@@ -45,7 +46,10 @@
 
     <div class="admin-header">
         <div class="container">
-            <h1>Панель администратора ресторана</h1>
+            <div class="admin-header-content">
+                <h1>Панель администратора ресторана</h1>
+                <!-- Селектор филиалов будет добавлен динамически, если у пользователя несколько филиалов -->
+            </div>
         </div>
     </div>
 
@@ -83,106 +87,10 @@
                         </div>
                         
                         <div class="bookings-table-body">
-                            <!-- Бронь 1 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK2456-5</div>
-                                <div class="booking-column booking-name">Андрей</div>
-                                <div class="booking-column booking-phone">+7 (999) 010-00-11</div>
-                                <div class="booking-column booking-datetime">23.06.2025, 19:00</div>
-                                <div class="booking-column booking-table">Ожидает назначения</div>
-                                <div class="booking-column booking-guests">2</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-pending">Новое</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn confirm-btn" title="Подтвердить"><i class="fas fa-check"></i></button>
-                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Бронь 2 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK2246-7</div>
-                                <div class="booking-column booking-name">Василий</div>
-                                <div class="booking-column booking-phone">+7 (999) 111-23-45</div>
-                                <div class="booking-column booking-datetime">23.06.2025, 18:00</div>
-                                <div class="booking-column booking-table">Стол 5</div>
-                                <div class="booking-column booking-guests">4</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-confirmed">Подтверждено</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Бронь 3 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK2523-9</div>
-                                <div class="booking-column booking-name">Дарья</div>
-                                <div class="booking-column booking-phone">+7 (999) 666-34-22</div>
-                                <div class="booking-column booking-datetime">23.06.2025, 18:30</div>
-                                <div class="booking-column booking-table">Стол 4</div>
-                                <div class="booking-column booking-guests">3</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-confirmed">Подтверждено</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Бронь 4 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK2346-4</div>
-                                <div class="booking-column booking-name">София</div>
-                                <div class="booking-column booking-phone">+7 (999) 777-22-11</div>
-                                <div class="booking-column booking-datetime">23.06.2025, 20:00</div>
-                                <div class="booking-column booking-table">Стол 7</div>
-                                <div class="booking-column booking-guests">2</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-confirmed">Подтверждено</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Бронь 5 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK2323-2</div>
-                                <div class="booking-column booking-name">Иван</div>
-                                <div class="booking-column booking-phone">+7 (999) 876-54-32</div>
-                                <div class="booking-column booking-datetime">23.06.2025, 19:30</div>
-                                <div class="booking-column booking-table">Стол 6</div>
-                                <div class="booking-column booking-guests">4</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-confirmed">Подтверждено</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn cancel-btn" title="Отменить"><i class="fas fa-times"></i></button>
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Бронь 6 -->
-                            <div class="booking-row">
-                                <div class="booking-column booking-number">#NK3423-8</div>
-                                <div class="booking-column booking-name">Катя</div>
-                                <div class="booking-column booking-phone">+7 (999) 888-77-66</div>
-                                <div class="booking-column booking-datetime">22.06.2025, 19:00</div>
-                                <div class="booking-column booking-table">Стол 3</div>
-                                <div class="booking-column booking-guests">4</div>
-                                <div class="booking-column booking-status">
-                                    <span class="status-badge status-completed">Завершено</span>
-                                </div>
-                                <div class="booking-column booking-actions">
-                                    <button class="action-btn info-btn" title="Информация"><i class="fas fa-info-circle"></i></button>
-                                </div>
+                            <!-- Брони будут загружены динамически -->
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Загрузка бронирований...</span>
                             </div>
                         </div>
                     </div>
@@ -195,7 +103,7 @@
                     </div>
                     
                     <div class="bookings-summary">
-                        <p>Показано 5 из 25 бронирований</p>
+                        <p>Показано 0 из 0 бронирований</p>
                     </div>
                 </div>
             </section>
@@ -233,6 +141,7 @@
         </div>
     </footer>
 
+    <script src="js/login.js"></script>
     <script src="js/admin-panel.js"></script>
 </body>
 </html> 

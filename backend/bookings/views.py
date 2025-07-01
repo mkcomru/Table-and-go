@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from .models import Booking
 from .serializers import (BookingListSerializer, BookingCreateSerializer, 
                         BookingUpdateSerializer, BookingDetailsSerializer)
+import datetime
 
 
 class BookingListUserView(ListAPIView):
@@ -63,27 +64,50 @@ class BookingCreateView(APIView):
 
 class BookingListBranchView(ListAPIView):
     queryset = Booking.objects.all()
-    serializer_class =  BookingListSerializer
+    serializer_class = BookingListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        user = self.request.user
         queryset = super().get_queryset()
+        
+        if not user.is_staff:
+            return queryset.none()  
+            
         branch_id = self.request.query_params.get('branch_id')
-
-        if branch_id:
-            queryset = queryset.filter(branch_id=branch_id)
-        else:
-            queryset = queryset.none()
+        
+        if user.is_superuser:
+            if branch_id:
+                queryset = queryset.filter(branch_id=branch_id)
+            else:
+                return queryset.none()
+        elif user.is_staff:
+            if hasattr(user, 'administered_branch') and user.administered_branch:
+                queryset = queryset.filter(branch_id=user.administered_branch.id)
+            else:
+                return queryset.none()
         
         status = self.request.query_params.get('status')
-
-        if status == 'pending' or status == 'confirmed':
-            queryset = queryset.filter(status__in=['pending', 'confirmed'])
+        if status == 'pending':
+            queryset = queryset.filter(status='pending')
+        elif status == 'confirmed':
+            queryset = queryset.filter(status='confirmed')
         elif status == 'cancelled':
             queryset = queryset.filter(status='cancelled')
         elif status == 'completed':
             queryset = queryset.filter(status='completed')
-
+        elif status == 'all':
+            pass  
+        
+        date_filter = self.request.query_params.get('date')
+        if date_filter:
+            try:
+                day, month, year = date_filter.split('.')
+                filter_date = datetime.date(int(year), int(month), int(day))
+                queryset = queryset.filter(datetime__date=filter_date)
+            except (ValueError, IndexError):
+                pass
+                
         return queryset
 
 

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import User
 
 
 User = get_user_model()
@@ -16,13 +17,16 @@ class UserSerializer(serializers.ModelSerializer):
     last_password_change = serializers.DateTimeField(source='date_joined', read_only=True, format="%Y-%m-%dT%H:%M:%S")
     is_staff = serializers.BooleanField(read_only=True)
     is_superuser = serializers.BooleanField(read_only=True)
+    administered_branch_id = serializers.IntegerField(source='administered_branch.id', read_only=True)
+    administered_branch_name = serializers.CharField(source='administered_branch.name', read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'first_name', 'last_name', 'email', 'phone', 'photo',
             'date_joined', 'last_login', 'email_notifications', 'sms_notifications',
-            'promo_notifications', 'last_password_change', 'is_staff', 'is_superuser', 'is_system_admin'
+            'promo_notifications', 'last_password_change', 'is_staff', 'is_superuser', 'is_system_admin',
+            'administered_branch_id', 'administered_branch_name'
         ]
         read_only_fields = ['id', 'date_joined', 'last_login', 'last_password_change', 'is_staff', 'is_superuser', 'is_system_admin']
 

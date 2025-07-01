@@ -138,10 +138,10 @@ function updateAuthUI(userData) {
     let userDataFromStorage = {};
     
     if (userDataJson) {
-        try {
+            try {
             userDataFromStorage = JSON.parse(userDataJson);
-        } catch (e) {
-            console.error('Ошибка при парсинге данных пользователя:', e);
+            } catch (e) {
+                console.error('Ошибка при парсинге данных пользователя:', e);
         }
     }
     
@@ -199,7 +199,7 @@ function updateAuthUI(userData) {
     
     // Формируем HTML для выпадающего меню
     let dropdownHtml = `
-        <ul>
+            <ul>
             <li><a href="profile.html"><i class="fas fa-user"></i> Профиль</a></li>
             <li><a href="my-bookings.html" class="active"><i class="fas fa-calendar-alt"></i> Мои брони</a></li>
             <li><a href="my-reviews.html"><i class="fas fa-star"></i> Мои отзывы</a></li>
@@ -214,8 +214,8 @@ function updateAuthUI(userData) {
     
     // Добавляем кнопку выхода
     dropdownHtml += `
-            <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
-        </ul>
+                <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+            </ul>
     `;
     
     userDropdown.innerHTML = dropdownHtml;
@@ -578,7 +578,7 @@ function addButtonHandlers(containerId) {
         const action = button.dataset.action;
         const bookingItem = button.closest('.booking-item');
         const bookingId = bookingItem.dataset.id;
-        const restaurantName = bookingItem.querySelector('.booking-restaurant').textContent;
+            const restaurantName = bookingItem.querySelector('.booking-restaurant').textContent;
         
         // Выполняем соответствующее действие
         switch (action) {
@@ -587,7 +587,7 @@ function addButtonHandlers(containerId) {
                 break;
             
             case 'cancel':
-                if (confirm(`Вы уверены, что хотите отменить бронь в ресторане "${restaurantName}"?`)) {
+            if (confirm(`Вы уверены, что хотите отменить бронь в ресторане "${restaurantName}"?`)) {
                     await cancelBooking(bookingId);
                 }
                 break;

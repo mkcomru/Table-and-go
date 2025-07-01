@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from establishments.models import Branch
 import uuid
 
 
@@ -26,6 +27,8 @@ class User(AbstractUser):
     photo = models.ImageField(upload_to='users/photos/', blank=True, null=True, verbose_name="Фото профиля")
 
     is_system_admin = models.BooleanField(default=False, verbose_name="Администратор системы")
+    administrated_branches = models.ForeignKey(Branch, on_delete=models.CASCADE,
+                                                blank=True, null=True, verbose_name="Филиал")
     
     email_notifications = models.BooleanField(default=True, verbose_name="Уведомления по email")
     sms_notifications = models.BooleanField(default=True, verbose_name="SMS уведомления")
@@ -43,6 +46,9 @@ class User(AbstractUser):
             random_string = str(uuid.uuid4())[:8]
             self.username = f"{base}_{random_string}"
         super().save(*args, **kwargs)
+
+    def is_branch_admin(self, branch_id):
+        return self.is_staff and self.administrated_branches == branch_id
 
     def is_admin_of_branch(self, branch):
         from establishments.models import BranchAdmin

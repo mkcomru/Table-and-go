@@ -19,6 +19,47 @@ body {
     font-weight: 600;
 }
 
+/* Стили для селектора филиалов */
+.admin-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.branch-selector {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+
+.branch-selector label {
+    margin-right: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.branch-selector select {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.branch-selector select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.branch-selector select option {
+    background-color: #8B0000;
+    color: white;
+}
+
 /* Стили для основного содержимого */
 .admin-main {
     padding: 20px 0 40px;
@@ -133,6 +174,18 @@ body {
 
 .booking-row:hover {
     background-color: #f9f9f9;
+}
+
+/* Пустой список броней */
+.empty-bookings {
+    padding: 40px 0;
+    text-align: center;
+    color: #666;
+}
+
+.empty-bookings p {
+    font-size: 16px;
+    margin: 0;
 }
 
 /* Статусы бронирований */
@@ -335,6 +388,15 @@ body {
     
     .booking-actions {
         width: 15%;
+    }
+    
+    .admin-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .branch-selector {
+        margin-top: 10px;
     }
 }
 
