@@ -321,6 +321,16 @@ function initPasswordModal() {
             changePassword();
         });
     }
+    
+    // Добавляем ссылку на восстановление пароля
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeModal();
+            window.location.href = 'reset-password.html';
+        });
+    }
 }
 
 // Функция для смены пароля

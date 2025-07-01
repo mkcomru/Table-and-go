@@ -206,6 +206,10 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 SITE_URL = 'http://127.0.0.1:8000'
 FRONTEND_URL = 'http://localhost:8080'
 
+# Настройки для восстановления пароля
+PASSWORD_RESET_TIMEOUT = 86400  # 24 часа в секундах
+PASSWORD_RESET_URL = 'http://127.0.0.1:8080/reset-password-confirm.html'
+
 # Настройки django-axes
 AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 10
