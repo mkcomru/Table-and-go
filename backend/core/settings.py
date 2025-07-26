@@ -41,12 +41,16 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin', # pip install django-jazzmin
+    # 'django_daisy', pip install django-daisy
     'django.contrib.admin',
+    # 'django.contrib.humanize', pip install django-daisy
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg', 
     'django.contrib.postgres',
     'rest_framework',
     'rest_framework_simplejwt',
